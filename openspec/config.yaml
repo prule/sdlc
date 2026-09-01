@@ -1,0 +1,60 @@
+schema: spec-driven
+
+# Shown to AI when creating artifacts (proposal, design, spec, tasks).
+context: |
+  Tech stack:
+    - Java 25 (use modern language features: records, sealed types, pattern matching, virtual threads)
+    - Spring Boot 3.x (Spring Web, Spring Data JPA, Bean Validation)
+    - PostgreSQL (schema migrations via Flyway)
+    - Build: Gradle (Kotlin DSL)
+    - Testing: JUnit 5, AssertJ, Testcontainers (real Postgres in integration tests), MockMvc/WebTestClient
+
+  Architecture: Clean Architecture (Hexagonal / Ports & Adapters).
+    - domain      : entities, value objects, domain services. NO framework/JPA/Spring imports.
+    - application : use cases / ports (interfaces). Orchestrates domain. Depends only on domain.
+    - adapters    : inbound (REST controllers) + outbound (JPA repositories, external clients). Implements ports.
+    - Dependencies point INWARD only. Domain never imports adapters or Spring.
+
+  Contract-first (API-first):
+    - Every HTTP API is defined in an OpenAPI 3.1 spec BEFORE any controller code.
+    - Server interfaces/DTOs are GENERATED from the OpenAPI spec (openapi-generator, spring interfaces).
+    - The OpenAPI file is the source of truth; controllers implement generated interfaces, never redefine them.
+    - Split the spec by domain (root + paths/ + components/); do not put everything in one file.
+    - 2xx responses use the standard success envelope; errors use RFC 7807 problem+json.
+    - Breaking API changes must be called out explicitly in the proposal.
+
+  Security: stateless JWT bearer auth (OAuth2 resource server). Authorization from token roles/scopes
+  plus ownership/tenant checks. No sensitive PII in tokens; no secrets in source/config.
+
+  Testing: write useful tests for all new code (happy path + edge + failure per requirement); test the
+  pyramid per layer; ALL database tests use Testcontainers against real Postgres — never H2.
+
+  Formatting: Java is auto-formatted with google-java-format via Spotless, applied on commit via a
+  git pre-commit hook and enforced in CI (spotlessCheck).
+
+  Detailed standards live in standards/: clean-architecture.md, openapi.md, error-handling.md,
+  security.md, clean-code.md, testing.md, formatting.md. Honor them when designing.
+
+# Per-artifact rules, injected when that artifact is authored.
+rules:
+  proposal:
+    - Always include a "Non-goals" section.
+    - Call out any breaking API or DB schema change explicitly.
+  design:
+    - "State which OpenAPI operations are added/changed and show the contract snippet."
+    - "Name the domain/application/adapter components touched and confirm dependency direction is inward-only."
+    - "Include the DB migration plan (Flyway) and rollback consideration."
+  specs:
+    - "Each requirement must be independently testable; state the acceptance check."
+  tasks:
+    - "Order tasks: (1) OpenAPI spec, (2) generate stubs, (3) domain, (4) application/ports, (5) outbound adapters + migration, (6) inbound controller, (7) tests at each layer."
+    - "Each task should be completable in under ~2 hours."
+
+operations:
+  apply:
+    guidance:
+      - Run the OpenAPI code generation before implementing controllers.
+      - Add a Flyway migration for any schema change; never edit an applied migration.
+  archive:
+    guidance:
+      - Confirm the OpenAPI spec, migrations, and tests are all committed before archiving.

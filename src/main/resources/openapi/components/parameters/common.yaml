@@ -1,0 +1,10 @@
+CorrelationId:
+  name: X-Correlation-Id
+  in: header
+  required: false
+  description: >-
+    Optional client-supplied correlation id for this request. If omitted, the
+    server generates one and returns it in the response.
+  schema:
+    type: string
+    format: uuid

@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # Testcontainers needs a Docker daemon; GitHub-hosted ubuntu runners provide one by default.
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+
+      - name: Lint OpenAPI spec
+        run: npx --yes @redocly/cli@latest lint src/main/resources/openapi/openapi.yaml
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      # ./gradlew build also validates + generates from the OpenAPI spec (openApiGenerate,
+      # depended on by compileJava), so a spec that fails to parse/resolve fails the build too.
+      - name: Build (compile, lint, test)
+        run: ./gradlew build --no-daemon

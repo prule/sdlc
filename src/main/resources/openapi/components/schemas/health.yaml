@@ -1,0 +1,19 @@
+PingData:
+  type: object
+  required: [status, timestamp]
+  properties:
+    status:
+      type: string
+      enum: [ok]
+    timestamp:
+      type: string
+      format: date-time
+
+PingEnvelope:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      $ref: '../../openapi.yaml#/components/schemas/PingData'
+    meta:
+      $ref: '../../openapi.yaml#/components/schemas/Meta'

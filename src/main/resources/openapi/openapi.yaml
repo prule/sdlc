@@ -1,0 +1,57 @@
+openapi: 3.1.0
+info:
+  title: SDLC API
+  description: Walking-skeleton API for the SDLC platform.
+  version: 0.0.1
+servers:
+  - url: /api/v1
+tags:
+  - name: health
+    description: Liveness and readiness endpoints.
+security:
+  - bearerAuth: []
+paths:
+  /ping:
+    $ref: 'paths/health.yaml'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Envelope:
+      $ref: 'components/schemas/common.yaml#/Envelope'
+    Meta:
+      $ref: 'components/schemas/common.yaml#/Meta'
+    Pagination:
+      $ref: 'components/schemas/common.yaml#/Pagination'
+    Problem:
+      $ref: 'components/schemas/common.yaml#/Problem'
+    PingData:
+      $ref: 'components/schemas/health.yaml#/PingData'
+    PingEnvelope:
+      $ref: 'components/schemas/health.yaml#/PingEnvelope'
+  responses:
+    BadRequest:
+      $ref: 'components/responses/common.yaml#/BadRequest'
+    Unauthorized:
+      $ref: 'components/responses/common.yaml#/Unauthorized'
+    Forbidden:
+      $ref: 'components/responses/common.yaml#/Forbidden'
+    NotFound:
+      $ref: 'components/responses/common.yaml#/NotFound'
+    Conflict:
+      $ref: 'components/responses/common.yaml#/Conflict'
+    UnprocessableEntity:
+      $ref: 'components/responses/common.yaml#/UnprocessableEntity'
+    TooManyRequests:
+      $ref: 'components/responses/common.yaml#/TooManyRequests'
+    InternalError:
+      $ref: 'components/responses/common.yaml#/InternalError'
+  parameters:
+    CorrelationId:
+      $ref: 'components/parameters/common.yaml#/CorrelationId'
+  headers:
+    CorrelationId:
+      $ref: 'components/headers/common.yaml#/CorrelationId'

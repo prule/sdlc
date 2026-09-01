@@ -1,0 +1,71 @@
+Envelope:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      description: The response payload.
+    meta:
+      $ref: '#/Meta'
+
+Meta:
+  type: object
+  required: [timestamp, correlationId]
+  properties:
+    timestamp:
+      type: string
+      format: date-time
+    correlationId:
+      type: string
+      format: uuid
+    pagination:
+      $ref: '#/Pagination'
+
+Pagination:
+  type: object
+  required: [page, size, totalElements, totalPages]
+  properties:
+    page:
+      type: integer
+      minimum: 0
+    size:
+      type: integer
+      minimum: 1
+    totalElements:
+      type: integer
+      format: int64
+    totalPages:
+      type: integer
+
+Problem:
+  type: object
+  required: [type, title, status, code, correlationId]
+  properties:
+    type:
+      type: string
+      format: uri
+    title:
+      type: string
+    status:
+      type: integer
+    detail:
+      type: string
+    instance:
+      type: string
+      format: uri
+    code:
+      type: string
+    correlationId:
+      type: string
+      format: uuid
+    errors:
+      type: array
+      items:
+        type: object
+        required: [field, message]
+        properties:
+          field:
+            type: string
+          message:
+            type: string
+          code:
+            type: string

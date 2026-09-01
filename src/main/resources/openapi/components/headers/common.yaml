@@ -1,0 +1,5 @@
+CorrelationId:
+  description: The correlation id associated with this request.
+  schema:
+    type: string
+    format: uuid

@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# .git hook: format staged Java, then re-stage
+set -euo pipefail
+staged=$(git diff --cached --name-only --diff-filter=ACM -- '*.java' || true)
+[ -z "$staged" ] && exit 0
+./gradlew --quiet spotlessApply
+echo "$staged" | xargs git add

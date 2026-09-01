@@ -1,0 +1,55 @@
+BadRequest:
+  description: The request was malformed.
+  content:
+    application/problem+json:
+      schema:
+        $ref: '../../openapi.yaml#/components/schemas/Problem'
+
+Unauthorized:
+  description: Missing or invalid credentials.
+  content:
+    application/problem+json:
+      schema:
+        $ref: '../../openapi.yaml#/components/schemas/Problem'
+
+Forbidden:
+  description: Authenticated but not allowed to perform this action.
+  content:
+    application/problem+json:
+      schema:
+        $ref: '../../openapi.yaml#/components/schemas/Problem'
+
+NotFound:
+  description: The requested resource does not exist.
+  content:
+    application/problem+json:
+      schema:
+        $ref: '../../openapi.yaml#/components/schemas/Problem'
+
+Conflict:
+  description: The request conflicts with the current state of the resource.
+  content:
+    application/problem+json:
+      schema:
+        $ref: '../../openapi.yaml#/components/schemas/Problem'
+
+UnprocessableEntity:
+  description: Field-level validation failed.
+  content:
+    application/problem+json:
+      schema:
+        $ref: '../../openapi.yaml#/components/schemas/Problem'
+
+TooManyRequests:
+  description: The client has sent too many requests in a given time period.
+  content:
+    application/problem+json:
+      schema:
+        $ref: '../../openapi.yaml#/components/schemas/Problem'
+
+InternalError:
+  description: An unexpected error occurred.
+  content:
+    application/problem+json:
+      schema:
+        $ref: '../../openapi.yaml#/components/schemas/Problem'

@@ -1,0 +1,20 @@
+get:
+  operationId: ping
+  tags: [health]
+  summary: Liveness ping
+  description: Public, unauthenticated liveness endpoint proving the request traverses every layer.
+  security: []
+  parameters:
+    - $ref: '../openapi.yaml#/components/parameters/CorrelationId'
+  responses:
+    '200':
+      description: Service is alive
+      headers:
+        X-Correlation-Id:
+          $ref: '../openapi.yaml#/components/headers/CorrelationId'
+      content:
+        application/json:
+          schema:
+            $ref: '../openapi.yaml#/components/schemas/PingEnvelope'
+    '500':
+      $ref: '../openapi.yaml#/components/responses/InternalError'
