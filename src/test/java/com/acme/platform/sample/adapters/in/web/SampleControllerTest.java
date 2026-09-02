@@ -1,5 +1,6 @@
 package com.acme.platform.sample.adapters.in.web;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.endsWith;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -15,6 +16,8 @@ import com.acme.common.security.SecurityConfig;
 import com.acme.platform.sample.application.port.in.ListSamplesUseCase;
 import com.acme.platform.sample.domain.model.SampleItem;
 import com.acme.platform.sample.domain.model.SamplePage;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -73,6 +76,35 @@ class SampleControllerTest {
         .andExpect(jsonPath("$.meta.pagination.size").value(5))
         .andExpect(jsonPath("$.meta.pagination.totalElements").value(25))
         .andExpect(jsonPath("$.meta.pagination.totalPages").value(5));
+  }
+
+  /**
+   * Regression test for the "explicit JSON null" bug: {@code jsonPath(...).doesNotExist()} treats a
+   * key present with value {@code null} as "does not exist" too, so it alone would NOT have caught
+   * {@code Link.templated}/{@code Link.title}, or an omitted {@code prev}/{@code next}, serializing
+   * as explicit {@code null}. This asserts on the parsed {@link JsonNode} directly.
+   */
+  @Test
+  void listSamples_firstPage_omitsAbsentFieldsRatherThanSerializingThemAsNull() throws Exception {
+    given(listSamplesUseCase.listSamples(0, 5))
+        .willReturn(pageOf(0, 5, 25, List.of(item(1), item(2), item(3), item(4), item(5))));
+
+    String body =
+        mockMvc
+            .perform(get("/samples").param("page", "0").param("size", "5"))
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    JsonNode data = new ObjectMapper().readTree(body).path("data");
+    JsonNode links = data.path("_links");
+    JsonNode selfLink = links.path("self");
+
+    assertThat(links.has("prev")).as("_links.prev is present (should be absent)").isFalse();
+    assertThat(selfLink.has("templated"))
+        .as("self.templated is present (should be absent)")
+        .isFalse();
+    assertThat(selfLink.has("title")).as("self.title is present (should be absent)").isFalse();
   }
 
   @Test

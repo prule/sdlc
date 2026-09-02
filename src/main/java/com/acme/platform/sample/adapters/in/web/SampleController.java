@@ -34,6 +34,13 @@ import org.springframework.web.util.UriComponentsBuilder;
  * openspec/changes/adopt-hal-hypermedia}). {@code @Validated} enforces the generated
  * {@code @Min}/{@code @Max} query-param constraints, since the interface-level {@code @Validated}
  * on {@link SampleApi} is not, by itself, honoured on the implementing bean.
+ *
+ * <p><b>Note on embedded item {@code self} links:</b> each {@code _embedded.samples[]} item carries
+ * a demonstrative {@code self} link shaped like a single-item route ({@code /samples/{id}}), built
+ * purely to prove that embedded HAL items carry their own links. No such route is implemented in
+ * this throwaway proof — following that link 404s/401s. A real catalog capability copying this
+ * pattern MUST add a matching {@code GET /samples/{id}} operation (contract-first) before relying
+ * on the link resolving. See {@link #itemSelfLink(UUID)}.
  */
 @RestController
 @Validated
@@ -75,6 +82,14 @@ public class SampleController implements SampleApi {
     return ResponseEntity.ok(new SampleCollectionEnvelope(data, meta));
   }
 
+  /**
+   * Builds a demonstrative {@code self} link for an embedded item, shaped as {@code
+   * <collection-uri>/{id}}. There is no {@code GET /samples/{id}} operation in the OpenAPI contract
+   * and no controller handles this path — it is intentionally not implemented in this throwaway
+   * proof (it exists only to demonstrate that embedded HAL items carry their own links). Do not
+   * copy this pattern into a real catalog endpoint without first adding the matching single-item
+   * route to the contract.
+   */
   private static Link itemSelfLink(UUID id) {
     URI collectionUri = linkTo(methodOn(SampleApi.class).listSamples(null, null, null)).toUri();
     URI href =

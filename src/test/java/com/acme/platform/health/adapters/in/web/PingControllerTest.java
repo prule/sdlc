@@ -1,5 +1,6 @@
 package com.acme.platform.health.adapters.in.web;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.matchesPattern;
@@ -19,6 +20,8 @@ import com.acme.common.security.ProblemAuthenticationEntryPoint;
 import com.acme.common.security.SecurityConfig;
 import com.acme.platform.health.application.port.in.PingUseCase;
 import com.acme.platform.health.domain.model.PingStatus;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,6 +82,35 @@ class PingControllerTest {
         .perform(get("/api/v1/ping").contextPath("/api/v1"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.data._links.self.href", endsWith("/api/v1/ping")));
+  }
+
+  /**
+   * Regression test for the "explicit JSON null" bug: {@code jsonPath(...).doesNotExist()} treats a
+   * key present with value {@code null} as "does not exist" too (Spring's {@code
+   * JsonPathExpectationsHelper} returns success when the evaluated value is {@code null}), so it
+   * would NOT have caught {@code Link.templated}/{@code Link.title} serializing as explicit {@code
+   * null}. This asserts on the parsed {@link JsonNode} directly, distinguishing a genuinely absent
+   * field from one present with a {@code null} value.
+   */
+  @Test
+  void ping_selfLinkOmitsAbsentOptionalFieldsRatherThanSerializingThemAsNull() throws Exception {
+    given(pingUseCase.ping()).willReturn(PingStatus.ok(Instant.now()));
+
+    String body =
+        mockMvc
+            .perform(get("/ping"))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    JsonNode selfLink = new ObjectMapper().readTree(body).path("data").path("_links").path("self");
+
+    assertThat(selfLink.has("href")).as("self.href is present").isTrue();
+    assertThat(selfLink.has("templated"))
+        .as("self.templated is present (should be absent)")
+        .isFalse();
+    assertThat(selfLink.has("title")).as("self.title is present (should be absent)").isFalse();
   }
 
   @Test
