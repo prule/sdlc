@@ -20,8 +20,17 @@ jobs:
           distribution: temurin
           java-version: "25"
 
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install pinned OpenAPI CLI tooling
+        run: npm ci
+
       - name: Lint OpenAPI spec
-        run: npx --yes @redocly/cli@latest lint src/main/resources/openapi/openapi.yaml
+        run: npx redocly lint src/main/resources/openapi/openapi.yaml
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew

@@ -107,3 +107,42 @@ or a stack trace. See [error-handling.md](error-handling.md) for the code↔stat
 
 - Controllers implement the generated API interface; never hand-write DTOs that duplicate the contract.
 - Lint/validate the spec in CI (`openapi` validation or Spectral); a broken or drifted spec fails the build.
+
+### Pipeline: authored split spec → bundle → generate
+
+`openapi-generator`'s spring generator inlines and renames cross-file `$ref`-composed response
+schemas per operation (e.g. it would emit `Ping200Response`/`Ping200ResponseData`/
+`Ping200ResponseMeta` instead of binding to the shared `PingEnvelope`/`PingData`/`Meta`
+components) if it is fed the multi-file authored spec directly. To keep generated code bound to
+the shared component schemas — one `Problem` model, one envelope type per payload, no
+per-operation `<Operation><Status>Response*` duplicates — the build resolves the authored
+multi-file spec into a single bundled file **before** generation:
+
+1. **Author** the spec split by domain under `src/main/resources/openapi/` (§1) as normal.
+2. **Bundle**: the `bundleOpenApiSpec` Gradle `Exec` task runs `redocly bundle` on the root spec
+   and writes a single resolved file to `build/openapi/openapi.bundled.yaml`. `redocly bundle`
+   lifts every cross-file `$ref` target into that one document's `components` and keeps
+   operations referencing them by name, so the generator sees named component schemas instead of
+   inlined compositions.
+3. **Generate**: `openApiGenerate` consumes the bundled file (`inputSpec` points at it) and
+   `dependsOn("bundleOpenApiSpec")`. `compileJava` already `dependsOn("openApiGenerate")`, so a
+   plain `./gradlew build` runs bundle → generate → compile with no manual pre-step.
+
+The bundled spec is a derived build artifact under `build/` — it is git-ignored and never
+committed. The authored split spec remains the single source of truth; never hand-edit or commit
+the bundled file.
+
+A codegen assertion test (`GeneratedApiCodegenTest`) inspects the generated sources on every
+build and fails if a per-operation `<Operation><Status>Response*` duplicate reappears or if
+`HealthApi.ping()` stops returning the shared `PingEnvelope` type — this catches accidental
+reversion to feeding the generator the multi-file spec directly.
+
+### Bundler provisioning (pinned, deterministic)
+
+`redocly bundle` (and the CI spec-lint step) run via `@redocly/cli`, pinned as a `devDependency`
+in the repo-root `package.json` and installed reproducibly with `npm ci` (never
+`npx @redocly/cli@latest`) — see the committed `package-lock.json`. This keeps bundling
+deterministic (no silent CLI-version drift changing generated output) and lets CI cache
+`node_modules`. Node/npx is therefore a hard dependency of the core `./gradlew build`, not just
+CI; the dev container provisions it. Run `npm ci` once locally (or let the dev container do it)
+before running `./gradlew build`.

@@ -1,0 +1,9 @@
+{
+  "name": "sdlc-openapi-tooling",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Pinned CLI tooling for the OpenAPI contract-first pipeline (bundling + spec lint).",
+  "devDependencies": {
+    "@redocly/cli": "2.50.0"
+  }
+}
