@@ -1,0 +1,68 @@
+{
+  "name": "sdlc",
+
+  // Node toolchain (fnm + Node, OpenSpec + Redocly CLIs) is built from the
+  // Dockerfile. JDK and nested Docker are layered as Features below.
+  "build": { "dockerfile": "Dockerfile" },
+
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1": {},
+    // JDK 25 (Temurin) — the base is not a java image. Gradle uses the wrapper,
+    // so we do not install a separate Gradle distribution here.
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "25",
+      "jdkDistro": "tem",
+      "installGradle": false
+    },
+    // Nested Docker for Testcontainers (real Postgres in integration tests).
+    "ghcr.io/devcontainers/features/docker-in-docker:2": { "moby": true }
+  },
+
+  // Predictable identity; --privileged is required by docker-in-docker.
+  // If a rebuild ever 409s on the name: docker rm -f sdlc-dev
+  "runArgs": ["--name", "sdlc-dev", "--hostname", "sdlc", "--privileged"],
+
+  "forwardPorts": [8080],
+
+  // Volumes — SHARED across every dev container on the machine (name + path are
+  // the sharing mechanism; never rename per project):
+  //   - devcontainer-cache  -> /cache : the Gradle cache (/cache/gradle).
+  //   - devcontainer-claude -> ~/.claude, devcontainer-gh -> ~/.config/gh :
+  //     the `claude` / `gh` logins — log in ONCE per machine, survives rebuilds.
+  //     Requires CLAUDE_CONFIG_DIR / GH_CONFIG_DIR below, without which these
+  //     volumes persist everything EXCEPT the credentials.
+  // PER-PROJECT (isolated, disposable):
+  //   - sdlc-dind -> /var/lib/docker : nested Docker images.
+  "mounts": [
+    "source=devcontainer-cache,target=/cache,type=volume",
+    "source=devcontainer-claude,target=/home/vscode/.claude,type=volume",
+    "source=devcontainer-gh,target=/home/vscode/.config/gh,type=volume",
+    "source=sdlc-dind,target=/var/lib/docker,type=volume"
+  ],
+
+  // containerEnv (NOT remoteEnv) so every process inherits it.
+  //   GRADLE_USER_HOME -> the shared Gradle cache.
+  //   CLAUDE_CONFIG_DIR / GH_CONFIG_DIR are NOT optional — they are what make the
+  //   login volumes above actually hold the credentials (Claude keeps the account
+  //   in ~/.claude.json and gh derives its dir from $XDG_CONFIG_HOME, both of
+  //   which otherwise escape the mounts; the JetBrains backend also re-points
+  //   XDG_CONFIG_HOME, so GH_CONFIG_DIR's absolute path outranks it).
+  "containerEnv": {
+    "GRADLE_USER_HOME": "/cache/gradle",
+    "OPENSPEC_TELEMETRY": "0",
+    "CLAUDE_CONFIG_DIR": "/home/vscode/.claude",
+    "GH_CONFIG_DIR": "/home/vscode/.config/gh"
+  },
+
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "remoteUser": "vscode",
+
+  "customizations": {
+    "vscode": {
+      "extensions": ["vscjava.vscode-java-pack", "redhat.vscode-yaml"],
+      "settings": { "terminal.integrated.defaultProfile.linux": "zsh" }
+    },
+    "jetbrains": { "backend": "IntelliJ" }
+  }
+}
