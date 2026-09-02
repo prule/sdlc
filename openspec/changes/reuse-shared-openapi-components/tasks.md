@@ -1,11 +1,12 @@
-<!-- Gate: design.md Open Questions flags a human decision — accepting Node/npx as a hard
-     dependency of the core build. Confirm that before starting task group 2. -->
+<!-- Settled: Node/npx (pinned @redocly/cli) as a hard dependency of the core build is
+     accepted — the dev container bakes in redocly. No gate; proceed. -->
+
 
 ## 1. Provision the bundler (deterministic)
 
 - [ ] 1.1 Add a committed `package.json` at repo root pinning `@redocly/cli` to a fixed stable version as a `devDependency`; add `package-lock.json`.
-- [ ] 1.2 Align the CI spec-lint step in `.github/workflows/ci.yml` to run the pinned `@redocly/cli` (via `npm ci` + local binary) instead of `@redocly/cli@latest`; add a Node setup step and cache `node_modules`.
-- [ ] 1.3 Add the bundled-spec output path (`build/openapi/openapi.bundled.yaml`) to `.gitignore`.
+- [ ] 1.2 Align the CI spec-lint step in `.github/workflows/ci.yml` to run the pinned `@redocly/cli` (via `npm ci` + local binary) instead of `@redocly/cli@latest`; add a Node setup step and cache `node_modules`. Note: the lint target REMAINS the authored spec (`src/main/resources/openapi/openapi.yaml`) — do not repoint lint at the bundled `build/openapi/...` artifact.
+- [ ] 1.3 Confirm the bundled output under `build/` (`build/openapi/openapi.bundled.yaml`) is git-ignored — already covered by the existing `build/` rule in `.gitignore`; do not add a duplicate entry.
 
 ## 2. Wire bundle → generate into the Gradle build
 
@@ -15,7 +16,8 @@
 ## 3. Regenerate and confirm reuse
 
 - [ ] 3.1 Run a clean `./gradlew clean openApiGenerate`; confirm `HealthApi.ping()` returns `ResponseEntity<PingEnvelope>` and that `Ping200Response`, `Ping200ResponseData`, `Ping200ResponseMeta`, `Ping200ResponseMetaPagination`, `Ping500Response`, and `Ping500ResponseErrorsInner` are no longer generated.
-- [ ] 3.2 Confirm exactly one `Problem` model is generated and that error responses resolve to it; run `./gradlew build` and confirm the existing controller compiles against the new generated signature with no source changes and existing web tests pass.
+- [ ] 3.2 Update `PingController` (inbound web adapter) to the new generated signature: return `ResponseEntity<PingEnvelope>`; build the payload from the shared types — `PingData.StatusEnum` replaces `Ping200ResponseData.StatusEnum`, `new Meta(timestamp, correlationId)` replaces `new Ping200ResponseMeta(...)`, `new PingEnvelope(data, meta)` replaces `new Ping200Response(...)`; fix imports. Mapping logic and emitted JSON are unchanged.
+- [ ] 3.3 Confirm exactly one `Problem` model is generated and that error responses resolve to it; run `./gradlew build` and confirm it compiles against the updated controller and the existing web tests pass unchanged (the wire shape is identical).
 
 ## 4. Verify the fix generalizes (second endpoint)
 

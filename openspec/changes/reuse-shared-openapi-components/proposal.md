@@ -45,6 +45,13 @@ the reuse that `standards/openapi.md` §2–3 mandates (code-review Finding 3).
   version; a `package.json` may pin the CLI as a devDependency for deterministic/offline
   provisioning. `.gitignore` covers the bundled spec output.
 - **Generated code**: `HealthApi.ping()` returns `ResponseEntity<PingEnvelope>`; the
-  `PingNNNResponse*` model classes are no longer generated. No hand-written source changes.
+  `PingNNNResponse*` model classes are no longer generated.
+- **Hand-written source**: `PingController` (the inbound web adapter) is edited — its one
+  mapping is repointed from the deleted `Ping200Response*` types to the shared `PingEnvelope`,
+  `PingData`, and `Meta` types. This is the only production Java change and it stays within the
+  inbound adapter. No domain/application change, no breaking change, and **no runtime behavior
+  change**: the JSON wire shape is identical (shared `Meta` = `{timestamp, correlationId,
+  pagination?}`, `PingData` = `{status, timestamp}`, field-for-field matching the current
+  `Ping200Response*`), so existing web tests stay valid.
 - **Docs**: `standards/openapi.md` §5 updated.
 - **No API, DB schema, or runtime behavior change. No breaking change.**
