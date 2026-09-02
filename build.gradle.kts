@@ -67,6 +67,8 @@ val bundleOpenApiSpec =
         description = "Bundles the authored multi-file OpenAPI spec into a single resolved file via redocly."
         group = "openapi tools"
         inputs.dir(openApiSourceDir)
+        // Track the pinned bundler version so a redocly bump re-bundles instead of serving a stale artifact.
+        inputs.file(file("$rootDir/package-lock.json"))
         outputs.file(openApiBundledSpec)
         doFirst { openApiBundledSpec.parentFile.mkdirs() }
         commandLine(

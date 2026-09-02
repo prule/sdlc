@@ -30,7 +30,7 @@ jobs:
         run: npm ci
 
       - name: Lint OpenAPI spec
-        run: npx redocly lint src/main/resources/openapi/openapi.yaml
+        run: npx --no-install redocly lint src/main/resources/openapi/openapi.yaml
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
