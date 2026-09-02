@@ -1,27 +1,30 @@
 # Bounded contexts (subdomains / capabilities)
 
-The system is split into bounded contexts, each owning its own language and rules. A ticket should
-name the context it belongs to; new capabilities become `openspec/specs/<context>/<capability>`.
-Keep this map current as contexts are added.
+Each context owns its own language and rules. A ticket should name the context it belongs to; new
+capabilities become `openspec/specs/<context>/<capability>`.
 
-## Current
-
-### `platform`
-Cross-cutting technical foundation every other context builds on (not a business domain per se).
+## `platform`
+Cross-cutting technical foundation every other context builds on (not a business domain).
 - **health-check** — liveness/ping endpoint. (`openspec/specs/platform/health-check`)
 - **api-codegen** — contract-first OpenAPI bundle→generate pipeline. (`openspec/specs/platform/api-codegen`)
 
-### `identity`
-Accounts, credentials, and (later) authentication-adjacent concerns. This service is a JWT
-**resource server** — it verifies tokens; an external auth server issues them.
-- **user-account** *(planned)* — account aggregate, password policy, password hashing; registration.
-- Future: password reset, and integration points for the external auth server.
+## `catalog` (the product)
+The movie database and its public read API. All consumer-facing capabilities live here.
+- **movies** *(planned)* — the Movie aggregate; retrieve movie detail by id.
+- **search** *(planned)* — search movies by title with filters (genre, year, rating), pagination, sorting.
+- **people** *(planned)* — Person detail and their credits (cast/crew).
+- **genres-keywords** *(planned)* — browse/list genres and keywords; filter movies by them.
+- **ratings-reviews** *(planned)* — a movie's aggregate rating and its curated reviews (read-only).
 
-## Planned / candidate contexts
-- TODO: list the real business subdomains (e.g. `ordering`, `billing`, `catalog`, `notifications`).
-  For each: its responsibility, the key entities it owns, and how it relates to others
-  (upstream/downstream, shared kernel, etc.).
+All `catalog` capabilities are **read-only** and **public** (no auth); see business-rules.md.
+
+## Out of scope for this system
+- **identity / auth** — there are no user accounts; the read API is open. (Any future *admin* surface
+  for curation would introduce auth, but that is not part of this product.)
+- **curation / ingestion** — data is created and maintained out-of-band; not modeled here.
 
 ## Context relationships
-- TODO: describe how contexts interact (who calls whom, what data crosses boundaries). A simple list
-  or a mermaid diagram is fine.
+- `catalog` depends on `platform` (envelope, error handling, correlation id, OpenAPI pipeline).
+- Within `catalog`: **search** and **movies** reference **genres-keywords** (filtering) and surface
+  **ratings-reviews** and **people** (credits) on movie detail. A single read may compose across these.
+- TODO: if the catalog grows, decide whether people/ratings become their own contexts vs. sub-areas of `catalog`.

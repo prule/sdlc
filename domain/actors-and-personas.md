@@ -1,20 +1,19 @@
 # Actors & personas
 
-Who and what the system serves. Tickets' user stories ("As a &lt;persona&gt; …") must use a persona
-named here. Add external systems too — they shape integration tickets.
+Who and what the system serves. User stories ("As a &lt;persona&gt; …") must use a persona named here.
 
-## Human personas
+## Human / consumer personas
 | Persona | Description | Primary goals / what they can do |
 |---------|-------------|----------------------------------|
-| End user | TODO: a person with a user account | TODO: register, sign in (via auth server), manage own data |
-| Admin | TODO: internal operator | TODO: … |
-| TODO | TODO | TODO |
+| API consumer (developer) | A third-party developer integrating our catalog into their own app/site. **The main customer.** | Search movies, retrieve movie/person detail, browse genres/keywords, read ratings/reviews — all read-only, over HTTP. |
+| End user (indirect) | A person using the consumer's app. Never calls our API directly. | Shapes what consumers need (fast search, rich detail), but is not our direct actor. |
+| Curator (internal, out-of-band) | Internal editorial staff who create/maintain the catalog **outside this API**. | Not an actor *of this API* — listed so we remember the data has an owner. Their tooling is out of scope. |
 
 ## External systems
 | System | Role | Interaction |
 |--------|------|-------------|
-| Auth server (external) | Issues/validates JWTs | This service is a resource server: it verifies bearer tokens, never issues them. |
-| TODO (e.g. email provider) | TODO | TODO: e.g. sends transactional email (reset links) |
-| TODO (e.g. payment gateway) | TODO | TODO |
+| API gateway / CDN | Public entry point | Likely fronts the API for TLS, caching, and IP rate limiting. TODO: confirm whether rate limiting lives at the gateway or in-app. |
+| (none required for data) | — | Data is curated internally; no external data provider is a dependency. |
 
-> A persona/system referenced in a ticket but missing here is a signal to add it.
+> No auth server / identity provider — the read API is public. If an admin surface is added later,
+> add its actors and the auth server here at that point.

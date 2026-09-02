@@ -1,23 +1,34 @@
 # Product overview
 
-> TODO: replace the placeholders with the real product context. This is the single most valuable
-> input for writing good tickets — spend time here.
-
 ## What we're building
-TODO: One paragraph — what the product is and who it's for.
+A **movie database** exposed as a **public, read-only REST API** for searching and retrieving movie
+data — movies and their people (cast & crew), genres/keywords, and ratings/reviews. Consumers are
+developers building their own apps/sites on top of our catalog.
 
 ## The problem / why it matters
-TODO: The user/business problem this solves; what's painful today.
+Developers need reliable, well-structured movie data (search + detail) without running their own
+catalog. We provide a clean, fast, well-documented API over a **curated** dataset.
 
-## Goals (this phase / this quarter)
-- TODO: measurable or concrete goal
-- TODO: …
+## Goals
+- A public REST API to **search** movies (by title, with filters) and **retrieve** full detail for a
+  movie, person, genre, etc.
+- High-quality, consistent, curated data (accuracy over volume).
+- Fast, predictable responses; easy for third-party developers to adopt.
 
 ## Non-goals / explicitly out of scope
-- TODO: things we are deliberately not doing (prevents scope creep in tickets)
+- **No authentication / user accounts** — the read API is open to the public (see business-rules.md).
+- **No writes through the API** — it is read-only. Data is created/maintained **out-of-band** by
+  internal curation; that admin/ingestion process is not part of this API product.
+- **No user-generated content** — reviews/ratings are curated data we serve, not submitted by API users.
+- No recommendations/personalisation, no streaming/playback, no commerce.
 
-## Primary personas (see actors-and-personas.md for detail)
-- TODO: e.g. "End user", "Admin", "Support agent"
+## Primary personas (detail in actors-and-personas.md)
+- **API consumer (developer)** — the main customer; integrates our API into their product.
+- **End user (indirect)** — uses the consumer's app; never talks to us directly.
+- **Curator (internal, out-of-band)** — maintains the catalog outside this API's scope.
 
-## Key constraints (business, legal, compliance)
-- TODO: e.g. data residency, GDPR, PCI, SLAs — anything a ticket must respect
+## Key constraints
+- **Public access** → abuse control is via **rate limiting** (not auth). See business-rules.md.
+- Data is **curated internally**; the API only ever reads it.
+- Movie metadata licensing/attribution: TODO — confirm any attribution or licensing obligations for
+  the catalog data.
