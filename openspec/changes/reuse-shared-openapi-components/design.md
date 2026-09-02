@@ -29,12 +29,14 @@ ResponseEntity<PingEnvelope> ping(UUID xCorrelationId);   // was ResponseEntity<
 
 ### Components touched (dependency direction)
 
-Build tooling only: `build.gradle.kts`, `.github/workflows/ci.yml`, `.gitignore`, optional
-`package.json`, and `standards/openapi.md`. No `domain`, `application`, or `adapters` source
-changes. The controller already implements the generated `HealthApi`; when the generated
-return type becomes `PingEnvelope`, the existing controller mapping continues to satisfy the
-generated interface. Dependency direction (inward-only) is unaffected — no production Java
-moves between layers.
+Build tooling: `build.gradle.kts`, `.github/workflows/ci.yml`, optional `package.json`, and
+`standards/openapi.md`. One production Java file: `PingController` (the inbound web adapter).
+It currently imports and constructs the deleted `Ping200Response`/`Ping200ResponseData`/
+`Ping200ResponseMeta` types and overrides `ResponseEntity<Ping200Response> ping(UUID)`; once
+those models stop being generated the file will not compile, so its single mapping is
+repointed to the shared `PingEnvelope`/`PingData`/`Meta` types (see D5). This edit is confined
+to the inbound adapter — no `domain` or `application` change — so dependency direction
+(inward-only) is unaffected and no production Java moves between layers.
 
 ## Goals / Non-Goals
 
@@ -98,26 +100,41 @@ build. Alternative — one-off manual check — leaves no regression guard; reje
 
 ### D4. Bundled spec is a build artifact, git-ignored
 
-Write the bundled spec under `build/` and add it to `.gitignore`. It is derived from the
-authored spec on every build; committing it would create a second source of truth that can
-drift. The authored split spec under `src/main/resources/openapi/` remains the single source.
+Write the bundled spec under `build/`, which the existing `.gitignore` `build/` rule already
+covers. It is derived from the authored spec on every build; committing it would create a
+second source of truth that can drift. The authored split spec under
+`src/main/resources/openapi/` remains the single source.
+
+### D5. Repoint `PingController` to the shared generated types (required, not optional)
+
+Removing the `Ping200Response*` family breaks `PingController`, which imports and constructs
+them. The controller's `ping` mapping is updated in lockstep with regeneration: return type
+`ResponseEntity<PingEnvelope>`; `PingData.StatusEnum` replaces `Ping200ResponseData.StatusEnum`;
+`new Meta(timestamp, correlationId)` replaces `new Ping200ResponseMeta(...)`; `new
+PingEnvelope(data, meta)` replaces `new Ping200Response(...)`; imports fixed. The mapping logic
+and the emitted JSON are unchanged — the shared schemas are field-for-field identical to the
+per-operation copies — so this is a mechanical rename within the inbound adapter, not a
+behavior change. Alternative — leaving the controller untouched — does not compile; there is no
+zero-edit path.
 
 ## Risks / Trade-offs
 
-- **Node/npx becomes a hard dependency of the core `./gradlew build`, not just CI.** → Provision
-  Node in the dev environment (a devcontainer scaffold is available in this repo's tooling) and
-  document the requirement in `standards/openapi.md` §5; pin the CLI via `package.json` (D2) so
-  provisioning is one `npm ci`. This is the primary tradeoff and needs a human sign-off (see
-  Open Questions) — a bare-host developer without Node can no longer build.
+- **Node/npx becomes a hard dependency of the core `./gradlew build`, not just CI.** → Node is
+  provisioned in the dev environment (the dev container bakes in redocly) and the requirement is
+  documented in `standards/openapi.md` §5; the CLI is pinned via `package.json` (D2) so
+  provisioning is one `npm ci`. This is the primary tradeoff and has been accepted (see Settled
+  Decisions) — a bare-host developer without Node can no longer build.
 - **Air-gapped / offline builds.** → `npx @latest` would fetch on every run; the pinned
   `package.json` + warm npm cache (D2) lets `npm ci` run offline. First provisioning still needs
   network or a pre-seeded cache/mirror.
 - **redocly `bundle` output shape changes across versions could alter generated names.** →
   Pinned version (D2) plus the codegen assertion test (D3) catch any drift at build time.
-- **Generated `ping` return type changes from `Ping200Response` to `PingEnvelope`.** → The
-  controller implements the generated interface and already builds the envelope payload;
-  recompilation against the new signature is the intended outcome, covered by existing web tests
-  plus the new codegen test. No runtime behavior change.
+- **Generated `ping` return type changes from `Ping200Response` to `PingEnvelope`, and the
+  `Ping200Response*` models are deleted, so `PingController` stops compiling.** → `PingController`
+  is edited in the same change to build the payload from the shared `PingEnvelope`/`PingData`/
+  `Meta` types (D5); the edit is a mechanical rename confined to the inbound adapter. The wire
+  shape is identical, so existing web tests stay valid and there is no runtime behavior change;
+  the new codegen test guards against regression.
 
 ## Migration Plan
 
@@ -126,17 +143,20 @@ build-config change deployed via the normal PR/CI flow:
 1. Add pinned `package.json` + `bundleOpenApiSpec` task; repoint `openApiGenerate`; ignore the
    bundled artifact.
 2. Regenerate; confirm `HealthApi.ping()` returns `ResponseEntity<PingEnvelope>` and no
-   `Ping*Response*` models remain; the existing controller compiles unchanged.
+   `Ping*Response*` models remain; update `PingController` to the shared types (D5) so the build compiles.
 3. Add the codegen assertion test; update `standards/openapi.md` §5; align the CI lint version.
 
 Rollback: revert the build-config commit — `openApiGenerate` returns to the multi-file input
 and the prior generated shape. No data or contract to unwind.
 
+## Settled Decisions
+
+- **Node/redocly as a core-build dependency — accepted.** Making Node/npx (via the pinned
+  `@redocly/cli`) a hard dependency of the core `./gradlew build`, not just CI, is accepted: the
+  dev container bakes in redocly, so local builds have it provisioned, and Option A proceeds
+  rather than being held for a JVM-only bundler.
+
 ## Open Questions
 
-- **Human decision required:** Is making Node/npx a hard dependency of the core `./gradlew
-  build` (not just CI) acceptable, given every local build and any air-gapped build now needs
-  Node provisioned? If not acceptable, the change should be held pending a substantiated
-  JVM-only bundler (Option B) rather than shipped.
 - Exact `@redocly/cli` version to pin — pick the current stable at implementation time and
-  match CI to it (does not change the approach or task breakdown).
+  match CI to it (a minor detail; does not change the approach or task breakdown).

@@ -22,6 +22,9 @@ repositories {
 }
 
 val openApiOutputDir = layout.buildDirectory.dir("generated").get().asFile
+val openApiSourceSpec = file("$rootDir/src/main/resources/openapi/openapi.yaml")
+val openApiSourceDir = file("$rootDir/src/main/resources/openapi")
+val openApiBundledSpec = layout.buildDirectory.file("openapi/openapi.bundled.yaml").get().asFile
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
@@ -59,9 +62,29 @@ sourceSets {
     }
 }
 
+val bundleOpenApiSpec =
+    tasks.register<Exec>("bundleOpenApiSpec") {
+        description = "Bundles the authored multi-file OpenAPI spec into a single resolved file via redocly."
+        group = "openapi tools"
+        inputs.dir(openApiSourceDir)
+        // Track the pinned bundler version so a redocly bump re-bundles instead of serving a stale artifact.
+        inputs.file(file("$rootDir/package-lock.json"))
+        outputs.file(openApiBundledSpec)
+        doFirst { openApiBundledSpec.parentFile.mkdirs() }
+        commandLine(
+            "npx",
+            "--no-install",
+            "redocly",
+            "bundle",
+            openApiSourceSpec.path,
+            "--output",
+            openApiBundledSpec.path,
+        )
+    }
+
 openApiGenerate {
     generatorName.set("spring")
-    inputSpec.set("$rootDir/src/main/resources/openapi/openapi.yaml")
+    inputSpec.set(openApiBundledSpec.path)
     outputDir.set(openApiOutputDir.path)
     apiPackage.set("com.acme.generated.api")
     modelPackage.set("com.acme.generated.model")
@@ -84,6 +107,7 @@ openApiGenerate {
 }
 
 tasks.withType<GenerateTask> {
+    dependsOn(bundleOpenApiSpec)
     outputs.cacheIf { true }
 }
 

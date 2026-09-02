@@ -2,9 +2,9 @@ package com.acme.platform.health.adapters.in.web;
 
 import com.acme.common.web.CorrelationId;
 import com.acme.generated.api.HealthApi;
-import com.acme.generated.model.Ping200Response;
-import com.acme.generated.model.Ping200ResponseData;
-import com.acme.generated.model.Ping200ResponseMeta;
+import com.acme.generated.model.Meta;
+import com.acme.generated.model.PingData;
+import com.acme.generated.model.PingEnvelope;
 import com.acme.platform.health.application.port.in.PingUseCase;
 import com.acme.platform.health.domain.model.PingStatus;
 import java.time.OffsetDateTime;
@@ -28,18 +28,17 @@ public class PingController implements HealthApi {
   }
 
   @Override
-  public ResponseEntity<Ping200Response> ping(UUID xCorrelationId) {
+  public ResponseEntity<PingEnvelope> ping(UUID xCorrelationId) {
     PingStatus status = pingUseCase.ping();
     String correlationId = CorrelationId.current();
 
-    Ping200ResponseData data =
-        new Ping200ResponseData(
-            Ping200ResponseData.StatusEnum.fromValue(status.status()),
+    PingData data =
+        new PingData(
+            PingData.StatusEnum.fromValue(status.status()),
             status.timestamp().atOffset(ZoneOffset.UTC));
 
-    Ping200ResponseMeta meta =
-        new Ping200ResponseMeta(OffsetDateTime.now(ZoneOffset.UTC), UUID.fromString(correlationId));
+    Meta meta = new Meta(OffsetDateTime.now(ZoneOffset.UTC), UUID.fromString(correlationId));
 
-    return ResponseEntity.ok(new Ping200Response(data, meta));
+    return ResponseEntity.ok(new PingEnvelope(data, meta));
   }
 }
