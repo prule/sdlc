@@ -125,7 +125,9 @@ repo in it and everything (JDK 25, Node, redocly, OpenSpec CLI, Docker-in-Docker
 
 ## Observability — see what the pipeline did
 
-Hooks log every event to `logs/pipeline-events.jsonl` (git-ignored). Render the dashboard:
+Two complementary options (run both, compare):
+
+**1. Hooks (lightweight, zero infra)** — log every event to `logs/pipeline-events.jsonl` (git-ignored):
 
 ```
 python3 .claude/hooks/pipeline-report.py     # → logs/pipeline-report.html
@@ -134,6 +136,18 @@ python3 .claude/hooks/pipeline-report.py     # → logs/pipeline-report.html
 Shows agents spawned (+ roles), tool-usage counts, skills invoked, files read/written, and a
 filterable event timeline. Clear the log for a fresh baseline: `: > logs/pipeline-events.jsonl`.
 Hooks load at session start, so config changes take effect next `claude` session.
+
+**2. OpenTelemetry + Grafana (cost/tokens/trends)** — Claude Code's built-in telemetry → Collector →
+Prometheus + Loki → Grafana. Full guide: **[observability/otel/README.md](observability/otel/README.md)**.
+
+```
+docker compose -f observability/otel/docker-compose.yml up -d          # start
+set -a && source observability/otel/telemetry.env && set +a && claude  # run pipeline with telemetry
+open http://localhost:3000                                             # view (Grafana)
+docker compose -f observability/otel/docker-compose.yml down           # stop
+```
+
+Hooks answer "what did this run touch?"; OTel answers "what did it cost, how many tokens, how does it trend?"
 
 ---
 
