@@ -1,0 +1,115 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "graphTooltip": 0,
+  "time": { "from": "now-6h", "to": "now" },
+  "refresh": "10s",
+  "schemaVersion": 39,
+  "tags": ["claude-code", "otel"],
+  "title": "Claude Code — OpenTelemetry",
+  "uid": "claude-code-otel",
+  "templating": {
+    "list": [
+      {
+        "name": "session",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "query": { "query": "label_values(session_id)", "refId": "vars" },
+        "refresh": 2,
+        "includeAll": true,
+        "multi": true,
+        "current": { "text": "All", "value": "$__all" }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "type": "stat",
+      "title": "Total cost (USD)",
+      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "currencyUSD", "decimals": 3 } },
+      "targets": [
+        { "refId": "A", "expr": "sum({__name__=~\"claude_code_cost_usage.*_total\"})" }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Sessions",
+      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "refId": "A", "expr": "sum({__name__=~\"claude_code_session.*_total\"})" }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Total tokens",
+      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "targets": [
+        { "refId": "A", "expr": "sum({__name__=~\"claude_code_token_usage.*_total\"})" }
+      ]
+    },
+    {
+      "type": "stat",
+      "title": "Lines of code changed",
+      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [
+        { "refId": "A", "expr": "sum({__name__=~\"claude_code_lines_of_code.*_total\"})" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Tokens by type (rate)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 5 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "targets": [
+        { "refId": "A", "expr": "sum by (type) (increase({__name__=~\"claude_code_token_usage.*_total\"}[$__rate_interval]))", "legendFormat": "{{type}}" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Cost over time (USD, increase)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 5 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "currencyUSD" } },
+      "targets": [
+        { "refId": "A", "expr": "sum by (model) (increase({__name__=~\"claude_code_cost_usage.*_total\"}[$__rate_interval]))", "legendFormat": "{{model}}" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Tool / edit decisions (rate)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 13 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "targets": [
+        { "refId": "A", "expr": "sum by (tool_name, decision) (increase({__name__=~\"claude_code.*decision.*_total\"}[$__rate_interval]))", "legendFormat": "{{tool_name}} {{decision}}" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Active time (seconds, rate)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 13 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "targets": [
+        { "refId": "A", "expr": "sum(increase({__name__=~\"claude_code_active_time.*_total\"}[$__rate_interval]))", "legendFormat": "active" }
+      ]
+    },
+    {
+      "type": "logs",
+      "title": "Events (Loki) — user prompts, tool results, api requests",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 21 },
+      "datasource": { "type": "loki", "uid": "loki" },
+      "options": { "showTime": true, "wrapLogMessage": true, "dedupStrategy": "none", "enableLogDetails": true },
+      "targets": [
+        { "refId": "A", "expr": "{service_name=\"claude-code\"}" }
+      ]
+    }
+  ]
+}
