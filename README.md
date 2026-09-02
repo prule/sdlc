@@ -21,10 +21,29 @@ what happens and how to do each piece by hand.
 
 ---
 
+## Step 0 — write the ticket first
+
+For anything non-trivial (especially features), author the ticket before running the pipeline — the
+pipeline serves the requirement, it shouldn't invent it.
+
+```
+/write-ticket <rough idea>          # interactive: asks you the gaps, saves to tickets/
+```
+
+or delegate a one-shot draft: `Use the ticket-writer agent to draft a ticket for: <idea>`.
+
+Both read the **[domain/](domain/)** knowledge base (ubiquitous language, bounded contexts, actors,
+business rules) and **[standards/](standards/)**, so tickets use the right language and NFRs. Tickets
+live in **[tickets/](tickets/)** ([template](tickets/TEMPLATE.md)); they capture **what & why**, not
+**how**. Keep `domain/` current — it's what makes the tickets (and plans) good.
+
+---
+
 ## The team (`.claude/agents/`)
 
 | Agent | Model | Can write? | Job | OpenSpec verb |
 |-------|-------|-----------|-----|---------------|
+| **ticket-writer** | opus | yes (tickets) | Rough idea → a well-formed ticket (from `domain/` + `standards/`) | — (pre-pipeline) |
 | **architect** | opus | yes | Ticket → plan (proposal, design, spec delta, tasks) | `opsx:propose` |
 | **spec-reviewer** | opus | no (read-only) | Plan gate: standards conformance + design/feasibility | — |
 | **junior-dev** | sonnet | yes | Implement the tasks | `opsx:apply` |

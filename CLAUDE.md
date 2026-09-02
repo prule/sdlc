@@ -48,3 +48,9 @@ com.acme.<feature>
 - **[standards/clean-code.md](standards/clean-code.md)** — small single-responsibility classes, naming, immutability, review smells.
 - **[standards/testing.md](standards/testing.md)** — useful tests for all new code, the per-layer pyramid, Testcontainers for all DB tests (no H2).
 - **[standards/formatting.md](standards/formatting.md)** — google-java-format via Spotless, auto-formatted on commit (pre-commit hook), enforced in CI.
+
+## Domain knowledge
+Business/domain context (ubiquitous language, bounded contexts, actors, business rules) lives in
+**[domain/](domain/)** — the "what & why" the code can't tell you. Read it before writing tickets or
+plans so work uses the right language, personas, and rules. When a change introduces new domain
+language or a durable rule, record it in `domain/`.
