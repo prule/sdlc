@@ -19,5 +19,6 @@ of finishing the work. Prefer short, precise entries over prose.
 **This is not:** API contracts (see `openspec/specs/`), engineering standards (see `standards/`), or
 implementation detail. It is the domain — the language and rules of the business.
 
-> Much of this file set is a **template seeded with what's known so far**. Fill the `TODO` markers
-> with real domain knowledge; that is what makes the ticket-writer genuinely useful.
+> Populated for the **movie database** product: a public, read-only REST API to search and retrieve
+> curated movie data (movies, people, genres/keywords, ratings/reviews). A few `TODO` markers remain
+> for details still to confirm (rating scale, rate-limit values, page-size defaults, data licensing).
