@@ -1,6 +1,7 @@
 package com.acme.platform.health.adapters.in.web;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.not;
 import static org.mockito.BDDMockito.given;
@@ -56,11 +57,38 @@ class PingControllerTest {
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.data.status").value("ok"))
         .andExpect(jsonPath("$.data.timestamp").value("2026-01-01T12:00:00Z"))
+        .andExpect(jsonPath("$.data._links.self.href", endsWith("/ping")))
         .andExpect(
             jsonPath("$.meta.correlationId")
                 .value(
                     matchesPattern(
                         "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}")));
+  }
+
+  /**
+   * MockMvc, unlike the real embedded server, does not apply {@code server.servlet.context-path}
+   * unless the request explicitly carries it, so this test sets {@code contextPath} to prove the
+   * self link resolves the full, real deployed path ({@code /api/v1/ping}) — the acceptance check
+   * in the hypermedia-links spec.
+   */
+  @Test
+  void ping_selfLinkAddressesTheFullDeployedPath() throws Exception {
+    given(pingUseCase.ping()).willReturn(PingStatus.ok(Instant.now()));
+
+    mockMvc
+        .perform(get("/api/v1/ping").contextPath("/api/v1"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.data._links.self.href", endsWith("/api/v1/ping")));
+  }
+
+  @Test
+  void ping_includesTheXCorrelationIdResponseHeader() throws Exception {
+    given(pingUseCase.ping()).willReturn(PingStatus.ok(Instant.now()));
+
+    mockMvc
+        .perform(get("/ping"))
+        .andExpect(status().isOk())
+        .andExpect(header().exists("X-Correlation-Id"));
   }
 
   @Test

@@ -27,6 +27,10 @@ live in the ticket; durable policies live here.
 ## API behaviour (product-level)
 - All responses use the standard success **Envelope**; errors use RFC 7807 problem+json
   (`standards/openapi.md`, `standards/error-handling.md`).
+- Resource and collection responses carry **navigational hypermedia links** (HAL `_links` /
+  `_embedded`, inside the Envelope's `data`) — `self`, and for collections pagination `next`/
+  `prev`/`first`/`last`. These are read-only navigation aids; they are never action or
+  write/state-transition affordances (`standards/openapi.md` §2a).
 - **Search** results are **paginated** (page/size) and support sorting; an empty result set is a
   normal 200, not an error. TODO: confirm default/max page size and default sort order.
 - A request for a non-existent movie/person id returns **404** (problem+json), not an empty 200.

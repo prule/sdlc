@@ -8,6 +8,8 @@ PingData:
     timestamp:
       type: string
       format: date-time
+    _links:
+      $ref: '../../openapi.yaml#/components/schemas/PingLinks'
 
 PingEnvelope:
   type: object

@@ -3,7 +3,9 @@ package com.acme.common.codegen;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.acme.generated.api.HealthApi;
+import com.acme.generated.api.SampleApi;
 import com.acme.generated.model.PingEnvelope;
+import com.acme.generated.model.SampleCollectionEnvelope;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -45,6 +47,31 @@ class GeneratedApiCodegenTest {
     ParameterizedType parameterizedReturnType = (ParameterizedType) genericReturnType;
     assertThat(parameterizedReturnType.getActualTypeArguments())
         .containsExactly(PingEnvelope.class);
+  }
+
+  @Test
+  void sampleApiListSamplesReturnsTheSharedSampleCollectionEnvelopeType()
+      throws NoSuchMethodException {
+    Method listSamples =
+        SampleApi.class.getMethod(
+            "listSamples", java.util.UUID.class, Integer.class, Integer.class);
+
+    assertThat(listSamples.getReturnType()).isEqualTo(ResponseEntity.class);
+
+    Type genericReturnType = listSamples.getGenericReturnType();
+    assertThat(genericReturnType).isInstanceOf(ParameterizedType.class);
+    ParameterizedType parameterizedReturnType = (ParameterizedType) genericReturnType;
+    assertThat(parameterizedReturnType.getActualTypeArguments())
+        .containsExactly(SampleCollectionEnvelope.class);
+  }
+
+  @Test
+  void exactlyOneSharedLinkModelIsGenerated() throws IOException {
+    List<String> modelClassNames = generatedModelClassNames();
+
+    long linkModelCount = modelClassNames.stream().filter(name -> name.equals("Link")).count();
+
+    assertThat(linkModelCount).as("generated Link model count").isEqualTo(1);
   }
 
   @Test

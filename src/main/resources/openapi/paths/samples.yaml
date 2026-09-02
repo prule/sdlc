@@ -1,0 +1,27 @@
+get:
+  operationId: listSamples
+  tags: [sample]
+  summary: List sample items (demonstrative, throwaway)
+  description: >-
+    Trivial, demonstrative paginated collection proving the HAL pagination-link
+    convention (`_embedded`/`_links`). Not a real catalog capability — safe to
+    remove or replace once real catalog endpoints land.
+  security: []
+  parameters:
+    - $ref: '../openapi.yaml#/components/parameters/CorrelationId'
+    - $ref: '../openapi.yaml#/components/parameters/Page'
+    - $ref: '../openapi.yaml#/components/parameters/Size'
+  responses:
+    '200':
+      description: A page of sample items
+      headers:
+        X-Correlation-Id:
+          $ref: '../openapi.yaml#/components/headers/CorrelationId'
+      content:
+        application/json:
+          schema:
+            $ref: '../openapi.yaml#/components/schemas/SampleCollectionEnvelope'
+    '400':
+      $ref: '../openapi.yaml#/components/responses/BadRequest'
+    '500':
+      $ref: '../openapi.yaml#/components/responses/InternalError'

@@ -1,12 +1,18 @@
 package com.acme.platform.health.adapters.in.web;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
 import com.acme.common.web.CorrelationId;
 import com.acme.generated.api.HealthApi;
+import com.acme.generated.model.Link;
 import com.acme.generated.model.Meta;
 import com.acme.generated.model.PingData;
 import com.acme.generated.model.PingEnvelope;
+import com.acme.generated.model.PingLinks;
 import com.acme.platform.health.application.port.in.PingUseCase;
 import com.acme.platform.health.domain.model.PingStatus;
+import java.net.URI;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.UUID;
@@ -15,8 +21,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Implements the generated {@link HealthApi}. Thin: calls the {@link PingUseCase}, reads the
- * request's correlation id, and maps the domain result to the generated envelope DTO. No business
- * logic lives here.
+ * request's correlation id, maps the domain result to the generated envelope DTO, and builds the
+ * {@code self} HAL link via {@link org.springframework.hateoas.server.mvc.WebMvcLinkBuilder}. No
+ * business logic lives here.
  */
 @RestController
 public class PingController implements HealthApi {
@@ -32,10 +39,14 @@ public class PingController implements HealthApi {
     PingStatus status = pingUseCase.ping();
     String correlationId = CorrelationId.current();
 
+    URI selfHref =
+        URI.create(linkTo(methodOn(HealthApi.class).ping(xCorrelationId)).withSelfRel().getHref());
+
     PingData data =
         new PingData(
-            PingData.StatusEnum.fromValue(status.status()),
-            status.timestamp().atOffset(ZoneOffset.UTC));
+                PingData.StatusEnum.fromValue(status.status()),
+                status.timestamp().atOffset(ZoneOffset.UTC))
+            .links(new PingLinks(new Link(selfHref)));
 
     Meta meta = new Meta(OffsetDateTime.now(ZoneOffset.UTC), UUID.fromString(correlationId));
 

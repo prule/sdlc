@@ -8,11 +8,17 @@ servers:
 tags:
   - name: health
     description: Liveness and readiness endpoints.
+  - name: sample
+    description: >-
+      Demonstrative, throwaway sample collection proving the HAL pagination-link
+      convention. Not a real catalog capability.
 security:
   - bearerAuth: []
 paths:
   /ping:
     $ref: 'paths/health.yaml'
+  /samples:
+    $ref: 'paths/samples.yaml'
 components:
   securitySchemes:
     bearerAuth:
@@ -28,10 +34,24 @@ components:
       $ref: 'components/schemas/common.yaml#/Pagination'
     Problem:
       $ref: 'components/schemas/common.yaml#/Problem'
+    Link:
+      $ref: 'components/schemas/common.yaml#/Link'
+    PingLinks:
+      $ref: 'components/schemas/common.yaml#/PingLinks'
+    SampleCollectionLinks:
+      $ref: 'components/schemas/common.yaml#/SampleCollectionLinks'
+    SampleItemLinks:
+      $ref: 'components/schemas/common.yaml#/SampleItemLinks'
     PingData:
       $ref: 'components/schemas/health.yaml#/PingData'
     PingEnvelope:
       $ref: 'components/schemas/health.yaml#/PingEnvelope'
+    SampleItem:
+      $ref: 'components/schemas/sample.yaml#/SampleItem'
+    SampleCollectionData:
+      $ref: 'components/schemas/sample.yaml#/SampleCollectionData'
+    SampleCollectionEnvelope:
+      $ref: 'components/schemas/sample.yaml#/SampleCollectionEnvelope'
   responses:
     BadRequest:
       $ref: 'components/responses/common.yaml#/BadRequest'
@@ -52,6 +72,10 @@ components:
   parameters:
     CorrelationId:
       $ref: 'components/parameters/common.yaml#/CorrelationId'
+    Page:
+      $ref: 'components/parameters/common.yaml#/Page'
+    Size:
+      $ref: 'components/parameters/common.yaml#/Size'
   headers:
     CorrelationId:
       $ref: 'components/headers/common.yaml#/CorrelationId'
