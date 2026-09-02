@@ -13,5 +13,25 @@
       "Bash(gradle publish:*)",
       "Bash(./gradlew publish:*)"
     ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      { "matcher": "*", "hooks": [ { "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/log-event.py\"" } ] }
+    ],
+    "PostToolUse": [
+      { "matcher": "*", "hooks": [ { "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/log-event.py\"" } ] }
+    ],
+    "SubagentStop": [
+      { "hooks": [ { "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/log-event.py\"" } ] }
+    ],
+    "UserPromptSubmit": [
+      { "hooks": [ { "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/log-event.py\"" } ] }
+    ],
+    "SessionStart": [
+      { "hooks": [ { "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/log-event.py\"" } ] }
+    ],
+    "Stop": [
+      { "hooks": [ { "type": "command", "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/log-event.py\"" } ] }
+    ]
   }
 }

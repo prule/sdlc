@@ -6,3 +6,6 @@ node_modules/
 *.iml
 out/
 .DS_Store
+
+# pipeline observability runtime logs
+logs/
