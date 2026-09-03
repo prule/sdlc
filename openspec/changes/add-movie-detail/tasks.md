@@ -44,4 +44,4 @@
 
 ## 9. Validate
 
-- [ ] 9.1 Run `./gradlew build` (compile + Spotless + all tests green) and `openspec validate add-movie-detail --strict`.
+- [x] 9.1 Run `./gradlew build` (compile + Spotless + all tests green) and `openspec validate add-movie-detail --strict`.
