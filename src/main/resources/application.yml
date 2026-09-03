@@ -1,6 +1,13 @@
 spring:
   application:
     name: sdlc
+  # Global: omit absent optional JSON fields instead of serializing them as explicit `null`.
+  # Idiomatic HAL (e.g. Link.templated/title, _links.prev/next) and keeps generated DTOs
+  # conformant to their OpenAPI schema (no property is declared nullable). RFC 7807 Problem's
+  # required members (type/title/status/code/correlationId) are always populated, so this does
+  # not affect them; only genuinely-absent optional fields are dropped.
+  jackson:
+    default-property-inclusion: non_null
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/sdlc}
     username: ${DB_USERNAME:sdlc}

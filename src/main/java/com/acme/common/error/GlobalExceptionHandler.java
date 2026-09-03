@@ -2,6 +2,7 @@ package com.acme.common.error;
 
 import com.acme.common.web.CorrelationId;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolationException;
 import java.net.URI;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -65,6 +66,24 @@ public class GlobalExceptionHandler {
                         "field", fe.getField(), "message", String.valueOf(fe.getDefaultMessage())))
             .toList());
     return problem;
+  }
+
+  /**
+   * Query-parameter/path-variable Bean Validation failures raised by {@code @Validated} on a
+   * controller class (e.g. the generated {@code @Min}/{@code @Max} on {@code page}/{@code size}).
+   * Unlike body validation ({@link MethodArgumentNotValidException}, mapped to {@code 422} above),
+   * this is malformed *input* to the request itself, so it maps to {@code 400} — without this
+   * handler it falls through to the generic {@code 500} catch-all below.
+   */
+  @ExceptionHandler(ConstraintViolationException.class)
+  ProblemDetail onConstraintViolation(ConstraintViolationException e, HttpServletRequest request) {
+    log.warn(
+        "Constraint violation [correlationId={}, path={}]: {}",
+        CorrelationId.current(),
+        request.getRequestURI(),
+        e.getMessage());
+    return problem(
+        HttpStatus.BAD_REQUEST, "BAD_REQUEST", "The request parameters were invalid.", request);
   }
 
   @ExceptionHandler(NoResourceFoundException.class)

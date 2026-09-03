@@ -58,7 +58,62 @@ Pagination:
 ```
 
 Endpoint payload schemas are `$ref`ed into the envelope's `data`. Single-resource endpoints put the
-object in `data`; collection endpoints put an array in `data` and fill `meta.pagination`.
+object in `data`. Collection endpoints put a HAL object in `data` — the items array lives under
+`data._embedded.<rel>`, not as a bare array in `data` — and `meta.pagination` is filled with the
+counts. See §2a for the full HAL convention.
+
+## 2a. HAL `_links`/`_embedded` inside `data`
+
+Every resource `data` object MAY carry a `_links` object; a collection `data` object also carries
+`_embedded`. This lives entirely **inside** `data` — the Envelope root and `meta` are unchanged
+(`data`/`meta` keys, `meta.timestamp`/`meta.correlationId`/`meta.pagination` all stay as-is). HAL
+links are **navigational only** (`self`, pagination `next`/`prev`/`first`/`last`, related
+resources) — no action/write affordances, no HAL-FORMS.
+
+```yaml
+# components/schemas/common.yaml
+Link:
+  type: object
+  required: [href]
+  properties:
+    href:       { type: string, format: uri }
+    templated:  { type: boolean }
+    title:      { type: string }
+# a per-resource _links object — a FIXED set of named relations, never additionalProperties
+FooLinks:
+  type: object
+  required: [self]
+  properties:
+    self: { $ref: '#/Link' }
+```
+
+- **Single resource**: `data._links` carries at least `self`. Example: `PingData._links` ->
+  `PingLinks { self }`.
+- **Collection**: `data._embedded.<rel>` is the array of items (each item itself a HAL resource
+  with its own `_links.self`); `data._links` carries `self`, `first`, `last`, and `next`/`prev`
+  when applicable. Pagination **counts** (`page`, `size`, `totalElements`, `totalPages`) stay in
+  `meta.pagination`; pagination **link URLs** live in `data._links` — no duplication between them.
+- **Boundary rules**: `prev` is absent on the first page, `next` is absent on the last page. A
+  syntactically valid page **beyond** the last page (`page` index > `totalPages`) is a normal `200`
+  with an empty `data._embedded.<rel>` — it is **not** an error. Only **invalid** `page`/`size`
+  (outside the documented bounds — `page < 0`, `size < 1`, or `size` above the documented maximum)
+  is rejected `400` `application/problem+json`. Every collection endpoint's query parameters
+  (`page`/`size` from `components/parameters/common.yaml`) carry `@Min`/`@Max`; the implementing
+  controller **must** be class-annotated `@Validated` for those constraints to be enforced —
+  without it, invalid input silently reaches the handler and falls through to a generic `500`
+  instead of `400` (see `standards/error-handling.md`).
+- **Media types**: success stays `application/json` (HAL fields embedded in `data`, not
+  `application/hal+json` — the document root is the Envelope, not a pure HAL resource). Errors stay
+  `application/problem+json`, conform to the shared `Problem` schema, and never carry
+  `_links`/`_embedded`.
+- **Contract-first**: describe `Link` and every per-resource `_links` object as shared, `$ref`ed
+  named components — never inline, never `additionalProperties`. `Link`/`_links` shapes are
+  authored in the OpenAPI spec; the web adapter builds concrete hrefs with Spring HATEOAS's
+  `WebMvcLinkBuilder` and populates the generated `_links` DTO fields (responses still serialize as
+  the generated contract DTOs, not a Spring HATEOAS `RepresentationModel`).
+- **Layering**: link assembly is a **web-adapter-only** concern (`adapters/in/web`). The domain and
+  application layers never import Spring HATEOAS or reference `_links`/`_embedded` — they return
+  domain results plus page metadata (page/size/totalElements/totalPages), nothing more.
 
 ## 3. Standard error responses (RFC 7807)
 

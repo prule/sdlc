@@ -1,0 +1,35 @@
+SampleItem:
+  type: object
+  required: [id, label]
+  properties:
+    id:
+      type: string
+      format: uuid
+    label:
+      type: string
+    _links:
+      $ref: '../../openapi.yaml#/components/schemas/SampleItemLinks'
+
+SampleCollectionData:
+  type: object
+  required: [_embedded, _links]
+  properties:
+    _embedded:
+      type: object
+      required: [samples]
+      properties:
+        samples:
+          type: array
+          items:
+            $ref: '#/SampleItem'
+    _links:
+      $ref: '../../openapi.yaml#/components/schemas/SampleCollectionLinks'
+
+SampleCollectionEnvelope:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      $ref: '#/SampleCollectionData'
+    meta:
+      $ref: '../../openapi.yaml#/components/schemas/Meta'

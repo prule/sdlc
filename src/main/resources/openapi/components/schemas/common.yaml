@@ -36,6 +36,47 @@ Pagination:
     totalPages:
       type: integer
 
+Link:
+  type: object
+  required: [href]
+  properties:
+    href:
+      type: string
+      format: uri
+    templated:
+      type: boolean
+    title:
+      type: string
+
+PingLinks:
+  type: object
+  required: [self]
+  properties:
+    self:
+      $ref: '#/Link'
+
+SampleCollectionLinks:
+  type: object
+  required: [self]
+  properties:
+    self:
+      $ref: '#/Link'
+    first:
+      $ref: '#/Link'
+    last:
+      $ref: '#/Link'
+    prev:
+      $ref: '#/Link'
+    next:
+      $ref: '#/Link'
+
+SampleItemLinks:
+  type: object
+  required: [self]
+  properties:
+    self:
+      $ref: '#/Link'
+
 Problem:
   type: object
   required: [type, title, status, code, correlationId]
