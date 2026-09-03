@@ -4,22 +4,24 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 /**
  * Shared base for integration tests that need a real PostgreSQL database. The container is a
- * singleton, static instance shared across the whole test suite (never restarted per class) so
- * Flyway migrations run once against a real engine — no H2 or other in-memory substitute is used
- * anywhere in this codebase.
+ * singleton, static instance shared across the whole test suite (started once, never stopped by
+ * this class — reaped by Ryuk/JVM exit) so Flyway migrations run once against a real engine — no H2
+ * or other in-memory substitute is used anywhere in this codebase.
+ *
+ * <p>Deliberately does NOT use {@code @Testcontainers}/{@code @Container}: that JUnit Jupiter
+ * extension manages the lifecycle of an annotated static field per test class and stops it after
+ * the first subclass finishes, which tears the container down out from under every subsequent
+ * DB-backed test class sharing this base. Starting the container in a plain static initializer
+ * instead, with no {@code @Container} annotation on the field, is the correct pattern for a
+ * container meant to be a true cross-class singleton.
  */
-@Testcontainers
 @SpringBootTest
 public abstract class PostgresIntegrationTest {
 
-  @Container
-  static final PostgreSQLContainer<?> POSTGRES =
-      new PostgreSQLContainer<>("postgres:16-alpine").withReuse(true);
+  static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine");
 
   static {
     POSTGRES.start();

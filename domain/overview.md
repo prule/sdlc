@@ -30,5 +30,5 @@ catalog. We provide a clean, fast, well-documented API over a **curated** datase
 ## Key constraints
 - **Public access** → abuse control is via **rate limiting** (not auth). See business-rules.md.
 - Data is **curated internally**; the API only ever reads it.
-- Movie metadata licensing/attribution: TODO — confirm any attribution or licensing obligations for
-  the catalog data.
+- Movie metadata licensing/attribution: N/A for now — internally curated; revisit if an external
+  data source with attribution obligations is adopted (decided in CAT-001).

@@ -19,8 +19,8 @@ live in the ticket; durable policies live here.
 ## Catalog data integrity
 - A **Movie** is uniquely identified by a stable opaque id (UUID in URLs; never expose internal DB ids).
 - **Genre** is a controlled vocabulary; **Keyword** is free-form — a Movie may have many of each.
-- A **Rating** is an aggregate (score + vote count), curated, not user-submitted here. Scale: TODO
-  confirm (assume 0–10, one decimal place).
+- A **Rating** is an aggregate **score-only** on a **0–5 star** scale, curated, not user-submitted
+  here. No vote count is exposed. (Decided in CAT-001.)
 - **Reviews** are curated and served read-only; they are not submitted by API consumers.
 - Movies with missing optional fields (no synopsis, no rating yet) are still valid and returned.
 
@@ -37,5 +37,6 @@ live in the ticket; durable policies live here.
 
 ## Privacy / compliance
 - The catalog is not personal data of API users (no accounts, minimal PII). Data about **people**
-  (cast/crew) is public professional/biographical info. TODO: confirm any data-source
-  licensing/attribution obligations that must be surfaced in responses or docs.
+  (cast/crew) is public professional/biographical info. Data-source licensing/attribution: N/A for
+  now — internally curated; revisit if an external data source with attribution obligations is
+  adopted. No attribution field is carried on any resource (decided in CAT-001).

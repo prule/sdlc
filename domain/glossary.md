@@ -12,11 +12,12 @@ whenever a new term appears.
 | Crew | The set of non-acting Credits on a Movie (director, writer, composer, …), grouped by department/job. | — |
 | Genre | A controlled-vocabulary category a Movie belongs to (e.g. Drama, Sci-Fi). A Movie has many. | Curated taxonomy, not free text. |
 | Keyword | A free-form tag describing a Movie's themes/topics (e.g. "heist", "dystopia"), used for discovery. | Distinct from **Genre** (controlled vs free-form). |
-| Rating | The **aggregate** score for a Movie (e.g. average out of 10) plus a vote count. | Scale: TODO confirm (assume 0–10, one decimal). It is curated data, not user-submitted here. |
+| Rating | The **aggregate** score for a Movie on a **0–5 star** scale (curated). | 0–5 stars (decided, CAT-001). Whether a vote count is exposed is a per-endpoint detail. Curated, not user-submitted. |
 | Review | A curated written critique associated with a Movie (author, text, optional score). Served read-only. | Not user-submitted via this API. |
 | Search | Finding movies by a query (title match) optionally narrowed by **filters** (genre, year, rating) with pagination and sorting. | — |
 | Filter | A constraint that narrows a search (e.g. genre=Drama, year=1999, minRating=7). | — |
 | Catalog | The whole curated body of movie data the API serves. | The `catalog` bounded context (see bounded-contexts.md). |
 | Correlation id | A UUID on every request/response and log line to trace one request end-to-end. | Technical, appears in NFRs. |
 
-> Keep definitions business-facing. Update the **Rating** scale TODO once confirmed.
+> Keep definitions business-facing. The **Rating** scale (0–5 stars, score only, no vote count) is
+> settled as of CAT-001.
