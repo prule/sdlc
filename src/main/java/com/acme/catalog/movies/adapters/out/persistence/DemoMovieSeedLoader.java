@@ -38,10 +38,12 @@ public class DemoMovieSeedLoader implements ApplicationRunner {
   private final ObjectMapper objectMapper;
 
   public DemoMovieSeedLoader(
-      MovieJpaRepository movieJpaRepository, GenreJpaRepository genreJpaRepository) {
+      MovieJpaRepository movieJpaRepository,
+      GenreJpaRepository genreJpaRepository,
+      ObjectMapper objectMapper) {
     this.movieJpaRepository = movieJpaRepository;
     this.genreJpaRepository = genreJpaRepository;
-    this.objectMapper = new ObjectMapper();
+    this.objectMapper = objectMapper;
   }
 
   @Override
