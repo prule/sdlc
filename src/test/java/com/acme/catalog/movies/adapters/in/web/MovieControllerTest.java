@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.acme.catalog.movies.application.port.in.GetMovieByIdUseCase;
+import com.acme.catalog.movies.application.port.in.SearchMoviesUseCase;
 import com.acme.catalog.movies.domain.model.Genre;
 import com.acme.catalog.movies.domain.model.Movie;
 import com.acme.catalog.movies.domain.model.MovieId;
@@ -48,6 +49,7 @@ class MovieControllerTest {
   @Autowired private MockMvc mockMvc;
 
   @MockitoBean private GetMovieByIdUseCase getMovieByIdUseCase;
+  @MockitoBean private SearchMoviesUseCase searchMoviesUseCase;
 
   private static Movie fullMovie(UUID id) {
     return new Movie(
