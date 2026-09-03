@@ -6,6 +6,8 @@ whenever a new term appears.
 | Term | Definition | Notes / synonyms to avoid |
 |------|------------|---------------------------|
 | Movie | A single film title in the catalog: the core aggregate. Has a stable id, title, release year, runtime, synopsis, genres, credits, and an aggregate rating. | Not "film"/"title" in code — say **Movie**. |
+| Movie detail | The full single-movie representation (`GET /movies/{id}`): id, title, releaseYear, genres, and when present runtimeMinutes/synopsis/rating. | See CAT-001. |
+| Movie summary | The lighter representation used in **search/list** results (`GET /movies`): id, title, releaseYear, genres, and when present runtimeMinutes/rating — **no synopsis**; carries a `self` link to its detail. | See CAT-002. |
 | Person | An individual who worked on movies (actor, director, writer, …). Has an id, name, and credits. | — |
 | Credit | The link between a Person and a Movie in a specific capacity (e.g. "Actor as <character>", "Director"). | Also called a "role"; prefer **Credit**. |
 | Cast | The set of acting Credits on a Movie (with character names, billing order). | — |

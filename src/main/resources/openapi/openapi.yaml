@@ -21,6 +21,8 @@ paths:
     $ref: 'paths/health.yaml'
   /samples:
     $ref: 'paths/samples.yaml'
+  /movies:
+    $ref: 'paths/movies-collection.yaml'
   /movies/{id}:
     $ref: 'paths/movies.yaml'
 components:
@@ -58,10 +60,20 @@ components:
       $ref: 'components/schemas/sample.yaml#/SampleCollectionEnvelope'
     MovieLinks:
       $ref: 'components/schemas/common.yaml#/MovieLinks'
+    MovieCollectionLinks:
+      $ref: 'components/schemas/common.yaml#/MovieCollectionLinks'
+    MovieSummaryLinks:
+      $ref: 'components/schemas/common.yaml#/MovieSummaryLinks'
     MovieDetail:
       $ref: 'components/schemas/movie.yaml#/MovieDetail'
     MovieDetailEnvelope:
       $ref: 'components/schemas/movie.yaml#/MovieDetailEnvelope'
+    MovieSummary:
+      $ref: 'components/schemas/movie.yaml#/MovieSummary'
+    MovieCollectionData:
+      $ref: 'components/schemas/movie.yaml#/MovieCollectionData'
+    MovieCollectionEnvelope:
+      $ref: 'components/schemas/movie.yaml#/MovieCollectionEnvelope'
   responses:
     BadRequest:
       $ref: 'components/responses/common.yaml#/BadRequest'

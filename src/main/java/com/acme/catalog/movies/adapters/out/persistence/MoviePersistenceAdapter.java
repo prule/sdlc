@@ -27,7 +27,7 @@ public class MoviePersistenceAdapter implements LoadMovieByIdPort {
     return movieJpaRepository.findById(id.value()).map(MoviePersistenceAdapter::toDomain);
   }
 
-  private static Movie toDomain(MovieJpaEntity entity) {
+  static Movie toDomain(MovieJpaEntity entity) {
     List<Genre> genres = entity.getGenres().stream().map(g -> new Genre(g.getName())).toList();
 
     return new Movie(

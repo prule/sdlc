@@ -31,8 +31,10 @@ live in the ticket; durable policies live here.
   `_embedded`, inside the Envelope's `data`) — `self`, and for collections pagination `next`/
   `prev`/`first`/`last`. These are read-only navigation aids; they are never action or
   write/state-transition affordances (`standards/openapi.md` §2a).
-- **Search** results are **paginated** (page/size) and support sorting; an empty result set is a
-  normal 200, not an error. TODO: confirm default/max page size and default sort order.
+- **Search** results are **paginated** (zero-based `page`; `size` **default 20, max 100**) and
+  **sortable** by `title`, `releaseYear`, or `rating` (asc/desc); **default sort is `releaseYear`
+  descending**, `title` ascending as tiebreak. An empty result set is a normal 200, not an error.
+  (Decided in CAT-002.)
 - A request for a non-existent movie/person id returns **404** (problem+json), not an empty 200.
 
 ## Privacy / compliance
