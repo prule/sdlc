@@ -19,4 +19,5 @@ whenever a new term appears.
 | Catalog | The whole curated body of movie data the API serves. | The `catalog` bounded context (see bounded-contexts.md). |
 | Correlation id | A UUID on every request/response and log line to trace one request end-to-end. | Technical, appears in NFRs. |
 
-> Keep definitions business-facing. Update the **Rating** scale TODO once confirmed.
+> Keep definitions business-facing. The **Rating** scale (0–5 stars, score only, no vote count) is
+> settled as of CAT-001.

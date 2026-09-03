@@ -3,7 +3,9 @@ package com.acme.common.codegen;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.acme.generated.api.HealthApi;
+import com.acme.generated.api.MoviesApi;
 import com.acme.generated.api.SampleApi;
+import com.acme.generated.model.MovieDetailEnvelope;
 import com.acme.generated.model.PingEnvelope;
 import com.acme.generated.model.SampleCollectionEnvelope;
 import java.io.IOException;
@@ -63,6 +65,20 @@ class GeneratedApiCodegenTest {
     ParameterizedType parameterizedReturnType = (ParameterizedType) genericReturnType;
     assertThat(parameterizedReturnType.getActualTypeArguments())
         .containsExactly(SampleCollectionEnvelope.class);
+  }
+
+  @Test
+  void moviesApiGetMovieByIdReturnsTheSharedMovieDetailEnvelopeType() throws NoSuchMethodException {
+    Method getMovieById =
+        MoviesApi.class.getMethod("getMovieById", java.util.UUID.class, java.util.UUID.class);
+
+    assertThat(getMovieById.getReturnType()).isEqualTo(ResponseEntity.class);
+
+    Type genericReturnType = getMovieById.getGenericReturnType();
+    assertThat(genericReturnType).isInstanceOf(ParameterizedType.class);
+    ParameterizedType parameterizedReturnType = (ParameterizedType) genericReturnType;
+    assertThat(parameterizedReturnType.getActualTypeArguments())
+        .containsExactly(MovieDetailEnvelope.class);
   }
 
   @Test

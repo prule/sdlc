@@ -1,0 +1,23 @@
+[
+  {
+    "title": "The Matrix",
+    "releaseYear": 1999,
+    "genres": ["Sci-Fi", "Action"],
+    "runtimeMinutes": 136,
+    "synopsis": "A hacker discovers that reality as he knows it is a simulation.",
+    "rating": 4.5
+  },
+  {
+    "title": "Arrival",
+    "releaseYear": 2016,
+    "genres": ["Sci-Fi", "Drama"],
+    "runtimeMinutes": 116,
+    "synopsis": "A linguist works with the military to communicate with alien visitors.",
+    "rating": 4.2
+  },
+  {
+    "title": "An Obscure Documentary",
+    "releaseYear": 2005,
+    "genres": ["Documentary"]
+  }
+]
