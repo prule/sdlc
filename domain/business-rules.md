@@ -19,8 +19,8 @@ live in the ticket; durable policies live here.
 ## Catalog data integrity
 - A **Movie** is uniquely identified by a stable opaque id (UUID in URLs; never expose internal DB ids).
 - **Genre** is a controlled vocabulary; **Keyword** is free-form — a Movie may have many of each.
-- A **Rating** is an aggregate (score + vote count), curated, not user-submitted here. Scale: TODO
-  confirm (assume 0–10, one decimal place).
+- A **Rating** is an aggregate on a **0–5 star** scale, curated, not user-submitted here. (Decided in
+  CAT-001; whether a vote count is exposed is a per-endpoint detail.)
 - **Reviews** are curated and served read-only; they are not submitted by API consumers.
 - Movies with missing optional fields (no synopsis, no rating yet) are still valid and returned.
 
