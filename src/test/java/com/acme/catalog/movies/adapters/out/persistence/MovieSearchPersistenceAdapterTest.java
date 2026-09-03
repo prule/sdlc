@@ -201,6 +201,53 @@ class MovieSearchPersistenceAdapterTest extends PostgresIntegrationTest {
     assertThat(page.totalElements()).isEqualTo(1);
   }
 
+  /**
+   * Regression test for a non-deterministic-pagination bug: two rows sharing the same (sort field,
+   * title) have an undefined relative order under {@code LIMIT}/{@code OFFSET} unless the {@code
+   * ORDER BY} ends in a unique terminal key ({@code m.id}). Without it, paging one row at a time
+   * across two same-titled rows can skip one and repeat the other.
+   */
+  @Test
+  void search_pagesOfMoviesSharingTheSameTitle_areDeterministicWithNoSkipOrDuplicate() {
+    UUID first = saveMovie("Same Title", 2000, null, null, Set.of("Drama"));
+    UUID second = saveMovie("Same Title", 2000, null, null, Set.of("Drama"));
+
+    MoviePage page0 = searchAdapter.search(MovieSearchCriteria.NONE, 0, 1, MovieSort.DEFAULT);
+    MoviePage page1 = searchAdapter.search(MovieSearchCriteria.NONE, 1, 1, MovieSort.DEFAULT);
+
+    List<UUID> seenIds = new java.util.ArrayList<>();
+    seenIds.addAll(ids(page0));
+    seenIds.addAll(ids(page1));
+
+    assertThat(seenIds).as("no skip, no duplicate across the two pages").hasSize(2);
+    assertThat(seenIds).containsExactlyInAnyOrder(first, second);
+    assertThat(page0.items()).hasSize(1);
+    assertThat(page1.items()).hasSize(1);
+  }
+
+  @Test
+  void search_duplicateGenreParameter_behavesLikeASingleGenre() {
+    UUID movieId = saveMovie("Drama Movie", 2000, null, null, Set.of("Drama"));
+
+    MoviePage page = search(criteriaWithGenres("Drama", "Drama"));
+
+    assertThat(ids(page)).containsExactly(movieId);
+  }
+
+  /**
+   * Regression test for a missing {@code ESCAPE} clause on the title {@code LIKE} filter: a search
+   * term containing a literal {@code %} must be matched literally, not treated as a SQL wildcard.
+   */
+  @Test
+  void search_titleContainingALiteralPercent_matchesOnlyTitlesContainingThatLiteralPercent() {
+    UUID literalPercent = saveMovie("100% Guaranteed", 2000, null, null, Set.of("Drama"));
+    saveMovie("100 Percent Guaranteed", 2000, null, null, Set.of("Drama"));
+
+    MoviePage page = search(criteriaWithTitle("100%"));
+
+    assertThat(ids(page)).containsExactly(literalPercent);
+  }
+
   private UUID saveMovie(
       String title,
       int releaseYear,

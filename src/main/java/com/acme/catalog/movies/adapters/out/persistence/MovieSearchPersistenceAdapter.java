@@ -14,9 +14,11 @@ import jakarta.persistence.Query;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.stereotype.Component;
 
@@ -116,7 +118,7 @@ public class MovieSearchPersistenceAdapter implements SearchMoviesPort {
     params.put("title", criteria.title().orElse(null));
     params.put(
         "titlePattern",
-        criteria.title().map(t -> "%" + t.toLowerCase(Locale.ROOT) + "%").orElse(null));
+        criteria.title().map(t -> "%" + escapeLike(t.toLowerCase(Locale.ROOT)) + "%").orElse(null));
     params.put("yearFrom", criteria.yearFrom().orElse(null));
     params.put("yearTo", criteria.yearTo().orElse(null));
     params.put("minRating", criteria.minRating().map(r -> r.score()).orElse(null));
@@ -124,9 +126,13 @@ public class MovieSearchPersistenceAdapter implements SearchMoviesPort {
     // Every bound parameter is CAST so Postgres can determine its type even when the value is
     // null (an untyped null parameter otherwise fails with "could not determine data type of
     // parameter"); a null-cast IS NULL check safely short-circuits the rest of its OR clause.
+    // The LIKE pattern is escaped (see escapeLike) and paired with ESCAPE '\' so a literal
+    // '%'/'_'/'\' in the search term is matched literally, not as a wildcard.
     StringBuilder where = new StringBuilder();
     where
-        .append("(CAST(:title AS text) IS NULL OR LOWER(m.title) LIKE CAST(:titlePattern AS text))")
+        .append(
+            "(CAST(:title AS text) IS NULL OR LOWER(m.title) LIKE CAST(:titlePattern AS text)"
+                + " ESCAPE '\\')")
         .append(
             " AND (CAST(:yearFrom AS integer) IS NULL OR m.release_year >= CAST(:yearFrom AS"
                 + " integer))")
@@ -137,15 +143,23 @@ public class MovieSearchPersistenceAdapter implements SearchMoviesPort {
             " AND (CAST(:minRating AS numeric) IS NULL OR m.rating >= CAST(:minRating AS"
                 + " numeric))");
 
-    List<Genre> genres = criteria.genres();
-    if (!genres.isEmpty()) {
-      List<String> genreParamNames = new ArrayList<>(genres.size());
-      for (int i = 0; i < genres.size(); i++) {
+    // De-duplicated: a repeated genre value (e.g. genre=Drama&genre=Drama) must behave like a
+    // single genre, not push genreCount past the number of distinct genres the movie can ever
+    // carry (which would make the filter permanently unsatisfiable).
+    Set<String> distinctGenreLabels = new LinkedHashSet<>();
+    for (Genre genre : criteria.genres()) {
+      distinctGenreLabels.add(genre.label());
+    }
+    if (!distinctGenreLabels.isEmpty()) {
+      List<String> genreParamNames = new ArrayList<>(distinctGenreLabels.size());
+      int i = 0;
+      for (String label : distinctGenreLabels) {
         String paramName = "genre" + i;
         genreParamNames.add(":" + paramName);
-        params.put(paramName, genres.get(i).label());
+        params.put(paramName, label);
+        i++;
       }
-      params.put("genreCount", (long) genres.size());
+      params.put("genreCount", (long) distinctGenreLabels.size());
       where
           .append(" AND m.id IN (SELECT mg.movie_id FROM movie_genre mg")
           .append(" JOIN genres g ON g.id = mg.genre_id")
@@ -157,14 +171,28 @@ public class MovieSearchPersistenceAdapter implements SearchMoviesPort {
     return where.toString();
   }
 
+  /**
+   * Escapes LIKE metacharacters ({@code \}, {@code %}, {@code _}) in a user-supplied search term so
+   * it is matched literally when wrapped in {@code %...%} and paired with {@code ESCAPE '\'}. The
+   * backslash itself must be escaped first, or escaping it after {@code %}/{@code _} would
+   * double-escape the backslashes just introduced.
+   */
+  private static String escapeLike(String term) {
+    return term.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
+  }
+
   private static void bindParams(Query query, Map<String, Object> params) {
     params.forEach(query::setParameter);
   }
 
   /**
-   * Orders results in SQL: the requested field/direction, with a {@code title} ascending tiebreak.
-   * A {@code rating} sort uses {@code NULLS LAST} in both directions, so unrated movies always sort
-   * after rated ones regardless of direction.
+   * Orders results in SQL: the requested field/direction, a {@code title} ascending tiebreak, then
+   * {@code m.id} ascending as a final, unique terminal key. A {@code rating} sort uses {@code NULLS
+   * LAST} in both directions, so unrated movies always sort after rated ones regardless of
+   * direction. The {@code m.id} tiebreak is mandatory for the id-page query: {@code (sort field,
+   * title)} alone is not unique — two rows with the same sort field and title would otherwise have
+   * an undefined relative order under {@code LIMIT}/{@code OFFSET}, letting one row be skipped and
+   * another repeated across pages.
    */
   private static String orderByClause(MovieSort sort) {
     String direction = sort.direction() == SortDirection.DESC ? "DESC" : "ASC";
@@ -175,7 +203,7 @@ public class MovieSearchPersistenceAdapter implements SearchMoviesPort {
     if (sort.field() == MovieSortField.RATING) {
       orderBy.append(" NULLS LAST");
     }
-    orderBy.append(", m.title ASC");
+    orderBy.append(", m.title ASC, m.id ASC");
     return orderBy.toString();
   }
 

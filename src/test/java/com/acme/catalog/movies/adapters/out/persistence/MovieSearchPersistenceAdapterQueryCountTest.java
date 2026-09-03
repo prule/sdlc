@@ -2,10 +2,13 @@ package com.acme.catalog.movies.adapters.out.persistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.acme.catalog.movies.domain.model.Movie;
 import com.acme.catalog.movies.domain.model.MovieId;
 import com.acme.catalog.movies.domain.model.MoviePage;
 import com.acme.catalog.movies.domain.model.MovieSearchCriteria;
 import com.acme.catalog.movies.domain.model.MovieSort;
+import com.acme.catalog.movies.domain.model.MovieSortField;
+import com.acme.catalog.movies.domain.model.SortDirection;
 import com.acme.common.test.PostgresIntegrationTest;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -65,6 +68,40 @@ class MovieSearchPersistenceAdapterQueryCountTest extends PostgresIntegrationTes
         .isEqualTo(smallPageStatementCount);
   }
 
+  /**
+   * Hardens the N+1 guard: a naive single {@code JOIN FETCH ... LIMIT} query would lower the
+   * statement count (passing the guard above) while reintroducing Hibernate in-memory pagination
+   * over the to-many genre join (HHH000104), which mis-paginates — wrong row count and/or wrong
+   * order. Asserting exact ordered content, not just the statement count, catches that regression.
+   */
+  @Test
+  void search_multiGenreMultiRowSortedPage_returnsCorrectSizeAndOrder() {
+    UUID alpha = saveMovieWithGenres("Alpha", 2000, Set.of("Drama", "Crime", "Thriller"));
+    UUID bravo = saveMovieWithGenres("Bravo", 2000, Set.of("Sci-Fi", "Action"));
+    UUID charlie = saveMovieWithGenres("Charlie", 2000, Set.of("Comedy", "Romance", "Drama"));
+    saveMovieWithGenres("Delta", 2000, Set.of("Horror"));
+    entityManager.flush();
+
+    MoviePage page =
+        searchAdapter.search(
+            MovieSearchCriteria.NONE, 0, 3, new MovieSort(MovieSortField.TITLE, SortDirection.ASC));
+
+    assertThat(page.items()).hasSize(3);
+    assertThat(page.items().stream().map(Movie::id).map(MovieId::value).toList())
+        .as(
+            "page size respected and rows in the requested sort order (no in-memory-pagination"
+                + " mis-pagination)")
+        .containsExactly(alpha, bravo, charlie);
+    assertThat(page.items().get(0).genres()).hasSize(3);
+    assertThat(page.items().get(2).genres()).hasSize(3);
+  }
+
+  private UUID saveMovieWithGenres(String title, int releaseYear, Set<String> genreNames) {
+    UUID movieId = UUID.randomUUID();
+    saveMovie(movieId, title, releaseYear, genreNames);
+    return movieId;
+  }
+
   @Test
   void getMovieById_queryBehaviourDoesNotRegress() {
     UUID movieId = UUID.randomUUID();
@@ -97,10 +134,17 @@ class MovieSearchPersistenceAdapterQueryCountTest extends PostgresIntegrationTes
   private void saveMovie(UUID movieId, String title, int releaseYear, Set<String> genreNames) {
     Set<GenreJpaEntity> genres = new LinkedHashSet<>();
     for (String name : genreNames) {
-      genres.add(genreJpaRepository.save(new GenreJpaEntity(UUID.randomUUID(), name)));
+      genres.add(findOrCreateGenre(name));
     }
     MovieJpaEntity entity =
         new MovieJpaEntity(movieId, title, releaseYear, null, null, BigDecimal.valueOf(4), genres);
     movieJpaRepository.save(entity);
+  }
+
+  private GenreJpaEntity findOrCreateGenre(String name) {
+    return genreJpaRepository.findAll().stream()
+        .filter(g -> g.getName().equals(name))
+        .findFirst()
+        .orElseGet(() -> genreJpaRepository.save(new GenreJpaEntity(UUID.randomUUID(), name)));
   }
 }
