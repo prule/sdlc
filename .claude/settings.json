@@ -9,7 +9,6 @@
   "permissions": {
     "defaultMode": "acceptEdits",
     "deny": [
-      "Bash(git push:*)",
       "Bash(gradle publish:*)",
       "Bash(./gradlew publish:*)"
     ]
