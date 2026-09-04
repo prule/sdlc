@@ -25,6 +25,8 @@ paths:
     $ref: 'paths/movies-collection.yaml'
   /movies/{id}:
     $ref: 'paths/movies.yaml'
+  /movies/{id}/credits:
+    $ref: 'paths/movie-credits.yaml'
 components:
   securitySchemes:
     bearerAuth:
@@ -74,6 +76,18 @@ components:
       $ref: 'components/schemas/movie.yaml#/MovieCollectionData'
     MovieCollectionEnvelope:
       $ref: 'components/schemas/movie.yaml#/MovieCollectionEnvelope'
+    MovieCreditsLinks:
+      $ref: 'components/schemas/common.yaml#/MovieCreditsLinks'
+    CreditPerson:
+      $ref: 'components/schemas/credit.yaml#/CreditPerson'
+    CastCredit:
+      $ref: 'components/schemas/credit.yaml#/CastCredit'
+    CrewCredit:
+      $ref: 'components/schemas/credit.yaml#/CrewCredit'
+    MovieCreditsData:
+      $ref: 'components/schemas/credit.yaml#/MovieCreditsData'
+    MovieCreditsEnvelope:
+      $ref: 'components/schemas/credit.yaml#/MovieCreditsEnvelope'
   responses:
     BadRequest:
       $ref: 'components/responses/common.yaml#/BadRequest'

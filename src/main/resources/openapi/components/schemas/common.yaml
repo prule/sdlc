@@ -79,6 +79,15 @@ SampleItemLinks:
 
 MovieLinks:
   type: object
+  required: [self, credits]
+  properties:
+    self:
+      $ref: '#/Link'
+    credits:
+      $ref: '#/Link'
+
+MovieCreditsLinks:
+  type: object
   required: [self]
   properties:
     self:

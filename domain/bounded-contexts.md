@@ -10,9 +10,16 @@ Cross-cutting technical foundation every other context builds on (not a business
 
 ## `catalog` (the product)
 The movie database and its public read API. All consumer-facing capabilities live here.
-- **movies** *(planned)* — the Movie aggregate; retrieve movie detail by id.
+- **movies** — the Movie aggregate; retrieve movie detail by id (CAT-001), search movies (CAT-002).
 - **search** *(planned)* — search movies by title with filters (genre, year, rating), pagination, sorting.
-- **people** *(planned)* — Person detail and their credits (cast/crew).
+- **credits** — a Movie's cast and crew as a sub-resource (`GET /movies/{id}/credits`), introducing
+  Person/Credit modelling (CAT-003). Split from **people** below: this capability serves credits
+  *from the Movie side* (a movie's cast/crew, Person exposed inline, no `/people/{id}` endpoint);
+  a future **people** capability would instead serve a Person as its own addressable resource
+  (detail + cross-filmography) — not needed until that self-link is required.
+- **people** *(planned)* — Person as an independently addressable resource (`/people/{id}`) and
+  their cross-filmography credits. Distinct from **credits** (see above): CAT-003 deliberately
+  does not add this endpoint, so a Person is inline-only for now.
 - **genres-keywords** *(planned)* — browse/list genres and keywords; filter movies by them.
 - **ratings-reviews** *(planned)* — a movie's aggregate rating and its curated reviews (read-only).
 
@@ -26,5 +33,10 @@ All `catalog` capabilities are **read-only** and **public** (no auth); see busin
 ## Context relationships
 - `catalog` depends on `platform` (envelope, error handling, correlation id, OpenAPI pipeline).
 - Within `catalog`: **search** and **movies** reference **genres-keywords** (filtering) and surface
-  **ratings-reviews** and **people** (credits) on movie detail. A single read may compose across these.
+  **ratings-reviews** on movie detail, and now **credits** via a navigational `credits` link (not
+  inlined/embedded — CAT-003) rather than composing cast/crew directly into movie detail. A single
+  read may compose across these.
+- `credits` depends on `movies` (a movie must exist for its credits to be loaded — an unknown movie
+  id is a 404 on the credits endpoint too) but movie detail never queries `credits` at read time; the
+  link is assembled from the id alone, at zero extra DB cost.
 - TODO: if the catalog grows, decide whether people/ratings become their own contexts vs. sub-areas of `catalog`.

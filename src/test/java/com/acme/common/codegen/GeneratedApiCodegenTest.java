@@ -6,7 +6,9 @@ import com.acme.generated.api.HealthApi;
 import com.acme.generated.api.MoviesApi;
 import com.acme.generated.api.SampleApi;
 import com.acme.generated.model.MovieCollectionEnvelope;
+import com.acme.generated.model.MovieCreditsEnvelope;
 import com.acme.generated.model.MovieDetailEnvelope;
+import com.acme.generated.model.MovieLinks;
 import com.acme.generated.model.PingEnvelope;
 import com.acme.generated.model.SampleCollectionEnvelope;
 import java.io.IOException;
@@ -105,6 +107,28 @@ class GeneratedApiCodegenTest {
     ParameterizedType parameterizedReturnType = (ParameterizedType) genericReturnType;
     assertThat(parameterizedReturnType.getActualTypeArguments())
         .containsExactly(MovieCollectionEnvelope.class);
+  }
+
+  @Test
+  void moviesApiGetMovieCreditsReturnsTheSharedMovieCreditsEnvelopeType()
+      throws NoSuchMethodException {
+    Method getMovieCredits =
+        MoviesApi.class.getMethod("getMovieCredits", java.util.UUID.class, java.util.UUID.class);
+
+    assertThat(getMovieCredits.getReturnType()).isEqualTo(ResponseEntity.class);
+
+    Type genericReturnType = getMovieCredits.getGenericReturnType();
+    assertThat(genericReturnType).isInstanceOf(ParameterizedType.class);
+    ParameterizedType parameterizedReturnType = (ParameterizedType) genericReturnType;
+    assertThat(parameterizedReturnType.getActualTypeArguments())
+        .containsExactly(MovieCreditsEnvelope.class);
+  }
+
+  @Test
+  void movieLinksSchemaDeclaresTheCreditsRelation() throws NoSuchMethodException {
+    Method getCredits = MovieLinks.class.getMethod("getCredits");
+
+    assertThat(getCredits.getReturnType()).isEqualTo(com.acme.generated.model.Link.class);
   }
 
   @Test

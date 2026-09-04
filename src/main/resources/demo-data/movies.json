@@ -5,7 +5,16 @@
     "genres": ["Sci-Fi", "Action"],
     "runtimeMinutes": 136,
     "synopsis": "A hacker discovers that reality as he knows it is a simulation.",
-    "rating": 4.5
+    "rating": 4.5,
+    "cast": [
+      { "name": "Keanu Reeves", "character": "Neo", "billingOrder": 1 },
+      { "name": "Laurence Fishburne", "character": "Morpheus", "billingOrder": 2 },
+      { "name": "Carrie-Anne Moss", "character": "Trinity", "billingOrder": 3 }
+    ],
+    "crew": [
+      { "name": "Lana Wachowski", "department": "Directing", "job": "Director" },
+      { "name": "Lilly Wachowski", "department": "Directing", "job": "Director" }
+    ]
   },
   {
     "title": "Arrival",
@@ -13,7 +22,12 @@
     "genres": ["Sci-Fi", "Drama"],
     "runtimeMinutes": 116,
     "synopsis": "A linguist works with the military to communicate with alien visitors.",
-    "rating": 4.2
+    "rating": 4.2,
+    "cast": [
+      { "name": "Amy Adams", "character": "Louise Banks", "billingOrder": 1 },
+      { "name": "Jeremy Renner", "character": "Ian Donnelly", "billingOrder": 2 }
+    ],
+    "crew": [{ "name": "Denis Villeneuve", "department": "Directing", "job": "Director" }]
   },
   {
     "title": "An Obscure Documentary",
