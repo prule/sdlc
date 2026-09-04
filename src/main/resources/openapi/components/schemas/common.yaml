@@ -115,6 +115,20 @@ MovieSummaryLinks:
     self:
       $ref: '#/Link'
 
+PersonLinks:
+  type: object
+  required: [self]
+  properties:
+    self:
+      $ref: '#/Link'
+
+CreditPersonLinks:
+  type: object
+  required: [self]
+  properties:
+    self:
+      $ref: '#/Link'
+
 Problem:
   type: object
   required: [type, title, status, code, correlationId]

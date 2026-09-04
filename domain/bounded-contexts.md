@@ -14,12 +14,11 @@ The movie database and its public read API. All consumer-facing capabilities liv
 - **search** *(planned)* — search movies by title with filters (genre, year, rating), pagination, sorting.
 - **credits** — a Movie's cast and crew as a sub-resource (`GET /movies/{id}/credits`), introducing
   Person/Credit modelling (CAT-003). Split from **people** below: this capability serves credits
-  *from the Movie side* (a movie's cast/crew, Person exposed inline, no `/people/{id}` endpoint);
-  a future **people** capability would instead serve a Person as its own addressable resource
-  (detail + cross-filmography) — not needed until that self-link is required.
-- **people** *(planned)* — Person as an independently addressable resource (`/people/{id}`) and
-  their cross-filmography credits. Distinct from **credits** (see above): CAT-003 deliberately
-  does not add this endpoint, so a Person is inline-only for now.
+  *from the Movie side* (a movie's cast/crew, Person exposed inline, now carrying a resolvable
+  `person._links.self` since CAT-004); **people** serves a Person as its own addressable resource.
+- **people** — Person as an independently addressable resource (`GET /people/{id}`: id + name +
+  `self` link) since CAT-004. Person collection/search-list and cross-filmography credits remain
+  *planned* — not yet added.
 - **genres-keywords** *(planned)* — browse/list genres and keywords; filter movies by them.
 - **ratings-reviews** *(planned)* — a movie's aggregate rating and its curated reviews (read-only).
 

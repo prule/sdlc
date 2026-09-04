@@ -14,6 +14,8 @@ tags:
       convention. Not a real catalog capability.
   - name: movies
     description: Public, read-only catalog data for a single Movie.
+  - name: people
+    description: Public, read-only catalog data for a single Person.
 security:
   - bearerAuth: []
 paths:
@@ -27,6 +29,8 @@ paths:
     $ref: 'paths/movies.yaml'
   /movies/{id}/credits:
     $ref: 'paths/movie-credits.yaml'
+  /people/{id}:
+    $ref: 'paths/people.yaml'
 components:
   securitySchemes:
     bearerAuth:
@@ -88,6 +92,14 @@ components:
       $ref: 'components/schemas/credit.yaml#/MovieCreditsData'
     MovieCreditsEnvelope:
       $ref: 'components/schemas/credit.yaml#/MovieCreditsEnvelope'
+    CreditPersonLinks:
+      $ref: 'components/schemas/common.yaml#/CreditPersonLinks'
+    PersonLinks:
+      $ref: 'components/schemas/common.yaml#/PersonLinks'
+    Person:
+      $ref: 'components/schemas/person.yaml#/Person'
+    PersonDetailEnvelope:
+      $ref: 'components/schemas/person.yaml#/PersonDetailEnvelope'
   responses:
     BadRequest:
       $ref: 'components/responses/common.yaml#/BadRequest'

@@ -21,7 +21,9 @@ import com.acme.catalog.movies.domain.model.Rating;
 import com.acme.catalog.movies.domain.model.SortDirection;
 import com.acme.common.web.CorrelationId;
 import com.acme.generated.api.MoviesApi;
+import com.acme.generated.api.PeopleApi;
 import com.acme.generated.model.CreditPerson;
+import com.acme.generated.model.CreditPersonLinks;
 import com.acme.generated.model.Link;
 import com.acme.generated.model.Meta;
 import com.acme.generated.model.MovieCollectionData;
@@ -144,7 +146,13 @@ public class MovieController implements MoviesApi {
   }
 
   private static CreditPerson toGeneratedPerson(Person person) {
-    return new CreditPerson(person.id().value(), person.name());
+    URI selfHref =
+        URI.create(
+            linkTo(methodOn(PeopleApi.class).getPersonById(person.id().value(), null))
+                .withSelfRel()
+                .getHref());
+    return new CreditPerson(
+        person.id().value(), person.name(), new CreditPersonLinks(new Link(selfHref)));
   }
 
   @Override
