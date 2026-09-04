@@ -23,7 +23,7 @@ If the ticket above is empty, ask the user to paste it and stop.
 
 4. **QA (verify).** Spawn `qa` on the change. If NOT READY, send defects to `junior-dev` to fix, then re-run QA. Loop until READY (max 2 rounds, then escalate).
 
-5. **Code review (pre-archive gate).** Spawn `senior-dev` for a final code review of the diff. Route REQUEST CHANGES back to `junior-dev`.
+5. **Code review (pre-archive gate).** Spawn `senior-dev` for a final code review of the diff. The senior dev **fixes the issues it finds directly** and re-verifies (`./gradlew build -x spotlessCheck`); relay both the fixes it applied and its verdict. It returns REQUEST CHANGES only for issues it deliberately did not fix because they need a design/plan/scope decision — route those to `architect` (via `spec-reviewer` if the plan itself is wrong), not to `junior-dev`.
 
    🚦 **GATE 2 — merge/archive approval.** Show the human: QA verdict + evidence, the code-review findings, and the list of files changed. Ask whether to archive the change. Wait for explicit approval.
 
@@ -36,7 +36,7 @@ If the ticket above is empty, ask the user to paste it and stop.
 - If any agent stalls twice on the same issue, stop and hand the decision to the human with a crisp summary of the disagreement.
 
 ## Budget guardrails (prevent runaway spend)
-- **Per-phase retry cap:** at most **2** correction rounds per fix-loop (spec-reviewer↔architect, qa↔junior, senior-dev↔junior). On the 3rd attempt, STOP and escalate to the human — do not keep retrying.
+- **Per-phase retry cap:** at most **2** correction rounds per fix-loop (spec-reviewer↔architect, qa↔junior, and any senior-dev REQUEST CHANGES routed to architect/junior). On the 3rd attempt, STOP and escalate to the human — do not keep retrying. (The senior dev's own in-place fixes are not a loop — it fixes and re-verifies in its single review pass.)
 - **Per-phase progress check:** if a single agent invocation returns without converging (blocked, or reporting no meaningful progress) **twice in a row**, STOP the pipeline and report. Do not re-spawn it a third time hoping for a different result.
 - **Whole-run ceiling:** if the pipeline has spawned more than **~10 agent invocations total** for one ticket without reaching Gate 2, PAUSE and ask the human whether to continue, narrow the scope, or abort. A ticket that needs this many rounds is a signal the plan is wrong, not that it needs more attempts.
 - **No silent scope growth:** if an agent proposes work beyond the approved plan, do not spawn more agents to do it — surface it to the human as a scope decision.
