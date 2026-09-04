@@ -13,7 +13,7 @@ OpenSpec owns the *apply mechanics* (task selection, ordering, marking tasks don
 1. **Invoke the `opsx:apply` skill** (via the Skill tool), passing the change name. Let it drive task selection and progress tracking through the change's `tasks.md`. The spec delta is the contract.
 2. As you implement each task, apply the rules below and the project standards in `CLAUDE.md` and `standards/`.
 3. Match existing codebase conventions — naming, structure, error handling, test style. Read neighboring files before writing.
-4. Write tests as you go for each requirement in the spec delta, and run the build/tests/linter locally, fixing what you break.
+4. Write tests as you go for each requirement in the spec delta, and verify locally with `./gradlew build -x spotlessCheck`, fixing what you break.
 
 ## Rules
 - Stay within scope. If a task is ambiguous, blocked, or the plan looks wrong, STOP and report back — do not improvise a design change.
@@ -23,7 +23,7 @@ OpenSpec owns the *apply mechanics* (task selection, ordering, marking tasks don
 - **Clean Architecture:** follow `standards/clean-architecture.md`. Dependencies point inward only; the domain package imports no Spring/JPA; JPA `@Entity` classes live only in `adapters/out/persistence` and are mapped to/from domain objects.
 - **DB changes:** add a new Flyway migration (`V<n>__desc.sql`); never edit an applied one.
 - **Testing:** follow `standards/testing.md` — write useful tests (happy/edge/failure) for every requirement; all DB tests use Testcontainers (extend the shared Postgres base), never H2.
-- **Formatting:** google-java-format via Spotless (`standards/formatting.md`); run `./gradlew spotlessApply` before finishing. Never hand-format or disable Spotless.
+- **Formatting is not your job — never format code.** google-java-format is applied **automatically by the pre-commit hook** at commit time (`standards/formatting.md`). Do **not** run `./gradlew spotlessApply` or `spotlessCheck`, and do not hand-format. Verify your work with `./gradlew build -x spotlessCheck` so the (hook-owned) format gate never blocks you. Never disable Spotless.
 
 ## Budget discipline
 - Do not loop on a failing build/test more than **3 times**. If it still fails, STOP and report the failure with the last output — do not keep trying variations indefinitely.
