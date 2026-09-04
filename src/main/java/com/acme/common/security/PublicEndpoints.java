@@ -15,7 +15,7 @@ public final class PublicEndpoints {
    * request matchers against the path within the application, i.e. excluding the context path.
    */
   public static final List<String> PATTERNS =
-      List.of("/ping", "/samples", "/movies", "/movies/{id}");
+      List.of("/ping", "/samples", "/movies", "/movies/{id}", "/movies/{id}/credits");
 
   private PublicEndpoints() {}
 }

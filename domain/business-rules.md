@@ -31,6 +31,13 @@ live in the ticket; durable policies live here.
   `_embedded`, inside the Envelope's `data`) — `self`, and for collections pagination `next`/
   `prev`/`first`/`last`. These are read-only navigation aids; they are never action or
   write/state-transition affordances (`standards/openapi.md` §2a).
+- **Movie detail** carries `_links.self` and `_links.credits` (the latter pointing at
+  `GET /movies/{id}/credits`); cast/crew are reachable only via that link, never inlined into movie
+  detail (decided CAT-003). A Person is never independently linked (`self`) — no `/people/{id}`
+  endpoint exists yet, so a Person only ever appears **inline** wherever a Credit appears.
+- A movie's **credits** collection (`GET /movies/{id}/credits`) is returned **whole, unpaginated** —
+  cast and crew are typically small per movie, unlike the movie catalog itself. An existing movie
+  with no cast/crew recorded is a normal 200 with empty arrays, not a 404 (decided CAT-003).
 - **Search** results are **paginated** (zero-based `page`; `size` **default 20, max 100**) and
   **sortable** by `title`, `releaseYear`, or `rating` (asc/desc); **default sort is `releaseYear`
   descending**, `title` ascending as tiebreak. An empty result set is a normal 200, not an error.

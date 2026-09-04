@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.acme.catalog.credits.application.port.in.GetMovieCreditsUseCase;
 import com.acme.catalog.movies.application.port.in.GetMovieByIdUseCase;
 import com.acme.catalog.movies.application.port.in.SearchMoviesUseCase;
 import com.acme.catalog.movies.domain.model.Genre;
@@ -50,6 +51,7 @@ class MovieControllerTest {
 
   @MockitoBean private GetMovieByIdUseCase getMovieByIdUseCase;
   @MockitoBean private SearchMoviesUseCase searchMoviesUseCase;
+  @MockitoBean private GetMovieCreditsUseCase getMovieCreditsUseCase;
 
   private static Movie fullMovie(UUID id) {
     return new Movie(
@@ -91,6 +93,10 @@ class MovieControllerTest {
         .andExpect(jsonPath("$.data.synopsis").exists())
         .andExpect(jsonPath("$.data.rating").value(4.5))
         .andExpect(jsonPath("$.data._links.self.href").exists())
+        .andExpect(jsonPath("$.data._links.credits.href").exists())
+        .andExpect(
+            jsonPath("$.data._links.credits.href")
+                .value(org.hamcrest.Matchers.endsWith("/movies/" + id + "/credits")))
         .andExpect(jsonPath("$.data._embedded").doesNotExist())
         .andExpect(jsonPath("$.meta.correlationId").exists())
         .andExpect(jsonPath("$.meta.timestamp").exists());
@@ -121,7 +127,7 @@ class MovieControllerTest {
   }
 
   @Test
-  void getMovieById_onlySelfLinkPresent_noEmbeddedNoTemplates() throws Exception {
+  void getMovieById_onlySelfAndCreditsLinksPresent_noEmbeddedNoTemplates() throws Exception {
     UUID id = UUID.randomUUID();
     given(getMovieByIdUseCase.getMovieById(new MovieId(id))).willReturn(fullMovie(id));
 
@@ -130,7 +136,7 @@ class MovieControllerTest {
         new ObjectMapper().readTree(result.getResponse().getContentAsString()).path("data");
     JsonNode links = data.path("_links");
 
-    assertThat(links.fieldNames()).toIterable().containsExactly("self");
+    assertThat(links.fieldNames()).toIterable().containsExactlyInAnyOrder("self", "credits");
     assertThat(data.has("_embedded")).isFalse();
     assertThat(data.has("_templates")).isFalse();
   }

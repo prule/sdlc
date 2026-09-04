@@ -3,6 +3,11 @@ package com.acme.catalog.movies.adapters.in.web;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
+import com.acme.catalog.credits.application.port.in.GetMovieCreditsUseCase;
+import com.acme.catalog.credits.domain.model.CastCredit;
+import com.acme.catalog.credits.domain.model.CrewCredit;
+import com.acme.catalog.credits.domain.model.MovieCredits;
+import com.acme.catalog.credits.domain.model.Person;
 import com.acme.catalog.movies.application.port.in.GetMovieByIdUseCase;
 import com.acme.catalog.movies.application.port.in.SearchMoviesUseCase;
 import com.acme.catalog.movies.domain.model.Genre;
@@ -16,12 +21,17 @@ import com.acme.catalog.movies.domain.model.Rating;
 import com.acme.catalog.movies.domain.model.SortDirection;
 import com.acme.common.web.CorrelationId;
 import com.acme.generated.api.MoviesApi;
+import com.acme.generated.model.CreditPerson;
 import com.acme.generated.model.Link;
 import com.acme.generated.model.Meta;
 import com.acme.generated.model.MovieCollectionData;
 import com.acme.generated.model.MovieCollectionDataEmbedded;
 import com.acme.generated.model.MovieCollectionEnvelope;
 import com.acme.generated.model.MovieCollectionLinks;
+import com.acme.generated.model.MovieCreditsData;
+import com.acme.generated.model.MovieCreditsDataEmbedded;
+import com.acme.generated.model.MovieCreditsEnvelope;
+import com.acme.generated.model.MovieCreditsLinks;
 import com.acme.generated.model.MovieDetail;
 import com.acme.generated.model.MovieDetailEnvelope;
 import com.acme.generated.model.MovieLinks;
@@ -55,11 +65,15 @@ public class MovieController implements MoviesApi {
 
   private final GetMovieByIdUseCase getMovieByIdUseCase;
   private final SearchMoviesUseCase searchMoviesUseCase;
+  private final GetMovieCreditsUseCase getMovieCreditsUseCase;
 
   public MovieController(
-      GetMovieByIdUseCase getMovieByIdUseCase, SearchMoviesUseCase searchMoviesUseCase) {
+      GetMovieByIdUseCase getMovieByIdUseCase,
+      SearchMoviesUseCase searchMoviesUseCase,
+      GetMovieCreditsUseCase getMovieCreditsUseCase) {
     this.getMovieByIdUseCase = getMovieByIdUseCase;
     this.searchMoviesUseCase = searchMoviesUseCase;
+    this.getMovieCreditsUseCase = getMovieCreditsUseCase;
   }
 
   @Override
@@ -72,6 +86,10 @@ public class MovieController implements MoviesApi {
             linkTo(methodOn(MoviesApi.class).getMovieById(id, xCorrelationId))
                 .withSelfRel()
                 .getHref());
+    // Pure link assembly — no port call, no SQL statement (see design.md, D-F).
+    URI creditsHref =
+        URI.create(
+            linkTo(methodOn(MoviesApi.class).getMovieCredits(id, null)).withSelfRel().getHref());
 
     MovieDetail data =
         new MovieDetail(
@@ -79,7 +97,7 @@ public class MovieController implements MoviesApi {
                 movie.title(),
                 movie.releaseYear(),
                 movie.genres().stream().map(genre -> genre.label()).toList(),
-                new MovieLinks(new Link(selfHref)))
+                new MovieLinks(new Link(selfHref), new Link(creditsHref)))
             .runtimeMinutes(movie.runtimeMinutes().orElse(null))
             .synopsis(movie.synopsis().orElse(null))
             .rating(movie.rating().map(rating -> rating.score()).orElse(null));
@@ -87,6 +105,46 @@ public class MovieController implements MoviesApi {
     Meta meta = new Meta(OffsetDateTime.now(ZoneOffset.UTC), UUID.fromString(correlationId));
 
     return ResponseEntity.ok(new MovieDetailEnvelope(data, meta));
+  }
+
+  @Override
+  public ResponseEntity<MovieCreditsEnvelope> getMovieCredits(UUID id, UUID xCorrelationId) {
+    MovieCredits credits = getMovieCreditsUseCase.getMovieCredits(new MovieId(id));
+    String correlationId = CorrelationId.current();
+
+    URI selfHref =
+        URI.create(
+            linkTo(methodOn(MoviesApi.class).getMovieCredits(id, xCorrelationId))
+                .withSelfRel()
+                .getHref());
+
+    List<com.acme.generated.model.CastCredit> castItems =
+        credits.cast().stream().map(MovieController::toGeneratedCastCredit).toList();
+    List<com.acme.generated.model.CrewCredit> crewItems =
+        credits.crew().stream().map(MovieController::toGeneratedCrewCredit).toList();
+
+    MovieCreditsData data =
+        new MovieCreditsData(
+            new MovieCreditsDataEmbedded(castItems, crewItems),
+            new MovieCreditsLinks(new Link(selfHref)));
+
+    Meta meta = new Meta(OffsetDateTime.now(ZoneOffset.UTC), UUID.fromString(correlationId));
+
+    return ResponseEntity.ok(new MovieCreditsEnvelope(data, meta));
+  }
+
+  private static com.acme.generated.model.CastCredit toGeneratedCastCredit(CastCredit castCredit) {
+    return new com.acme.generated.model.CastCredit(
+        toGeneratedPerson(castCredit.person()), castCredit.character(), castCredit.billingOrder());
+  }
+
+  private static com.acme.generated.model.CrewCredit toGeneratedCrewCredit(CrewCredit crewCredit) {
+    return new com.acme.generated.model.CrewCredit(
+        toGeneratedPerson(crewCredit.person()), crewCredit.department(), crewCredit.job());
+  }
+
+  private static CreditPerson toGeneratedPerson(Person person) {
+    return new CreditPerson(person.id().value(), person.name());
   }
 
   @Override

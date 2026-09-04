@@ -1,9 +1,14 @@
 package com.acme.catalog.movies.adapters.out.persistence;
 
+import com.acme.catalog.credits.adapters.out.persistence.CreditJpaEntity;
+import com.acme.catalog.credits.adapters.out.persistence.CreditJpaRepository;
+import com.acme.catalog.credits.adapters.out.persistence.PersonJpaEntity;
+import com.acme.catalog.credits.adapters.out.persistence.PersonJpaRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -20,8 +25,9 @@ import org.springframework.stereotype.Component;
  * Loads a small, committed demo dataset ({@code demo-data/movies.json}) so the happy path is
  * demonstrable in a running app. Active only under the {@code demo} profile — never {@code prod} —
  * and NOT a Flyway data migration (Flyway runs in every environment, including tests, which would
- * leak demo rows into production and couple tests to the seed). Idempotent: each movie's id is
- * deterministically derived from its title, and a movie already present is left untouched.
+ * leak demo rows into production and couple tests to the seed). Idempotent: each movie's id, each
+ * person's id, and each credit's id are deterministically derived, and rows already present are
+ * left untouched.
  *
  * <p>Automated tests never enable the {@code demo} profile; they insert their own fixtures and
  * assert against those, independent of this seed's contents.
@@ -35,14 +41,20 @@ public class DemoMovieSeedLoader implements ApplicationRunner {
 
   private final MovieJpaRepository movieJpaRepository;
   private final GenreJpaRepository genreJpaRepository;
+  private final PersonJpaRepository personJpaRepository;
+  private final CreditJpaRepository creditJpaRepository;
   private final ObjectMapper objectMapper;
 
   public DemoMovieSeedLoader(
       MovieJpaRepository movieJpaRepository,
       GenreJpaRepository genreJpaRepository,
+      PersonJpaRepository personJpaRepository,
+      CreditJpaRepository creditJpaRepository,
       ObjectMapper objectMapper) {
     this.movieJpaRepository = movieJpaRepository;
     this.genreJpaRepository = genreJpaRepository;
+    this.personJpaRepository = personJpaRepository;
+    this.creditJpaRepository = creditJpaRepository;
     this.objectMapper = objectMapper;
   }
 
@@ -57,16 +69,20 @@ public class DemoMovieSeedLoader implements ApplicationRunner {
     }
 
     int inserted = 0;
+    int creditsInserted = 0;
     for (DemoMovie demoMovie : demoMovies) {
       UUID id = UUID.nameUUIDFromBytes(demoMovie.title().getBytes());
-      if (movieJpaRepository.existsById(id)) {
-        continue;
+      if (!movieJpaRepository.existsById(id)) {
+        movieJpaRepository.save(toEntity(id, demoMovie));
+        inserted++;
       }
-      movieJpaRepository.save(toEntity(id, demoMovie));
-      inserted++;
+      creditsInserted += seedCredits(id, demoMovie);
     }
     log.info(
-        "Demo movie seed: {} movie(s) inserted (of {} in dataset)", inserted, demoMovies.size());
+        "Demo movie seed: {} movie(s), {} credit(s) inserted (of {} movies in dataset)",
+        inserted,
+        creditsInserted,
+        demoMovies.size());
   }
 
   private MovieJpaEntity toEntity(UUID id, DemoMovie demoMovie) {
@@ -92,6 +108,42 @@ public class DemoMovieSeedLoader implements ApplicationRunner {
         .orElseGet(() -> genreJpaRepository.save(new GenreJpaEntity(id, name)));
   }
 
+  private int seedCredits(UUID movieId, DemoMovie demoMovie) {
+    int inserted = 0;
+    for (DemoCastCredit cast :
+        demoMovie.cast() == null ? List.<DemoCastCredit>of() : demoMovie.cast()) {
+      PersonJpaEntity person = findOrCreatePerson(cast.name());
+      UUID creditId = deterministicId("credit-cast-" + movieId + "-" + cast.name());
+      if (!creditJpaRepository.existsById(creditId)) {
+        creditJpaRepository.save(
+            CreditJpaEntity.cast(creditId, movieId, person, cast.character(), cast.billingOrder()));
+        inserted++;
+      }
+    }
+    for (DemoCrewCredit crew :
+        demoMovie.crew() == null ? List.<DemoCrewCredit>of() : demoMovie.crew()) {
+      PersonJpaEntity person = findOrCreatePerson(crew.name());
+      UUID creditId = deterministicId("credit-crew-" + movieId + "-" + crew.name());
+      if (!creditJpaRepository.existsById(creditId)) {
+        creditJpaRepository.save(
+            CreditJpaEntity.crew(creditId, movieId, person, crew.department(), crew.job()));
+        inserted++;
+      }
+    }
+    return inserted;
+  }
+
+  private PersonJpaEntity findOrCreatePerson(String name) {
+    UUID id = deterministicId("person-" + name);
+    return personJpaRepository
+        .findById(id)
+        .orElseGet(() -> personJpaRepository.save(new PersonJpaEntity(id, name)));
+  }
+
+  private static UUID deterministicId(String seed) {
+    return UUID.nameUUIDFromBytes(seed.getBytes(StandardCharsets.UTF_8));
+  }
+
   @JsonDeserialize
   private record DemoMovie(
       String title,
@@ -99,5 +151,13 @@ public class DemoMovieSeedLoader implements ApplicationRunner {
       List<String> genres,
       Integer runtimeMinutes,
       String synopsis,
-      Double rating) {}
+      Double rating,
+      List<DemoCastCredit> cast,
+      List<DemoCrewCredit> crew) {}
+
+  @JsonDeserialize
+  private record DemoCastCredit(String name, String character, int billingOrder) {}
+
+  @JsonDeserialize
+  private record DemoCrewCredit(String name, String department, String job) {}
 }
