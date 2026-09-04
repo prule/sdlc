@@ -87,6 +87,14 @@ class MovieCreditsControllerTest {
         .andExpect(jsonPath("$.data._links.self.href").exists())
         .andExpect(jsonPath("$.data._embedded.cast[0]._links").doesNotExist())
         .andExpect(jsonPath("$.data._embedded.crew[0]._links").doesNotExist())
+        .andExpect(jsonPath("$.data._embedded.cast[0].person._links.self.href").exists())
+        .andExpect(
+            jsonPath("$.data._embedded.cast[0].person._links.self.href")
+                .value(org.hamcrest.Matchers.endsWith("/people/" + actor.id().value())))
+        .andExpect(jsonPath("$.data._embedded.crew[0].person._links.self.href").exists())
+        .andExpect(
+            jsonPath("$.data._embedded.crew[0].person._links.self.href")
+                .value(org.hamcrest.Matchers.endsWith("/people/" + director.id().value())))
         .andExpect(jsonPath("$.meta.correlationId").exists())
         .andExpect(jsonPath("$.meta.timestamp").exists())
         .andExpect(jsonPath("$.meta.pagination").doesNotExist());

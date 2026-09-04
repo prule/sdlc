@@ -8,7 +8,7 @@ whenever a new term appears.
 | Movie | A single film title in the catalog: the core aggregate. Has a stable id, title, release year, runtime, synopsis, genres, credits, and an aggregate rating. | Not "film"/"title" in code — say **Movie**. |
 | Movie detail | The full single-movie representation (`GET /movies/{id}`): id, title, releaseYear, genres, and when present runtimeMinutes/synopsis/rating. | See CAT-001. |
 | Movie summary | The lighter representation used in **search/list** results (`GET /movies`): id, title, releaseYear, genres, and when present runtimeMinutes/rating — **no synopsis**; carries a `self` link to its detail. | See CAT-002. |
-| Person | An individual who worked on movies (actor, director, writer, …). Has an id, name, and credits. Exposed **inline** wherever a Credit appears (`id` + `name`) — **not independently addressable**: no `/people/{id}` endpoint exists yet, so a Person never carries a `self` link. | See CAT-003. |
+| Person | An individual who worked on movies (actor, director, writer, …). Has an id, name, and credits. Independently addressable at `GET /people/{id}` (id + name + `self` link) since CAT-004. Also exposed **inline** wherever a Credit appears (`id` + `name`), where the inline Person now carries a resolvable `person._links.self` pointing at its `/people/{id}` detail. | See CAT-003, CAT-004. |
 | Credit | The link between a Person and a Movie in a specific capacity (e.g. "Actor as <character>", "Director"). Always one of two shapes — an acting credit (**Cast**) or a non-acting credit (**Crew**) — never a single shape with both sets of fields. A Movie's credits are always returned in a **total, stable order** (see Cast/Crew). | Also called a "role"; prefer **Credit**. See CAT-003. |
 | Cast | The set of acting Credits on a Movie: Person + `character` (free-text) + `billingOrder` (a positive integer; **1 = top billing**, ascending thereafter — lower number is more prominent). Ordered by `billingOrder` ascending. | See CAT-003. |
 | Crew | The set of non-acting Credits on a Movie (director, writer, composer, …): Person + `department` + `job` (both free-text, no controlled vocabulary yet). Ordered by `department` then `job` ascending, grouping case-insensitively. | See CAT-003. |
@@ -30,3 +30,9 @@ whenever a new term appears.
 > (`_embedded.cast`, `_embedded.crew`), not a single `credits` list with a type discriminator: cast
 > and crew have different item shapes and different orderings, so splitting them keeps each schema
 > fully populated and each ordering unambiguous.
+>
+> **HAL relation naming (CAT-004):** now that `GET /people/{id}` exists, the inline `person` object on
+> each cast/crew credit item carries its own `person._links.self` pointing at that Person's detail —
+> previously withheld (CAT-003) because no addressable Person endpoint existed. Only `self` is
+> emitted on Person detail (`data._links`); no `credits`/`filmography` link, since no cross-filmography
+> endpoint exists to address.

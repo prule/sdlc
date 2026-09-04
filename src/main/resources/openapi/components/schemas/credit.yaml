@@ -1,12 +1,14 @@
 CreditPerson:
   type: object
-  required: [id, name]
+  required: [id, name, _links]
   properties:
     id:
       type: string
       format: uuid
     name:
       type: string
+    _links:
+      $ref: '../../openapi.yaml#/components/schemas/CreditPersonLinks'
 
 CastCredit:
   type: object

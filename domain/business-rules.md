@@ -33,8 +33,10 @@ live in the ticket; durable policies live here.
   write/state-transition affordances (`standards/openapi.md` §2a).
 - **Movie detail** carries `_links.self` and `_links.credits` (the latter pointing at
   `GET /movies/{id}/credits`); cast/crew are reachable only via that link, never inlined into movie
-  detail (decided CAT-003). A Person is never independently linked (`self`) — no `/people/{id}`
-  endpoint exists yet, so a Person only ever appears **inline** wherever a Credit appears.
+  detail (decided CAT-003). A Person is independently addressable at `GET /people/{id}` (id + name +
+  `self` link only — no biographical fields, no `credits`/`filmography` link) since CAT-004; the
+  inline Person on a Credit now also carries a resolvable `person._links.self` pointing at that
+  detail.
 - A movie's **credits** collection (`GET /movies/{id}/credits`) is returned **whole, unpaginated** —
   cast and crew are typically small per movie, unlike the movie catalog itself. An existing movie
   with no cast/crew recorded is a normal 200 with empty arrays, not a 404 (decided CAT-003).

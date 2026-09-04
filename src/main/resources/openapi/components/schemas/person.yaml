@@ -1,0 +1,20 @@
+Person:
+  type: object
+  required: [id, name, _links]
+  properties:
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+    _links:
+      $ref: '../../openapi.yaml#/components/schemas/PersonLinks'
+
+PersonDetailEnvelope:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      $ref: '#/Person'
+    meta:
+      $ref: '../../openapi.yaml#/components/schemas/Meta'
