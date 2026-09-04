@@ -14,6 +14,12 @@ import org.springframework.data.repository.query.Param;
  */
 public interface CreditJpaRepository extends JpaRepository<CreditJpaEntity, UUID> {
 
+  // The leading `c.creditType ASC` term is cosmetic only (it just clusters CAST rows before CREW
+  // rows in the single result set) — the adapter partitions rows into cast/crew lists in Java
+  // afterward, so cross-group order is irrelevant. Correctness of each list's *own* order comes
+  // entirely from its per-type sort keys (billingOrder for CAST; department/job for CREW) plus the
+  // shared, unique terminal key `c.id`, which is what guarantees a total, stable order even when
+  // every other key ties.
   @Query(
       "SELECT c FROM CreditJpaEntity c JOIN FETCH c.person WHERE c.movieId = :movieId ORDER BY"
           + " c.creditType ASC, c.billingOrder ASC, LOWER(c.department) ASC, LOWER(c.job) ASC,"

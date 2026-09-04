@@ -90,6 +90,40 @@ class MovieCreditsPersistenceAdapterTest extends PostgresIntegrationTest {
   }
 
   @Test
+  void load_movieWithOnlyCast_returnsPopulatedOrderedCastAndAPresentEmptyCrewArray() {
+    UUID movieId = saveMovie("Cast Only Movie");
+    UUID zoe = savePerson("Zoe Actor");
+    UUID amy = savePerson("Amy Actor");
+    saveCastCredit(movieId, zoe, "Lead A", 2);
+    saveCastCredit(movieId, amy, "Lead B", 1);
+
+    MovieCredits credits = adapter.load(new MovieId(movieId)).orElseThrow();
+
+    assertThat(credits.cast())
+        .extracting(CastCredit::person)
+        .extracting(p -> p.id().value())
+        .containsExactly(amy, zoe);
+    assertThat(credits.crew()).isNotNull().isEmpty();
+  }
+
+  @Test
+  void load_movieWithOnlyCrew_returnsPopulatedOrderedCrewAndAPresentEmptyCastArray() {
+    UUID movieId = saveMovie("Crew Only Movie");
+    UUID zara = savePerson("Zara Director");
+    UUID aaron = savePerson("Aaron Director");
+    saveCrewCredit(movieId, zara, "Directing", "Director");
+    saveCrewCredit(movieId, aaron, "Directing", "Director");
+
+    MovieCredits credits = adapter.load(new MovieId(movieId)).orElseThrow();
+
+    assertThat(credits.crew())
+        .extracting(CrewCredit::person)
+        .extracting(p -> p.id().value())
+        .containsExactly(aaron, zara);
+    assertThat(credits.cast()).isNotNull().isEmpty();
+  }
+
+  @Test
   void load_castAndCrewOrderingIsStableAcrossRepeatedCalls() {
     UUID movieId = saveMovie("Stable Order Movie");
     UUID personA = savePerson("Person A");
