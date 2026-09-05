@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.acme.catalog.people.application.port.in.GetPersonByIdUseCase;
 import com.acme.catalog.people.application.port.in.GetPersonFilmographyUseCase;
+import com.acme.catalog.people.application.port.in.SearchPeopleUseCase;
 import com.acme.catalog.people.domain.model.Person;
 import com.acme.catalog.people.domain.model.PersonId;
 import com.acme.common.error.GlobalExceptionHandler;
@@ -45,6 +46,7 @@ class PersonControllerTest {
 
   @MockitoBean private GetPersonByIdUseCase getPersonByIdUseCase;
   @MockitoBean private GetPersonFilmographyUseCase getPersonFilmographyUseCase;
+  @MockitoBean private SearchPeopleUseCase searchPeopleUseCase;
 
   @Test
   void getPersonById_existingPerson_returns200EnvelopedDetailWithSelfLink() throws Exception {

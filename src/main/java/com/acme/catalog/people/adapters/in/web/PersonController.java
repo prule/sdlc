@@ -7,6 +7,7 @@ import com.acme.catalog.movies.domain.model.Genre;
 import com.acme.catalog.movies.domain.model.Rating;
 import com.acme.catalog.people.application.port.in.GetPersonByIdUseCase;
 import com.acme.catalog.people.application.port.in.GetPersonFilmographyUseCase;
+import com.acme.catalog.people.application.port.in.SearchPeopleUseCase;
 import com.acme.catalog.people.domain.model.ActingCapacity;
 import com.acme.catalog.people.domain.model.FilmographyCapacity;
 import com.acme.catalog.people.domain.model.FilmographyEntry;
@@ -14,6 +15,11 @@ import com.acme.catalog.people.domain.model.FilmographyPage;
 import com.acme.catalog.people.domain.model.NonActingCapacity;
 import com.acme.catalog.people.domain.model.Person;
 import com.acme.catalog.people.domain.model.PersonId;
+import com.acme.catalog.people.domain.model.PersonPage;
+import com.acme.catalog.people.domain.model.PersonSearchCriteria;
+import com.acme.catalog.people.domain.model.PersonSort;
+import com.acme.catalog.people.domain.model.PersonSortField;
+import com.acme.catalog.people.domain.model.SortDirection;
 import com.acme.common.web.CorrelationId;
 import com.acme.generated.api.MoviesApi;
 import com.acme.generated.api.PeopleApi;
@@ -22,16 +28,24 @@ import com.acme.generated.model.Link;
 import com.acme.generated.model.Meta;
 import com.acme.generated.model.MovieSummaryLinks;
 import com.acme.generated.model.Pagination;
+import com.acme.generated.model.PersonCollectionData;
+import com.acme.generated.model.PersonCollectionDataEmbedded;
+import com.acme.generated.model.PersonCollectionEnvelope;
+import com.acme.generated.model.PersonCollectionLinks;
 import com.acme.generated.model.PersonDetailEnvelope;
 import com.acme.generated.model.PersonFilmographyData;
 import com.acme.generated.model.PersonFilmographyDataEmbedded;
 import com.acme.generated.model.PersonFilmographyEnvelope;
 import com.acme.generated.model.PersonFilmographyLinks;
 import com.acme.generated.model.PersonLinks;
+import com.acme.generated.model.PersonSummary;
+import com.acme.generated.model.PersonSummaryLinks;
 import java.net.URI;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
 import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -39,11 +53,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Implements the generated {@link PeopleApi}. Thin: calls {@link GetPersonByIdUseCase}/{@link
- * GetPersonFilmographyUseCase}, maps domain types to the generated DTOs, and assembles HAL links
- * via {@link org.springframework.hateoas.server.mvc.WebMvcLinkBuilder}. No business logic lives
- * here; no HATEOAS import in domain/application. {@code @Validated} enforces the generated
- * {@code @Min}/{@code @Max} query-param constraints on {@code getPersonFilmography} (same rationale
- * as {@code MovieController}).
+ * GetPersonFilmographyUseCase}/{@link SearchPeopleUseCase}, maps domain types to the generated
+ * DTOs, and assembles HAL links via {@link
+ * org.springframework.hateoas.server.mvc.WebMvcLinkBuilder}. No business logic lives here; no
+ * HATEOAS import in domain/application. {@code @Validated} enforces the generated
+ * {@code @Min}/{@code @Max} query-param constraints on {@code getPersonFilmography}/{@code
+ * listPeople} (same rationale as {@code MovieController}).
  */
 @RestController
 @Validated
@@ -51,12 +66,15 @@ public class PersonController implements PeopleApi {
 
   private final GetPersonByIdUseCase getPersonByIdUseCase;
   private final GetPersonFilmographyUseCase getPersonFilmographyUseCase;
+  private final SearchPeopleUseCase searchPeopleUseCase;
 
   public PersonController(
       GetPersonByIdUseCase getPersonByIdUseCase,
-      GetPersonFilmographyUseCase getPersonFilmographyUseCase) {
+      GetPersonFilmographyUseCase getPersonFilmographyUseCase,
+      SearchPeopleUseCase searchPeopleUseCase) {
     this.getPersonByIdUseCase = getPersonByIdUseCase;
     this.getPersonFilmographyUseCase = getPersonFilmographyUseCase;
+    this.searchPeopleUseCase = searchPeopleUseCase;
   }
 
   @Override
@@ -172,5 +190,109 @@ public class PersonController implements PeopleApi {
   private static Link pageLink(UUID id, int page, int size) {
     return new Link(
         linkTo(methodOn(PeopleApi.class).getPersonFilmography(id, null, page, size)).toUri());
+  }
+
+  @Override
+  public ResponseEntity<PersonCollectionEnvelope> listPeople(
+      UUID xCorrelationId, Integer page, Integer size, String name, String sort) {
+    PersonSearchCriteria criteria = new PersonSearchCriteria(Optional.ofNullable(name));
+    PersonSort personSort = parseSort(sort);
+
+    PersonPage personPage = searchPeopleUseCase.searchPeople(criteria, page, size, personSort);
+    String correlationId = CorrelationId.current();
+
+    List<PersonSummary> items =
+        personPage.items().stream().map(PersonController::toSummary).toList();
+
+    PersonCollectionData data =
+        new PersonCollectionData(
+            new PersonCollectionDataEmbedded(items), collectionLinks(personPage, name, sort));
+
+    Meta meta =
+        new Meta(OffsetDateTime.now(ZoneOffset.UTC), UUID.fromString(correlationId))
+            .pagination(
+                new Pagination(
+                    personPage.page(),
+                    personPage.size(),
+                    personPage.totalElements(),
+                    personPage.totalPages()));
+
+    return ResponseEntity.ok(new PersonCollectionEnvelope(data, meta));
+  }
+
+  /**
+   * Parses {@code sort=<field>,<dir>}. An unknown field or direction throws {@link
+   * IllegalArgumentException}, which the global {@code @RestControllerAdvice}'s {@code
+   * onBadRequest} maps to {@code 400 problem+json} — deliberately not {@link
+   * com.acme.common.error.ValidationException}, which maps to {@code 422} (mirrors {@code
+   * MovieController#parseSort}).
+   */
+  private static PersonSort parseSort(String sort) {
+    if (sort == null || sort.isBlank()) {
+      return PersonSort.DEFAULT;
+    }
+    String[] parts = sort.split(",", 2);
+    if (parts.length != 2) {
+      throw new IllegalArgumentException("Invalid sort parameter: " + sort);
+    }
+    PersonSortField field = parseSortField(parts[0]);
+    SortDirection direction = parseSortDirection(parts[1]);
+    return new PersonSort(field, direction);
+  }
+
+  private static PersonSortField parseSortField(String field) {
+    return switch (field.trim().toLowerCase(Locale.ROOT)) {
+      case "name" -> PersonSortField.NAME;
+      default -> throw new IllegalArgumentException("Unsupported sort field: " + field);
+    };
+  }
+
+  private static SortDirection parseSortDirection(String direction) {
+    return switch (direction.trim().toLowerCase(Locale.ROOT)) {
+      case "asc" -> SortDirection.ASC;
+      case "desc" -> SortDirection.DESC;
+      default -> throw new IllegalArgumentException("Unsupported sort direction: " + direction);
+    };
+  }
+
+  private static PersonSummary toSummary(Person person) {
+    return new PersonSummary(
+        person.id().value(),
+        person.name(),
+        new PersonSummaryLinks(itemSelfLink(person.id().value())));
+  }
+
+  private static Link itemSelfLink(UUID id) {
+    URI href =
+        URI.create(
+            linkTo(methodOn(PeopleApi.class).getPersonById(id, null)).withSelfRel().getHref());
+    return new Link(href);
+  }
+
+  private static PersonCollectionLinks collectionLinks(
+      PersonPage personPage, String name, String sort) {
+    int page = personPage.page();
+    int size = personPage.size();
+    int totalPages = personPage.totalPages();
+
+    PersonCollectionLinks links = new PersonCollectionLinks(pageLink(page, size, name, sort));
+    links.first(pageLink(0, size, name, sort));
+    if (totalPages > 0) {
+      links.last(pageLink(totalPages - 1, size, name, sort));
+    } else {
+      links.last(pageLink(0, size, name, sort));
+    }
+    if (page > 0) {
+      links.prev(pageLink(page - 1, size, name, sort));
+    }
+    if (page < totalPages - 1) {
+      links.next(pageLink(page + 1, size, name, sort));
+    }
+    return links;
+  }
+
+  private static Link pageLink(int page, int size, String name, String sort) {
+    return new Link(
+        linkTo(methodOn(PeopleApi.class).listPeople(null, page, size, name, sort)).toUri());
   }
 }

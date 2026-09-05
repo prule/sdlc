@@ -21,6 +21,7 @@ public final class PublicEndpoints {
           "/movies",
           "/movies/{id}",
           "/movies/{id}/credits",
+          "/people",
           "/people/{id}",
           "/people/{id}/credits");
 

@@ -19,7 +19,9 @@ The movie database and its public read API. All consumer-facing capabilities liv
 - **people** — Person as an independently addressable resource (`GET /people/{id}`: id + name +
   `self`/`credits` links) since CAT-004, now also carrying a Person's **filmography** — the movies
   they are credited in, from the Person side (`GET /people/{id}/credits`, CAT-005), the inverse of
-  **credits**' movie-side view. Person collection/search-list remains *planned* — not yet added.
+  **credits**' movie-side view, and a person collection/search-list (`GET /people`: name-filtered,
+  paginated, sorted by name, default name ascending — the person-side analogue of movie search)
+  since CAT-006.
 - **genres-keywords** *(planned)* — browse/list genres and keywords; filter movies by them.
 - **ratings-reviews** *(planned)* — a movie's aggregate rating and its curated reviews (read-only).
 

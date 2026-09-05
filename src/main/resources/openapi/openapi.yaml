@@ -29,6 +29,8 @@ paths:
     $ref: 'paths/movies.yaml'
   /movies/{id}/credits:
     $ref: 'paths/movie-credits.yaml'
+  /people:
+    $ref: 'paths/people-collection.yaml'
   /people/{id}:
     $ref: 'paths/people.yaml'
   /people/{id}/credits:
@@ -116,6 +118,16 @@ components:
       $ref: 'components/schemas/person.yaml#/PersonFilmographyData'
     PersonFilmographyEnvelope:
       $ref: 'components/schemas/person.yaml#/PersonFilmographyEnvelope'
+    PersonCollectionLinks:
+      $ref: 'components/schemas/common.yaml#/PersonCollectionLinks'
+    PersonSummaryLinks:
+      $ref: 'components/schemas/common.yaml#/PersonSummaryLinks'
+    PersonSummary:
+      $ref: 'components/schemas/person.yaml#/PersonSummary'
+    PersonCollectionData:
+      $ref: 'components/schemas/person.yaml#/PersonCollectionData'
+    PersonCollectionEnvelope:
+      $ref: 'components/schemas/person.yaml#/PersonCollectionEnvelope'
   responses:
     BadRequest:
       $ref: 'components/responses/common.yaml#/BadRequest'

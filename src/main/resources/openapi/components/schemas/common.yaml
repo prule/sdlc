@@ -146,6 +146,28 @@ CreditPersonLinks:
     self:
       $ref: '#/Link'
 
+PersonCollectionLinks:
+  type: object
+  required: [self]
+  properties:
+    self:
+      $ref: '#/Link'
+    first:
+      $ref: '#/Link'
+    last:
+      $ref: '#/Link'
+    prev:
+      $ref: '#/Link'
+    next:
+      $ref: '#/Link'
+
+PersonSummaryLinks:
+  type: object
+  required: [self]
+  properties:
+    self:
+      $ref: '#/Link'
+
 Problem:
   type: object
   required: [type, title, status, code, correlationId]
