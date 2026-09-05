@@ -141,24 +141,51 @@ running the app on its H2 default), **Node** (for the `redocly` bundle step — 
 Node, redocly, OpenSpec CLI, Docker-in-Docker) is ready. Changing `.devcontainer/` needs a container
 **rebuild**.
 
-### Running the app
+### Running the app & exploring the API
+
+**1. Start it** (zero setup — no Docker or Postgres needed):
 
 ```
-./gradlew bootRun                                              # H2 in-memory — zero setup, no Docker/Postgres needed
-./gradlew bootRun --args='--spring.profiles.active=postgres'   # PostgreSQL — needs a running instance (env: DB_URL, DB_USERNAME, DB_PASSWORD)
+./gradlew bootRun
 ```
 
-The default (no-profile) run boots on an in-memory H2 database, migrated with the same Flyway scripts as
-production and pre-loaded with a small demo dataset — the fastest way to see the API respond with real
-data. It resets on every restart. The `postgres` profile switches to a real PostgreSQL datasource
-(defaults to `jdbc:postgresql://localhost:5432/sdlc`, overridable via `DB_URL`/`DB_USERNAME`/`DB_PASSWORD`)
-with identical behaviour and no demo seeding. **`./gradlew build` and the automated test suite always run
+Wait for the log line `Started Application in … seconds`. It boots on an **in-memory H2 database**,
+migrated with the same Flyway scripts as production and pre-loaded with a small demo dataset — the
+fastest way to see the API respond with real data. The data resets on every restart. The app listens
+on **port 8080** with context path **`/api/v1`**.
+
+**2. Open Swagger UI** — the interactive API explorer:
+
+> ### 👉 http://localhost:8080/api/v1/swagger-ui/index.html
+
+Both parts of the path matter: `/api/v1` (the app's context path) **and** `/swagger-ui/index.html`
+(the UI). It's served entirely locally (no external CDN, works offline) and renders the **authored**
+OpenAPI contract — the same bundled spec that drives code generation, so what you see is exactly the
+contract. Every endpoint has a **Try it out** button that runs live against the demo data.
+
+**3. Other useful URLs** (all under `http://localhost:8080/api/v1`):
+
+| URL | What |
+|-----|------|
+| `/swagger-ui/index.html` | Interactive Swagger UI |
+| `/openapi/openapi.bundled.yaml` | The raw authored OpenAPI spec (YAML) |
+| `/movies` · `/people` | Try the read endpoints directly, e.g. `curl http://localhost:8080/api/v1/movies` |
+
+**Run against real PostgreSQL instead** (needs a running instance):
+
+```
+./gradlew bootRun --args='--spring.profiles.active=postgres'
+```
+
+The `postgres` profile uses a real PostgreSQL datasource (defaults to `jdbc:postgresql://localhost:5432/sdlc`,
+overridable via `DB_URL` / `DB_USERNAME` / `DB_PASSWORD`) with identical behaviour and no demo seeding.
+Swagger UI is available at the same URL. **`./gradlew build` and the automated test suite always run
 against PostgreSQL via Testcontainers, regardless of which profile you run the app with** — Docker is
 still required for those.
 
-Once the app is running, browse the API at **`http://localhost:8080/api/v1/swagger-ui/index.html`**
-— an interactive Swagger UI, served locally (no external CDN, no setup), rendering the authored
-OpenAPI contract (the same bundled spec that drives code generation).
+**Troubleshooting:** if startup fails with *"Failed to start bean 'webServerStartStop'"* or the port is
+taken, a previous instance is still on 8080 — clear it with `lsof -ti tcp:8080 | xargs kill -9`, then
+`./gradlew bootRun` again.
 
 ---
 
