@@ -1,6 +1,7 @@
 package com.acme.common.test;
 
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -17,8 +18,14 @@ import org.testcontainers.containers.PostgreSQLContainer;
  * DB-backed test class sharing this base. Starting the container in a plain static initializer
  * instead, with no {@code @Container} annotation on the field, is the correct pattern for a
  * container meant to be a true cross-class singleton.
+ *
+ * <p>Activates the {@code test} profile as an explicit marker distinguishing the test suite from
+ * the H2 default runtime (there is no {@code application-test.yml}; the datasource always comes
+ * from {@link #datasourceProperties}, not from this profile) — see {@code DemoMovieSeedLoader}'s
+ * profile gating, which is off under {@code test}.
  */
 @SpringBootTest
+@ActiveProfiles("test")
 public abstract class PostgresIntegrationTest {
 
   static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine");

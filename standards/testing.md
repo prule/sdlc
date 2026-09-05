@@ -35,8 +35,20 @@ are fewer and reserved for the seams that unit tests can't honestly cover (real 
 
 ## 3. Database tests use Testcontainers — never H2
 
-- All tests that touch the database run against a **real PostgreSQL** via Testcontainers. H2 (or any
-  in-memory substitute) is banned: it hides dialect differences, real constraints, and migration bugs.
+- All tests that touch the database — every domain/persistence-logic test, every test asserting on
+  query results, mapping, constraints, or migration behavior — run against a **real PostgreSQL** via
+  Testcontainers. H2 (or any in-memory substitute) is banned for these tests: it hides dialect
+  differences, real constraints, and migration bugs.
+- **The one exception, and only this one:** the application ships an H2 in-memory database as its
+  **default runtime datasource** (no profile active — zero-dependency local/demo boot; PostgreSQL is
+  selected via the `postgres` profile). Exactly **one** test in the whole codebase,
+  `H2DefaultRuntimeSmokeTest`, is permitted to boot the application on H2. It exists solely to prove the
+  H2 **runtime configuration** works (Flyway applies, the demo seed populates, the documented endpoints
+  respond) — an assertion that is meaningless against Postgres, because it is asserting on the H2 default
+  wiring itself, not on persistence logic. It MUST NOT be used to assert on query correctness, mapping, or
+  any behavior that a Testcontainers-Postgres test could instead cover — that work stays on Postgres. This
+  is not general permission to add more H2 tests: a second H2-booting test is a standards violation unless
+  this document is explicitly amended to add it.
 - Provide **one reusable base class** that starts the container and points Spring at it; integration
   tests extend it so the container is shared, not restarted per class:
 

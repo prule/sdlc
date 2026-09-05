@@ -1,0 +1,7 @@
+spring:
+  # `postgres` profile: selects the tested, production-capable PostgreSQL target, reproducing
+  # the datasource this application used before H2 became the no-profile default.
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/sdlc}
+    username: ${DB_USERNAME:sdlc}
+    password: ${DB_PASSWORD:sdlc}

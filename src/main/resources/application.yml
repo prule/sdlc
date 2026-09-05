@@ -8,10 +8,13 @@ spring:
   # not affect them; only genuinely-absent optional fields are dropped.
   jackson:
     default-property-inclusion: non_null
+  # Default (no-profile) runtime: zero-dependency in-memory database, reset on each restart.
+  # Activate the `postgres` profile (see application-postgres.yml) for the tested,
+  # production-capable PostgreSQL target.
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/sdlc}
-    username: ${DB_USERNAME:sdlc}
-    password: ${DB_PASSWORD:sdlc}
+    url: jdbc:h2:mem:sdlc;MODE=PostgreSQL;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
   flyway:
     enabled: true
     locations: classpath:db/migration

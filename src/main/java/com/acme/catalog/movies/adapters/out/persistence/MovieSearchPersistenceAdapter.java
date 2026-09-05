@@ -62,8 +62,13 @@ public class MovieSearchPersistenceAdapter implements SearchMoviesPort {
 
   private List<UUID> selectPageIds(
       String whereClause, Map<String, Object> params, MovieSort sort, int page, int size) {
+    // Id is projected as CAST(... AS varchar) rather than the raw uuid column: Postgres returns a
+    // java.sql.UUID for a uuid column, but H2 (even in MODE=PostgreSQL) returns byte[], which
+    // cannot be cast to UUID. Casting to varchar in SQL and parsing with UUID.fromString(...) is
+    // identical on both engines and does not affect the ORDER BY (which still sorts on the real
+    // m.id column) or the bounded statement count.
     String sql =
-        "SELECT m.id FROM movies m WHERE "
+        "SELECT CAST(m.id AS varchar) FROM movies m WHERE "
             + whereClause
             + " "
             + orderByClause(sort)
@@ -74,8 +79,8 @@ public class MovieSearchPersistenceAdapter implements SearchMoviesPort {
     query.setParameter("offset", (long) page * size);
 
     @SuppressWarnings("unchecked")
-    List<UUID> ids = query.getResultList();
-    return ids;
+    List<String> idStrings = query.getResultList();
+    return idStrings.stream().map(UUID::fromString).toList();
   }
 
   private List<Movie> fetchInIdOrder(List<UUID> ids) {

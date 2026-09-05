@@ -135,10 +135,26 @@ is done, edit the relevant `standards/*.md` — the whole pipeline follows.
 ./gradlew installGitHooks  # install the pre-commit format hook
 ```
 
-Requirements: **Java 25, Docker running** (Testcontainers), **Node** (for the `redocly` bundle
-step — run `npm ci` once). The **dev container** (`.devcontainer/`) provisions all of this; open the
-repo in it and everything (JDK 25, Node, redocly, OpenSpec CLI, Docker-in-Docker) is ready. Changing
-`.devcontainer/` needs a container **rebuild**.
+Requirements: **Java 25, Docker running** (Testcontainers — needed for `./gradlew build`/`test`, not for
+running the app on its H2 default), **Node** (for the `redocly` bundle step — run `npm ci` once). The
+**dev container** (`.devcontainer/`) provisions all of this; open the repo in it and everything (JDK 25,
+Node, redocly, OpenSpec CLI, Docker-in-Docker) is ready. Changing `.devcontainer/` needs a container
+**rebuild**.
+
+### Running the app
+
+```
+./gradlew bootRun                                              # H2 in-memory — zero setup, no Docker/Postgres needed
+./gradlew bootRun --args='--spring.profiles.active=postgres'   # PostgreSQL — needs a running instance (env: DB_URL, DB_USERNAME, DB_PASSWORD)
+```
+
+The default (no-profile) run boots on an in-memory H2 database, migrated with the same Flyway scripts as
+production and pre-loaded with a small demo dataset — the fastest way to see the API respond with real
+data. It resets on every restart. The `postgres` profile switches to a real PostgreSQL datasource
+(defaults to `jdbc:postgresql://localhost:5432/sdlc`, overridable via `DB_URL`/`DB_USERNAME`/`DB_PASSWORD`)
+with identical behaviour and no demo seeding. **`./gradlew build` and the automated test suite always run
+against PostgreSQL via Testcontainers, regardless of which profile you run the app with** — Docker is
+still required for those.
 
 ---
 
