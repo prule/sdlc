@@ -10,6 +10,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -51,7 +52,38 @@ public class SecurityConfig {
     this.accessDeniedHandler = accessDeniedHandler;
   }
 
+  /**
+   * Docs-scoped chain (higher precedence than {@link #filterChain(HttpSecurity)}) for the
+   * interactive API documentation UI: the app-owned Swagger UI page, the local {@code
+   * org.webjars:swagger-ui} webjar assets it loads, and the served authored bundled spec ({@link
+   * DocsUiEndpoints#PATTERNS}). Public and carries a relaxed, docs-only CSP so the UI's own local
+   * scripts/styles/images/fonts can load. This is a physically separate chain (via {@code
+   * securityMatcher}) rather than exceptions bolted onto the API chain, so the API chain's strict
+   * global CSP and {@code anyRequest().authenticated()} are never touched by the docs carve-out. No
+   * OAuth2 resource server is configured here — no bearer processing runs for docs requests.
+   */
   @Bean
+  @Order(1)
+  public SecurityFilterChain docsFilterChain(HttpSecurity http) throws Exception {
+    http.securityMatcher(DocsUiEndpoints.PATTERNS.toArray(new String[0]))
+        .csrf(csrf -> csrf.disable())
+        .sessionManagement(
+            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .headers(
+            headers ->
+                headers.contentSecurityPolicy(
+                    csp ->
+                        csp.policyDirectives(
+                            "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src"
+                                + " 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';"
+                                + " connect-src 'self'; frame-ancestors 'none'")))
+        .authorizeHttpRequests(authorize -> authorize.anyRequest().permitAll());
+
+    return http.build();
+  }
+
+  @Bean
+  @Order(2)
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     http.csrf(csrf -> csrf.disable())
         .sessionManagement(

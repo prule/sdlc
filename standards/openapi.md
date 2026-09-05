@@ -192,6 +192,18 @@ build and fails if a per-operation `<Operation><Status>Response*` duplicate reap
 `HealthApi.ping()` stops returning the shared `PingEnvelope` type — this catches accidental
 reversion to feeding the generator the multi-file spec directly.
 
+### Interactive docs: Swagger UI renders the authored bundle only, no springdoc
+
+An interactive Swagger UI is served at `/api/v1/swagger-ui/index.html` from the local
+`org.webjars:swagger-ui` webjar via a small app-owned static entry page
+(`src/main/resources/static/swagger-ui/index.html`) — **not** via `springdoc`. There is no
+springdoc dependency on the classpath, so no annotation-generated OpenAPI document can exist or be
+served (e.g. `/v3/api-docs` is not a docs endpoint). The UI is pointed at the same
+redocly-bundled spec that drives code generation (`build/openapi/openapi.bundled.yaml`, copied to
+`static/openapi/` by `processResources` and served at `/api/v1/openapi/openapi.bundled.yaml`), so
+the authored spec remains the single source of truth for both codegen and the docs UI. See
+`openspec/changes/add-swagger-ui/design.md` for the full rationale.
+
 ### Bundler provisioning (pinned, deterministic)
 
 `redocly bundle` (and the CI spec-lint step) run via `@redocly/cli`, pinned as a `devDependency`

@@ -34,6 +34,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-hateoas")
+    implementation("org.webjars:swagger-ui:5.18.2")
 
     runtimeOnly("org.flywaydb:flyway-core")
     runtimeOnly("org.flywaydb:flyway-database-postgresql")
@@ -111,6 +112,15 @@ openApiGenerate {
 tasks.withType<GenerateTask> {
     dependsOn(bundleOpenApiSpec)
     outputs.cacheIf { true }
+}
+
+// Serves the authored redocly-bundled spec (the same bundle that drives codegen) to Swagger UI
+// as a static resource, so the UI never renders a second, drift-prone spec. The bundle stays a
+// build artifact (git-ignored) — never committed to src/main/resources — and this dependency
+// edge guarantees the served copy is fresh on every clean build.
+tasks.named<Copy>("processResources") {
+    dependsOn(bundleOpenApiSpec)
+    from(openApiBundledSpec) { into("static/openapi") }
 }
 
 tasks.named("compileJava") {
