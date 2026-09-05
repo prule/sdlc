@@ -48,10 +48,13 @@ live in **[tickets/](tickets/)** ([template](tickets/TEMPLATE.md)); they capture
 | **spec-reviewer** | opus | no (read-only) | Plan gate: standards conformance + design/feasibility | — |
 | **junior-dev** | sonnet | yes | Implement the tasks | `opsx:apply` |
 | **qa** | sonnet | yes | Verify every requirement is tested; run the suite | `opsx:verify` |
-| **senior-dev** | opus | no (read-only) | Final code review of the diff | — |
+| **senior-dev** | opus | yes (fixes directly) | Final code review of the diff; fixes what it finds, hands back design/scope calls | — |
 
-Principle: **OpenSpec owns the workflow mechanics; agents own judgment + standards.** Reviewers
-have no write tools by design — they report, the author fixes.
+Principle: **OpenSpec owns the workflow mechanics; agents own judgment + standards.** The
+**spec-reviewer** is read-only by design (plan gate — it reports, the architect revises). The
+**senior-dev** (the strongest model) fixes what it finds in the code review directly, and hands back
+only design/plan/scope calls. Agents never format code — the pre-commit hook does (they build with
+`-x spotlessCheck`).
 
 ---
 
@@ -221,7 +224,7 @@ Hooks answer "what did this run touch?"; OTel answers "what did it cost, how man
 
 - **Model tiering** — opus only for architect + reviewers; sonnet for implement/QA.
 - **No agent can spawn agents** — only the orchestrator (you) spawns; no fan-out.
-- **`.claude/settings.json`** caps output/thinking tokens, Bash timeouts, and denies `git push`/publish from agents.
+- **`.claude/settings.json`** caps output/thinking tokens and Bash timeouts, and denies `gradle publish`.
 - **`/build-ticket`** caps fix-loops at 2 rounds and pauses at ~10 total agent runs.
 - **Account spend limit** (Anthropic Console for API keys, or your plan cap) is the only true dollar ceiling — set it.
 - Watch spend with `/cost`.
@@ -257,8 +260,29 @@ After a change is archived, commit the `openspec/` bookkeeping (spec promotion +
 
 ## Where things are
 
-- **Phase 0 — walking skeleton** ✅ (foundation: Clean Architecture, contract-first, security/error seam, Testcontainers, CI)
-- **Dev container** ✅ · **Codegen shared-component reuse (PLAT-002)** ✅ · **Observability** ✅
-- **Next: Phase 1 — foundational auth** (`user_account` + password policy + hashing) — prerequisite for the password-reset feature (AUTH-142).
+The pipeline is building a **public, read-only REST API over a curated movie catalog** (see
+**[domain/](domain/)**). Everything below shipped through `/build-ticket` with both gates.
 
-Specs so far: `platform/health-check`, `platform/api-codegen`.
+**Platform foundation** ✅
+- Walking skeleton (Clean Architecture, contract-first, security/error seam, Testcontainers, CI)
+- Codegen shared-component reuse (PLAT-002) · HAL hypermedia (PLAT-003)
+- H2 in-memory as the zero-dependency default runtime, Postgres via profile (PLAT-004)
+- Swagger UI, serving the authored contract (PLAT-005)
+- Dev container ✅ · Observability (hooks + OTel/Grafana) ✅
+
+**Product — catalog API** ✅ (read surface complete for movies & people)
+
+| Endpoint | Capability | Ticket |
+|----------|-----------|--------|
+| `GET /movies` · `GET /movies/{id}` | `catalog/movies` (search + detail) | CAT-002 · CAT-001 |
+| `GET /movies/{id}/credits` | `catalog/credits` (cast & crew) | CAT-003 |
+| `GET /people` · `GET /people/{id}` | `catalog/people` (search + detail) | CAT-006 · CAT-004 |
+| `GET /people/{id}/credits` | `catalog/people` (filmography) | CAT-005 |
+
+**Promoted specs** (`openspec/specs/`): `platform/health-check`, `platform/api-codegen`,
+`platform/hypermedia-links`, `platform/runtime-datasource`, `platform/api-docs`, `catalog/movies`,
+`catalog/credits`, `catalog/people`. Archived changes: `openspec/changes/archive/`.
+
+**Candidate next tickets** (none in progress): `/genres` browse · data ingestion/curation · rate-limiting
+design · enforce the Rating 1-decimal scale. **Auth** is parked pending a human-authored ticket (write
+the requirement first, then pipeline it).
