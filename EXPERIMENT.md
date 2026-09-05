@@ -31,7 +31,8 @@ more consistent?) implementation.
 - **`.claude/agents/use-case-writer.md`** + **`.claude/commands/write-use-case.md`** — author use cases.
 - The catalog product code is **reset to the walking-skeleton foundation** (platform kept: codegen reuse,
   HAL, H2 default, Swagger UI). The catalog features are then **rebuilt one at a time from use cases**.
-- The original story tickets remain in `tickets/` as the comparison reference.
+- The original story tickets have been **removed** from `tickets/` on this branch so they can't
+  influence the architect; they remain on `milestones/movies-1` for cross-branch comparison.
 
 ## How to run
 1. Author a use case: `/write-use-case <idea>` (or the `use-case-writer` agent).
