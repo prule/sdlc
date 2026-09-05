@@ -21,8 +21,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
  *
  * <p>Activates the {@code test} profile as an explicit marker distinguishing the test suite from
  * the H2 default runtime (there is no {@code application-test.yml}; the datasource always comes
- * from {@link #datasourceProperties}, not from this profile) — see {@code DemoMovieSeedLoader}'s
- * profile gating, which is off under {@code test}.
+ * from {@link #datasourceProperties}, not from this profile).
  */
 @SpringBootTest
 @ActiveProfiles("test")
