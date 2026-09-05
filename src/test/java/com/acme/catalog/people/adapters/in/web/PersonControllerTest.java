@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.acme.catalog.people.application.port.in.GetPersonByIdUseCase;
+import com.acme.catalog.people.application.port.in.GetPersonFilmographyUseCase;
 import com.acme.catalog.people.domain.model.Person;
 import com.acme.catalog.people.domain.model.PersonId;
 import com.acme.common.error.GlobalExceptionHandler;
@@ -43,6 +44,7 @@ class PersonControllerTest {
   @Autowired private MockMvc mockMvc;
 
   @MockitoBean private GetPersonByIdUseCase getPersonByIdUseCase;
+  @MockitoBean private GetPersonFilmographyUseCase getPersonFilmographyUseCase;
 
   @Test
   void getPersonById_existingPerson_returns200EnvelopedDetailWithSelfLink() throws Exception {
@@ -61,6 +63,10 @@ class PersonControllerTest {
         .andExpect(
             jsonPath("$.data._links.self.href")
                 .value(org.hamcrest.Matchers.endsWith("/people/" + id)))
+        .andExpect(jsonPath("$.data._links.credits.href").exists())
+        .andExpect(
+            jsonPath("$.data._links.credits.href")
+                .value(org.hamcrest.Matchers.endsWith("/people/" + id + "/credits")))
         .andExpect(jsonPath("$.data._embedded").doesNotExist())
         .andExpect(jsonPath("$.meta.correlationId").exists())
         .andExpect(jsonPath("$.meta.timestamp").exists());
@@ -78,7 +84,7 @@ class PersonControllerTest {
 
     assertThat(data.fieldNames()).toIterable().containsExactlyInAnyOrder("id", "name", "_links");
     JsonNode links = data.path("_links");
-    assertThat(links.fieldNames()).toIterable().containsExactly("self");
+    assertThat(links.fieldNames()).toIterable().containsExactlyInAnyOrder("self", "credits");
     assertThat(data.has("_embedded")).isFalse();
     assertThat(data.has("_templates")).isFalse();
   }

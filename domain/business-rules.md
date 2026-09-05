@@ -34,12 +34,21 @@ live in the ticket; durable policies live here.
 - **Movie detail** carries `_links.self` and `_links.credits` (the latter pointing at
   `GET /movies/{id}/credits`); cast/crew are reachable only via that link, never inlined into movie
   detail (decided CAT-003). A Person is independently addressable at `GET /people/{id}` (id + name +
-  `self` link only — no biographical fields, no `credits`/`filmography` link) since CAT-004; the
-  inline Person on a Credit now also carries a resolvable `person._links.self` pointing at that
-  detail.
+  `self`/`credits` links — no biographical fields) since CAT-004/CAT-005; the inline Person on a
+  Credit also carries a resolvable `person._links.self` pointing at that detail.
 - A movie's **credits** collection (`GET /movies/{id}/credits`) is returned **whole, unpaginated** —
   cast and crew are typically small per movie, unlike the movie catalog itself. An existing movie
   with no cast/crew recorded is a normal 200 with empty arrays, not a 404 (decided CAT-003).
+  This "returned whole" rule does **not** extend to a Person's **filmography**: unlike a Movie's
+  credits, a Person may work on many movies over a career, so their filmography
+  (`GET /people/{id}/credits`) is **paginated** like Search, not returned whole (decided CAT-005).
+- A Person's **filmography** (`GET /people/{id}/credits`) is **paginated** (zero-based `page`;
+  `size` **default 20, max 100**, same convention as Search) and ordered by `releaseYear`
+  **descending**, then `title` **ascending**, then a unique terminal key — total and stable across
+  page boundaries. It is carried as a single embedded relation (`_embedded.filmography`, not split
+  cast/crew): each item is a movie summary plus one typed **capacity** (acting or non-acting). A
+  Person credited in several capacities on one Movie yields one item per capacity. An existing
+  Person with no credits is a normal 200 with an empty array, not a 404 (decided CAT-005).
 - **Search** results are **paginated** (zero-based `page`; `size` **default 20, max 100**) and
   **sortable** by `title`, `releaseYear`, or `rating` (asc/desc); **default sort is `releaseYear`
   descending**, `title` ascending as tiebreak. An empty result set is a normal 200, not an error.

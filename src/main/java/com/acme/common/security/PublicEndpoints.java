@@ -16,7 +16,13 @@ public final class PublicEndpoints {
    */
   public static final List<String> PATTERNS =
       List.of(
-          "/ping", "/samples", "/movies", "/movies/{id}", "/movies/{id}/credits", "/people/{id}");
+          "/ping",
+          "/samples",
+          "/movies",
+          "/movies/{id}",
+          "/movies/{id}/credits",
+          "/people/{id}",
+          "/people/{id}/credits");
 
   private PublicEndpoints() {}
 }
