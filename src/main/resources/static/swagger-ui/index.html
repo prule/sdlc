@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Movie Catalog API — Swagger UI</title>
+    <!-- The /api/v1 context-path is hardcoded below; update every path here if
+         server.servlet.context-path changes. -->
+    <link
+      rel="stylesheet"
+      href="/api/v1/webjars/swagger-ui/5.18.2/swagger-ui.css"
+    />
+  </head>
+  <body>
+    <div id="swagger-ui"></div>
+    <script src="/api/v1/webjars/swagger-ui/5.18.2/swagger-ui-bundle.js"></script>
+    <script src="/api/v1/webjars/swagger-ui/5.18.2/swagger-ui-standalone-preset.js"></script>
+    <script>
+      window.ui = SwaggerUIBundle({
+        url: "/api/v1/openapi/openapi.bundled.yaml",
+        dom_id: "#swagger-ui",
+        presets: [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset],
+        layout: "StandaloneLayout",
+        validatorUrl: null,
+      });
+    </script>
+  </body>
+</html>

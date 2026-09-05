@@ -156,6 +156,10 @@ with identical behaviour and no demo seeding. **`./gradlew build` and the automa
 against PostgreSQL via Testcontainers, regardless of which profile you run the app with** — Docker is
 still required for those.
 
+Once the app is running, browse the API at **`http://localhost:8080/api/v1/swagger-ui/index.html`**
+— an interactive Swagger UI, served locally (no external CDN, no setup), rendering the authored
+OpenAPI contract (the same bundled spec that drives code generation).
+
 ---
 
 ## Observability — see what the pipeline did

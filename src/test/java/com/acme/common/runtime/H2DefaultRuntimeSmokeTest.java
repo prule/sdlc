@@ -127,4 +127,46 @@ class H2DefaultRuntimeSmokeTest {
     assertThat(filmography.isArray()).isTrue();
     assertThat(filmography).isNotEmpty();
   }
+
+  @Test
+  void swaggerUiIsServedPubliclyOnDefaultH2Runtime() {
+    ResponseEntity<String> response =
+        restTemplate.getForEntity("/swagger-ui/index.html", String.class);
+
+    assertThat(response.getStatusCode().value()).isEqualTo(200);
+  }
+
+  @Test
+  void swaggerUiWebjarAssetIsServedPubliclyOnDefaultH2Runtime() {
+    ResponseEntity<String> response =
+        restTemplate.getForEntity("/webjars/swagger-ui/5.18.2/swagger-ui-bundle.js", String.class);
+
+    assertThat(response.getStatusCode().value()).isEqualTo(200);
+  }
+
+  @Test
+  void bundledOpenApiSpecIsServedPubliclyAndIsTheAuthoredContract() {
+    ResponseEntity<String> response =
+        restTemplate.getForEntity("/openapi/openapi.bundled.yaml", String.class);
+
+    assertThat(response.getStatusCode().value()).isEqualTo(200);
+    assertThat(response.getBody()).contains("listPeople");
+    assertThat(response.getBody()).contains("/movies");
+  }
+
+  @Test
+  void noAnnotationGeneratedSpecIsExposedBecauseThereIsNoSpringdoc() {
+    ResponseEntity<String> response = restTemplate.getForEntity("/v3/api-docs", String.class);
+
+    assertThat(response.getStatusCode().value()).isNotEqualTo(200);
+  }
+
+  @Test
+  void docsCarveOutDoesNotWidenTheAuthenticatedApiSurface() throws Exception {
+    ResponseEntity<String> response = restTemplate.getForEntity("/__not-an-endpoint", String.class);
+
+    assertThat(response.getStatusCode().value()).isEqualTo(401);
+    JsonNode body = objectMapper.readTree(response.getBody());
+    assertThat(body.path("status").asInt()).isEqualTo(401);
+  }
 }
