@@ -53,6 +53,12 @@ live in the ticket; durable policies live here.
   **sortable** by `title`, `releaseYear`, or `rating` (asc/desc); **default sort is `releaseYear`
   descending**, `title` ascending as tiebreak. An empty result set is a normal 200, not an error.
   (Decided in CAT-002.)
+- The **people search/list** collection (`GET /people`) follows the same pagination convention as
+  movie Search (zero-based `page`; `size` default 20, max 100), filtered by `name` (case-insensitive
+  substring — the only filter; no role/department/known-for/has-credits filter exists at the Person
+  level) and sortable only by `name` (asc/desc); **default sort is `name` ascending** — deliberately
+  unlike movie Search's `releaseYear`-descending default, since a Person has no date-like field to
+  default-sort by. An empty result set is a normal 200, not an error. (Decided in CAT-006.)
 - A request for a non-existent movie/person id returns **404** (problem+json), not an empty 200.
 
 ## Privacy / compliance

@@ -4,11 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.acme.generated.api.HealthApi;
 import com.acme.generated.api.MoviesApi;
+import com.acme.generated.api.PeopleApi;
 import com.acme.generated.api.SampleApi;
 import com.acme.generated.model.MovieCollectionEnvelope;
 import com.acme.generated.model.MovieCreditsEnvelope;
 import com.acme.generated.model.MovieDetailEnvelope;
 import com.acme.generated.model.MovieLinks;
+import com.acme.generated.model.PersonCollectionEnvelope;
 import com.acme.generated.model.PingEnvelope;
 import com.acme.generated.model.SampleCollectionEnvelope;
 import java.io.IOException;
@@ -122,6 +124,27 @@ class GeneratedApiCodegenTest {
     ParameterizedType parameterizedReturnType = (ParameterizedType) genericReturnType;
     assertThat(parameterizedReturnType.getActualTypeArguments())
         .containsExactly(MovieCreditsEnvelope.class);
+  }
+
+  @Test
+  void peopleApiListPeopleReturnsTheSharedPersonCollectionEnvelopeType()
+      throws NoSuchMethodException {
+    Method listPeople =
+        PeopleApi.class.getMethod(
+            "listPeople",
+            java.util.UUID.class,
+            Integer.class,
+            Integer.class,
+            String.class,
+            String.class);
+
+    assertThat(listPeople.getReturnType()).isEqualTo(ResponseEntity.class);
+
+    Type genericReturnType = listPeople.getGenericReturnType();
+    assertThat(genericReturnType).isInstanceOf(ParameterizedType.class);
+    ParameterizedType parameterizedReturnType = (ParameterizedType) genericReturnType;
+    assertThat(parameterizedReturnType.getActualTypeArguments())
+        .containsExactly(PersonCollectionEnvelope.class);
   }
 
   @Test

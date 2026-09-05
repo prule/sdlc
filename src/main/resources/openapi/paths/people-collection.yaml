@@ -1,0 +1,41 @@
+get:
+  operationId: listPeople
+  tags: [people]
+  summary: Search/list person summaries
+  description: >-
+    Public, read-only, paginated, sorted, name-filtered collection of person summary
+    resources. name is the only filter; an empty result set is a normal 200.
+  security: []
+  parameters:
+    - $ref: '../openapi.yaml#/components/parameters/CorrelationId'
+    - $ref: '../openapi.yaml#/components/parameters/Page'
+    - $ref: '../openapi.yaml#/components/parameters/Size'
+    - name: name
+      in: query
+      required: false
+      description: Case-insensitive substring match against the person's name.
+      schema:
+        type: string
+    - name: sort
+      in: query
+      required: false
+      description: >-
+        Sort as `<field>,<dir>` where field is name and dir is asc|desc. Defaults to
+        name,asc. An unsupported field or direction is rejected with 400.
+      schema:
+        type: string
+        default: name,asc
+  responses:
+    '200':
+      description: A page of matching person summaries
+      headers:
+        X-Correlation-Id:
+          $ref: '../openapi.yaml#/components/headers/CorrelationId'
+      content:
+        application/json:
+          schema:
+            $ref: '../openapi.yaml#/components/schemas/PersonCollectionEnvelope'
+    '400':
+      $ref: '../openapi.yaml#/components/responses/BadRequest'
+    '500':
+      $ref: '../openapi.yaml#/components/responses/InternalError'

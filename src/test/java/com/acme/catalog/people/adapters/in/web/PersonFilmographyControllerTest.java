@@ -14,6 +14,7 @@ import com.acme.catalog.movies.domain.model.Genre;
 import com.acme.catalog.movies.domain.model.MovieId;
 import com.acme.catalog.people.application.port.in.GetPersonByIdUseCase;
 import com.acme.catalog.people.application.port.in.GetPersonFilmographyUseCase;
+import com.acme.catalog.people.application.port.in.SearchPeopleUseCase;
 import com.acme.catalog.people.domain.model.ActingCapacity;
 import com.acme.catalog.people.domain.model.FilmographyEntry;
 import com.acme.catalog.people.domain.model.FilmographyPage;
@@ -52,6 +53,7 @@ class PersonFilmographyControllerTest {
 
   @MockitoBean private GetPersonByIdUseCase getPersonByIdUseCase;
   @MockitoBean private GetPersonFilmographyUseCase getPersonFilmographyUseCase;
+  @MockitoBean private SearchPeopleUseCase searchPeopleUseCase;
 
   private static FilmographyEntry actingEntry(int releaseYear, String title) {
     return new FilmographyEntry(
