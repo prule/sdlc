@@ -31,6 +31,8 @@ paths:
     $ref: 'paths/movie-credits.yaml'
   /people/{id}:
     $ref: 'paths/people.yaml'
+  /people/{id}/credits:
+    $ref: 'paths/person-filmography.yaml'
 components:
   securitySchemes:
     bearerAuth:
@@ -100,6 +102,20 @@ components:
       $ref: 'components/schemas/person.yaml#/Person'
     PersonDetailEnvelope:
       $ref: 'components/schemas/person.yaml#/PersonDetailEnvelope'
+    ActingCapacity:
+      $ref: 'components/schemas/person.yaml#/ActingCapacity'
+    NonActingCapacity:
+      $ref: 'components/schemas/person.yaml#/NonActingCapacity'
+    FilmographyCapacity:
+      $ref: 'components/schemas/person.yaml#/FilmographyCapacity'
+    FilmographyItem:
+      $ref: 'components/schemas/person.yaml#/FilmographyItem'
+    PersonFilmographyLinks:
+      $ref: 'components/schemas/common.yaml#/PersonFilmographyLinks'
+    PersonFilmographyData:
+      $ref: 'components/schemas/person.yaml#/PersonFilmographyData'
+    PersonFilmographyEnvelope:
+      $ref: 'components/schemas/person.yaml#/PersonFilmographyEnvelope'
   responses:
     BadRequest:
       $ref: 'components/responses/common.yaml#/BadRequest'

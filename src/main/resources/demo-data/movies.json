@@ -27,7 +27,10 @@
       { "name": "Amy Adams", "character": "Louise Banks", "billingOrder": 1 },
       { "name": "Jeremy Renner", "character": "Ian Donnelly", "billingOrder": 2 }
     ],
-    "crew": [{ "name": "Denis Villeneuve", "department": "Directing", "job": "Director" }]
+    "crew": [
+      { "name": "Denis Villeneuve", "department": "Directing", "job": "Director" },
+      { "name": "Keanu Reeves", "department": "Producing", "job": "Producer" }
+    ]
   },
   {
     "title": "An Obscure Documentary",

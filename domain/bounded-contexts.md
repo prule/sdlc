@@ -17,8 +17,9 @@ The movie database and its public read API. All consumer-facing capabilities liv
   *from the Movie side* (a movie's cast/crew, Person exposed inline, now carrying a resolvable
   `person._links.self` since CAT-004); **people** serves a Person as its own addressable resource.
 - **people** — Person as an independently addressable resource (`GET /people/{id}`: id + name +
-  `self` link) since CAT-004. Person collection/search-list and cross-filmography credits remain
-  *planned* — not yet added.
+  `self`/`credits` links) since CAT-004, now also carrying a Person's **filmography** — the movies
+  they are credited in, from the Person side (`GET /people/{id}/credits`, CAT-005), the inverse of
+  **credits**' movie-side view. Person collection/search-list remains *planned* — not yet added.
 - **genres-keywords** *(planned)* — browse/list genres and keywords; filter movies by them.
 - **ratings-reviews** *(planned)* — a movie's aggregate rating and its curated reviews (read-only).
 
@@ -38,4 +39,8 @@ All `catalog` capabilities are **read-only** and **public** (no auth); see busin
 - `credits` depends on `movies` (a movie must exist for its credits to be loaded — an unknown movie
   id is a 404 on the credits endpoint too) but movie detail never queries `credits` at read time; the
   link is assembled from the id alone, at zero extra DB cost.
+- `people`'s filmography (CAT-005) reads the same `credits`/`movies`(+genres) tables as `credits`,
+  from the Person side; a Person must exist for their filmography to be loaded (an unknown person id
+  is a 404 there too), but person detail never queries the filmography at read time — its `credits`
+  link is assembled from the id alone, mirroring the movies/credits relationship above.
 - TODO: if the catalog grows, decide whether people/ratings become their own contexts vs. sub-areas of `catalog`.

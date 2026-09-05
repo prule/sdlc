@@ -8,8 +8,9 @@ whenever a new term appears.
 | Movie | A single film title in the catalog: the core aggregate. Has a stable id, title, release year, runtime, synopsis, genres, credits, and an aggregate rating. | Not "film"/"title" in code — say **Movie**. |
 | Movie detail | The full single-movie representation (`GET /movies/{id}`): id, title, releaseYear, genres, and when present runtimeMinutes/synopsis/rating. | See CAT-001. |
 | Movie summary | The lighter representation used in **search/list** results (`GET /movies`): id, title, releaseYear, genres, and when present runtimeMinutes/rating — **no synopsis**; carries a `self` link to its detail. | See CAT-002. |
-| Person | An individual who worked on movies (actor, director, writer, …). Has an id, name, and credits. Independently addressable at `GET /people/{id}` (id + name + `self` link) since CAT-004. Also exposed **inline** wherever a Credit appears (`id` + `name`), where the inline Person now carries a resolvable `person._links.self` pointing at its `/people/{id}` detail. | See CAT-003, CAT-004. |
+| Person | An individual who worked on movies (actor, director, writer, …). Has an id, name, and credits. Independently addressable at `GET /people/{id}` (id + name + `self`/`credits` links) since CAT-004/CAT-005. Also exposed **inline** wherever a Credit appears (`id` + `name`), where the inline Person now carries a resolvable `person._links.self` pointing at its `/people/{id}` detail. | See CAT-003, CAT-004, CAT-005. |
 | Credit | The link between a Person and a Movie in a specific capacity (e.g. "Actor as <character>", "Director"). Always one of two shapes — an acting credit (**Cast**) or a non-acting credit (**Crew**) — never a single shape with both sets of fields. A Movie's credits are always returned in a **total, stable order** (see Cast/Crew). | Also called a "role"; prefer **Credit**. See CAT-003. |
+| Filmography | A Person's credited Movies, from the **Person side** (`GET /people/{id}/credits`, CAT-005) — the inverse of a Movie's **credits** (the Movie side). Carried as a single embedded relation `_embedded.filmography` (not split cast/crew): each item is a movie summary plus one typed **capacity** (an acting capacity or a non-acting capacity, distinguishable by a discriminator). A Person credited in several capacities on one Movie yields several filmography items — one per capacity. Paginated, ordered by releaseYear desc then title asc then a unique terminal key — unlike a Movie's credits, which are returned whole (see business-rules.md). | See CAT-005. Not to be confused with **Credit** (the Movie-side link). |
 | Cast | The set of acting Credits on a Movie: Person + `character` (free-text) + `billingOrder` (a positive integer; **1 = top billing**, ascending thereafter — lower number is more prominent). Ordered by `billingOrder` ascending. | See CAT-003. |
 | Crew | The set of non-acting Credits on a Movie (director, writer, composer, …): Person + `department` + `job` (both free-text, no controlled vocabulary yet). Ordered by `department` then `job` ascending, grouping case-insensitively. | See CAT-003. |
 | Genre | A controlled-vocabulary category a Movie belongs to (e.g. Drama, Sci-Fi). A Movie has many. | Curated taxonomy, not free text. |
@@ -33,6 +34,13 @@ whenever a new term appears.
 >
 > **HAL relation naming (CAT-004):** now that `GET /people/{id}` exists, the inline `person` object on
 > each cast/crew credit item carries its own `person._links.self` pointing at that Person's detail —
-> previously withheld (CAT-003) because no addressable Person endpoint existed. Only `self` is
-> emitted on Person detail (`data._links`); no `credits`/`filmography` link, since no cross-filmography
-> endpoint exists to address.
+> previously withheld (CAT-003) because no addressable Person endpoint existed.
+>
+> **HAL relation naming (CAT-005):** person detail's `data._links` now also carries `credits` —
+> the **link** relation name (`_links.credits`) pointing at `GET /people/{id}/credits`, mirroring how
+> movie detail's `credits` link works (CAT-003) — now that the cross-filmography endpoint exists to
+> address. On the filmography response itself, `filmography` is the single **embedded** relation
+> (`_embedded.filmography`); unlike a Movie's credits (`_embedded.cast`/`_embedded.crew`, two
+> relations), a Person's filmography deliberately stays one relation with a per-item typed `capacity`,
+> since every item is the same kind of thing (a movie summary) merely annotated with *how* the Person
+> was credited on it.
