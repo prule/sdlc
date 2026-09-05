@@ -38,6 +38,7 @@ dependencies {
     runtimeOnly("org.flywaydb:flyway-core")
     runtimeOnly("org.flywaydb:flyway-database-postgresql")
     runtimeOnly("org.postgresql:postgresql")
+    runtimeOnly("com.h2database:h2")
 
     compileOnly("org.openapitools:jackson-databind-nullable:0.2.6")
 

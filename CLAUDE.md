@@ -5,12 +5,26 @@ These standards apply to all code written in this repository, by every agent.
 ## Stack
 - **Language:** Java 25. Prefer records, sealed interfaces, pattern matching, and virtual threads where they simplify code.
 - **Framework:** Spring Boot 3.x — Spring Web, Spring Data JPA, Bean Validation (`jakarta.validation`).
-- **Database:** PostgreSQL. All schema changes via **Flyway** migrations in `src/main/resources/db/migration` (`V<n>__desc.sql`). Never edit an applied migration; add a new one.
+- **Database:** **H2 in-memory is the default local/demo runtime** (no profile active — zero external
+  dependencies: `./gradlew bootRun` needs no Docker/Postgres). **PostgreSQL is the tested target and the
+  production-capable target**, selected via the `postgres` profile (`--args='--spring.profiles.active=postgres'`
+  or `SPRING_PROFILES_ACTIVE=postgres`); the automated test suite always runs against Postgres via
+  Testcontainers, never H2 (see `standards/testing.md`). All schema changes via **Flyway** migrations in
+  `src/main/resources/db/migration` (`V<n>__desc.sql`). Never edit an applied migration; add a new one. The
+  migration set is a **single shared set that must stay H2- and Postgres-compatible** (no vendor split unless a
+  future migration genuinely needs Postgres-only SQL). **Native-query UUID portability:** a native SQL query
+  that selects a `uuid` column and casts the JDBC result straight to `java.util.UUID` works on Postgres but
+  throws `ClassCastException` on H2 (which returns `byte[]` for `uuid` columns even in `MODE=PostgreSQL`).
+  Any native query projecting an id column must `CAST(col AS varchar)` and parse with `UUID.fromString(...)`
+  instead (see `MovieSearchPersistenceAdapter`/`PersonFilmographyJpaAdapter` for the pattern).
 - **Build:** Gradle (Kotlin DSL). Common commands:
   - `./gradlew build` — compile + test + lint
   - `./gradlew test` — unit + integration tests
   - `./gradlew openApiGenerate` — regenerate API stubs from the OpenAPI spec
-- **Testing:** JUnit 5 + AssertJ. Integration tests use **Testcontainers** against real Postgres — no H2. Web layer via MockMvc/WebTestClient.
+  - `./gradlew bootRun` — run on the H2 default; `./gradlew bootRun --args='--spring.profiles.active=postgres'` — run against Postgres
+- **Testing:** JUnit 5 + AssertJ. Integration tests use **Testcontainers** against real Postgres — no H2, except
+  exactly one dedicated runtime-config smoke test that boots the H2 default (see `standards/testing.md`). Web
+  layer via MockMvc/WebTestClient.
 
 ## Architecture — Clean / Hexagonal
 Package layout (dependencies point INWARD only):

@@ -81,11 +81,16 @@ public class PersonFilmographyJpaAdapter implements PersonFilmographyPort {
    * OFFSET} would be undefined, letting one row be skipped and another repeated across pages.
    */
   private List<CreditRow> selectCreditRowsPage(UUID personId, int page, int size) {
+    // c.id and c.movie_id are projected as CAST(... AS varchar) rather than the raw uuid columns:
+    // Postgres returns a java.sql.UUID for a uuid column, but H2 (even in MODE=PostgreSQL) returns
+    // byte[], which cannot be cast to UUID. Casting to varchar in SQL and parsing with
+    // UUID.fromString(...) is identical on both engines and does not affect the ORDER BY (which
+    // still sorts on the real columns) or the bounded statement count.
     String sql =
-        "SELECT c.id, c.movie_id, c.credit_type, c.character_name, c.billing_order, c.department,"
-            + " c.job FROM credits c JOIN movies m ON m.id = c.movie_id WHERE c.person_id ="
-            + " :personId ORDER BY m.release_year DESC, m.title ASC, c.id ASC LIMIT :limit OFFSET"
-            + " :offset";
+        "SELECT CAST(c.id AS varchar), CAST(c.movie_id AS varchar), c.credit_type,"
+            + " c.character_name, c.billing_order, c.department, c.job FROM credits c JOIN movies"
+            + " m ON m.id = c.movie_id WHERE c.person_id = :personId ORDER BY m.release_year DESC,"
+            + " m.title ASC, c.id ASC LIMIT :limit OFFSET :offset";
     Query query = entityManager.createNativeQuery(sql);
     query.setParameter("personId", personId);
     query.setParameter("limit", size);
@@ -97,8 +102,8 @@ public class PersonFilmographyJpaAdapter implements PersonFilmographyPort {
     for (Object[] row : rows) {
       result.add(
           new CreditRow(
-              (UUID) row[0],
-              (UUID) row[1],
+              UUID.fromString((String) row[0]),
+              UUID.fromString((String) row[1]),
               (String) row[2],
               (String) row[3],
               (Integer) row[4],

@@ -23,17 +23,19 @@ import org.springframework.stereotype.Component;
 
 /**
  * Loads a small, committed demo dataset ({@code demo-data/movies.json}) so the happy path is
- * demonstrable in a running app. Active only under the {@code demo} profile — never {@code prod} —
- * and NOT a Flyway data migration (Flyway runs in every environment, including tests, which would
- * leak demo rows into production and couple tests to the seed). Idempotent: each movie's id, each
- * person's id, and each credit's id are deterministically derived, and rows already present are
- * left untouched.
+ * demonstrable in a running app. NOT a Flyway data migration (Flyway runs in every environment,
+ * including tests, which would leak demo rows into production and couple tests to the seed).
+ * Idempotent: each movie's id, each person's id, and each credit's id are deterministically
+ * derived, and rows already present are left untouched.
  *
- * <p>Automated tests never enable the {@code demo} profile; they insert their own fixtures and
- * assert against those, independent of this seed's contents.
+ * <p>Profile gating ({@code (!test & !postgres) | demo}): default-on for the H2 in-memory demo
+ * runtime (no profile active) so first boot is populated with zero external dependencies; off under
+ * the {@code postgres} profile (never seeds a real/production database); off under the {@code test}
+ * profile (automated tests insert and assert against their own fixtures, independent of this seed's
+ * contents); forced on by the {@code demo} profile even alongside {@code postgres}/{@code test}.
  */
 @Component
-@Profile("demo")
+@Profile("(!test & !postgres) | demo")
 public class DemoMovieSeedLoader implements ApplicationRunner {
 
   private static final Logger log = LoggerFactory.getLogger(DemoMovieSeedLoader.class);
