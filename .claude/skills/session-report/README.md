@@ -71,7 +71,7 @@ No third-party packages — Python 3.8+ standard library only.
 | **Summary cards** | Duration, agent runs, tool calls, errors, rejections, issues caught by gates, tokens. |
 | **Insights** | Auto-generated callouts: which gates proved their value, which approved everything (low signal), where errors clustered, the slowest agent. |
 | **Agent timeline** | Gantt of every agent/subagent run, coloured by type. Bar width = real duration; green outline = caught an issue; red = failed/rejected; hatched = still pending. With `--compact`, idle gaps are collapsed but widths stay proportional. |
-| **Subagent value & efficiency** | Per-subagent table: runs, total time, average, gate catch-rate, errors. Reviewers show `caught N/M`; a gate that approves everything is flagged. |
+| **Subagent value & efficiency** | Per-subagent table: **model used**, runs, total time, average, inner tool calls/files/tokens, gate catch-rate, errors. Reviewers show `caught N/M`; a gate that approves everything is flagged. |
 | **Review-gate value** | Each review run (`spec-reviewer`, `senior-dev`, `qa`, …) with a verdict badge and a snippet of *what it caught* — the evidence that the gates are worth their cost. |
 | **Errors & friction** | Failed commands, failed agents, and tool calls you rejected (where the agent guessed wrong). Your list of things to look into. |
 | **Tool usage** | Every tool called (top-level **and** inside subagents), with call count, total time spent, and error count. |
@@ -117,6 +117,15 @@ handles the third.
 **2. Attribution — did they help catch anything?** When a review gate's verdict
 explicitly names a doc (e.g. a `REQUEST CHANGES` citing `clean-architecture.md`),
 that catch is attributed to the doc — direct evidence it earned its place.
+
+**Is a doc too wordy / bloated?** Each doc also shows its **size** (approx
+tokens), **read cost** (reads × size = context tokens spent re-reading it), and
+**Value/1K** — influence per 1000 tokens of the doc, i.e. *value per word*. A
+large doc with low Value/1K is flagged `wordy / low-signal?`; a lean, heavily-used
+doc is flagged `dense`. This is a **signal-density proxy**, not proof: it tells you
+*where* to look. Confirm by trimming the doc and re-running with `--compare` to
+see if outcomes hold. (It can't tell you *which paragraphs* are noise — for that,
+trim and compare, or have an LLM rate each section's actionability.)
 
 **3. Effect on outcome — help or hinder?** Reading ≠ benefit. Proving effect
 needs a **counterfactual**: run the *same* ticket twice, once with the context and
