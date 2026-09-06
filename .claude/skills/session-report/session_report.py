@@ -177,6 +177,157 @@ def classify_error(name, text):
 
 
 # --------------------------------------------------------------------------- #
+# Shared aggregation helpers (reused by main log and each subagent transcript)
+# --------------------------------------------------------------------------- #
+
+READ_TOOLS = {"Read"}
+WRITE_TOOLS = {"Write"}
+EDIT_TOOLS = {"Edit", "MultiEdit", "NotebookEdit"}
+
+
+def file_ops_from_tools(tools):
+    files = defaultdict(lambda: {"read": 0, "write": 0, "edit": 0,
+                                 "first": None, "last": None})
+    for t in tools:
+        inp = t["input"] if isinstance(t["input"], dict) else {}
+        path = inp.get("file_path") or inp.get("notebook_path")
+        if not path:
+            continue
+        rec = files[path]
+        if t["name"] in READ_TOOLS:
+            rec["read"] += 1
+        elif t["name"] in WRITE_TOOLS:
+            rec["write"] += 1
+        elif t["name"] in EDIT_TOOLS:
+            rec["edit"] += 1
+        else:
+            continue
+        ts = t.get("start")
+        if ts:
+            rec["first"] = ts if rec["first"] is None else min(rec["first"], ts)
+            rec["last"] = ts if rec["last"] is None else max(rec["last"], ts)
+    return dict(files)
+
+
+def tool_stats_from_tools(tools):
+    stats = defaultdict(lambda: {"count": 0, "time": 0.0, "err": 0})
+    for t in tools:
+        s = stats[t["name"]]
+        s["count"] += 1
+        s["time"] += t.get("duration") or 0
+        if t.get("error"):
+            s["err"] += 1
+    return dict(stats)
+
+
+def merge_file_ops(dicts):
+    out = defaultdict(lambda: {"read": 0, "write": 0, "edit": 0,
+                               "first": None, "last": None})
+    for d in dicts:
+        for path, r in d.items():
+            o = out[path]
+            o["read"] += r["read"]; o["write"] += r["write"]; o["edit"] += r["edit"]
+            for key in ("first", "last"):
+                if r[key]:
+                    o[key] = r[key] if o[key] is None else (
+                        min(o[key], r[key]) if key == "first" else max(o[key], r[key]))
+    return dict(out)
+
+
+def merge_tool_stats(dicts):
+    out = defaultdict(lambda: {"count": 0, "time": 0.0, "err": 0})
+    for d in dicts:
+        for name, s in d.items():
+            o = out[name]
+            o["count"] += s["count"]; o["time"] += s["time"]; o["err"] += s["err"]
+    return dict(out)
+
+
+def correlate_tools(events):
+    """Pair tool_use with tool_result within one transcript; return a tools list
+    plus token totals, time span, and the first real user prompt."""
+    uses, results = {}, {}
+    tokens = defaultdict(int)
+    first = last = first_prompt = None
+    for ev in events:
+        ts = parse_ts(ev.get("timestamp"))
+        if ts:
+            first = ts if first is None else min(first, ts)
+            last = ts if last is None else max(last, ts)
+        m = ev.get("message")
+        if ev.get("type") == "user" and isinstance(m, dict):
+            for b in blocks(m):
+                if b.get("type") == "tool_result":
+                    results[b.get("tool_use_id")] = {
+                        "ts": ts, "is_error": bool(b.get("is_error"))}
+            if first_prompt is None:
+                t = msg_text(m).strip()
+                if t:
+                    first_prompt = t
+        elif ev.get("type") == "assistant" and isinstance(m, dict):
+            u = m.get("usage") or {}
+            for k in ("input_tokens", "output_tokens",
+                      "cache_creation_input_tokens", "cache_read_input_tokens"):
+                tokens[k] += u.get(k, 0) or 0
+            for b in blocks(m):
+                if b.get("type") == "tool_use":
+                    uses[b["id"]] = {"name": b.get("name", "?"),
+                                     "input": b.get("input") or {}, "ts": ts}
+    tools = []
+    for tid, u in uses.items():
+        r = results.get(tid)
+        dur = (r["ts"] - u["ts"]).total_seconds() if (r and r["ts"] and u["ts"]) else None
+        tools.append({"id": tid, "name": u["name"], "input": u["input"],
+                      "start": u["ts"], "duration": dur,
+                      "error": r["is_error"] if r else None})
+    return tools, dict(tokens), first, last, first_prompt
+
+
+def load_subagents(session_path):
+    """Parse every subagents/agent-*.jsonl beside the main log.
+    Returns {agentId: stats} keyed by the transcript's own agentId."""
+    sub_dir = Path(session_path).with_suffix("") / "subagents"
+    if not sub_dir.is_dir():
+        return {}
+    out = {}
+    for f in sorted(sub_dir.glob("agent-*.jsonl")):
+        aid = f.stem[len("agent-"):]
+        events = load_events(f)
+        if not events:
+            continue
+        tools, tokens, first, last, prompt = correlate_tools(events)
+        dur = (last - first).total_seconds() if first and last else None
+        out[aid] = {
+            "agent_id": aid, "tools": tools,
+            "file_ops": file_ops_from_tools(tools),
+            "tool_stats": tool_stats_from_tools(tools),
+            "tool_calls": len(tools), "tokens": tokens,
+            "duration": dur, "prompt": prompt,
+            "errors": sum(1 for t in tools if t["error"]),
+        }
+    return out
+
+
+def _norm_prompt(s):
+    return re.sub(r"\s+", " ", s or "").strip()[:120]
+
+
+def link_subagents(data, subs):
+    """Attach each subagent transcript to its parent Agent record (matched by
+    prompt) and build session-wide merged file/tool aggregates."""
+    by_prompt = {_norm_prompt(s["prompt"]): s for s in subs.values()}
+    for a in data["agents"]:
+        s = by_prompt.get(_norm_prompt(a["input"].get("prompt")))
+        a["sub"] = s
+    data["files_all"] = merge_file_ops(
+        [data["files"]] + [s["file_ops"] for s in subs.values()])
+    data["tool_stats_all"] = merge_tool_stats(
+        [data["tool_stats"]] + [s["tool_stats"] for s in subs.values()])
+    data["subagents"] = subs
+    data["has_sub"] = True
+
+
+# --------------------------------------------------------------------------- #
 # Core analysis
 # --------------------------------------------------------------------------- #
 
@@ -321,6 +472,9 @@ def analyze(events):
                     item.update({"verdict": a["verdict"], "caught": a["caught"],
                                  "gate": a["gate"]})
 
+    files = file_ops_from_tools(tools)
+    tool_stats = tool_stats_from_tools(tools)
+
     agents.sort(key=lambda a: a["start"] or datetime.max.replace(tzinfo=timezone.utc))
     timeline.sort(key=lambda x: x["ts"] or datetime.max.replace(tzinfo=timezone.utc))
     errors.sort(key=lambda e: e["ts"] or datetime.max.replace(tzinfo=timezone.utc))
@@ -328,7 +482,8 @@ def analyze(events):
     return {
         "meta": meta, "first_ts": first_ts, "last_ts": last_ts,
         "models": models, "tokens": dict(tokens),
-        "tool_counter": tool_counter, "tools": tools, "agents": agents,
+        "tool_counter": tool_counter, "tool_stats": dict(tool_stats),
+        "tools": tools, "agents": agents, "files": dict(files),
         "errors": errors, "timeline": timeline,
     }
 
@@ -434,15 +589,20 @@ def render(data, source_name, compact):
 
     title = meta.get("title") or source_name
 
+    has_sub = data.get("has_sub")
+    files = data["files_all"] if has_sub else data["files"]
+    tool_stats = data["tool_stats_all"] if has_sub else data["tool_stats"]
+    scope = " (incl. subagents)" if has_sub else ""
+
     cards = [
         ("Duration", fmt_dur(total_dur)),
         ("Agent runs", str(len(agents))),
-        ("Tool calls", str(sum(data["tool_counter"].values()))),
+        (f"Tool calls{scope}", str(sum(s["count"] for s in tool_stats.values()))),
+        (f"Files touched{scope}", str(len(files))),
         ("Errors", str(n_err)),
         ("Rejections", str(n_rej)),
         ("Issues caught by gates", str(issues_caught)),
         ("Output tokens", fmt_num(tok.get("output_tokens", 0))),
-        ("Cache read", fmt_num(total_cache)),
     ]
     cards_html = "\n".join(
         f'<div class="card"><div class="card-val">{esc(v)}</div>'
@@ -452,11 +612,15 @@ def render(data, source_name, compact):
     legend = " ".join(f'<span class="legend"><i style="background:{c}"></i>{esc(n)}</span>'
                       for n, c in colours.items())
 
-    value_html = render_value_table(agents, colours)
+    value_html = render_value_table(agents, colours, has_sub)
     insights_html = render_insights(agents, errors)
     gates_html = render_gate_panel(agents, colours)
     errors_html = render_error_panel(errors)
-    tools_html = render_tools(data["tool_counter"])
+    scope_note = ('<p class="note">Includes tool calls and file access from '
+                  'inside every subagent transcript, not just the top-level '
+                  'session.</p>' if has_sub else "")
+    tools_html = scope_note + render_tools(tool_stats)
+    files_html = scope_note + render_files(files)
     feed_html = render_feed(data["timeline"], colours)
 
     span = f"{fmt_ts(first)} → {fmt_ts(last)}" if first else "—"
@@ -471,7 +635,7 @@ def render(data, source_name, compact):
         cards=cards_html, insights=insights_html,
         gantt_note=note, legend=legend, gantt=gantt_html,
         value=value_html, gates=gates_html, errors=errors_html,
-        tools=tools_html, feed=feed_html)
+        tools=tools_html, files=files_html, feed=feed_html)
 
 
 def render_gantt(agents, first, total_dur, colours, compact):
@@ -519,11 +683,12 @@ def render_gantt(agents, first, total_dur, colours, compact):
     return "\n".join(rows), note
 
 
-def render_value_table(agents, colours):
+def render_value_table(agents, colours, has_sub=False):
     if not agents:
         return '<p class="empty">No agents.</p>'
     stats = defaultdict(lambda: {"runs": 0, "total": 0.0, "gate": False,
-                                 "caught": 0, "err": 0})
+                                 "caught": 0, "err": 0, "calls": 0,
+                                 "files": 0, "out_tok": 0})
     for a in agents:
         s = stats[a["subagent"]]
         s["runs"] += 1
@@ -533,11 +698,15 @@ def render_value_table(agents, colours):
             s["caught"] += 1
         if a["error"]:
             s["err"] += 1
+        sub = a.get("sub")
+        if sub:
+            s["calls"] += sub["tool_calls"]
+            s["files"] += len(sub["file_ops"])
+            s["out_tok"] += sub["tokens"].get("output_tokens", 0)
     rows = []
     for name, s in sorted(stats.items(), key=lambda kv: -kv[1]["total"]):
         avg = s["total"] / s["runs"] if s["runs"] else 0
         if s["gate"]:
-            rate = 100 * s["caught"] / s["runs"] if s["runs"] else 0
             val = (f'<span class="pill good">caught {s["caught"]}/{s["runs"]}</span>'
                    if s["caught"] else
                    f'<span class="pill warn">0/{s["runs"]} — approved all</span>')
@@ -545,13 +714,22 @@ def render_value_table(agents, colours):
             val = '<span class="muted">producer</span>'
         errc = f'<span class="pill bad">{s["err"]}</span>' if s["err"] else "0"
         dot = f'<i class="dot" style="background:{colours[name]}"></i>'
+        work = (f'<td class="num">{s["calls"]}</td>'
+                f'<td class="num">{s["files"]}</td>'
+                f'<td class="num muted">{fmt_num(s["out_tok"])}</td>') if has_sub else ""
         rows.append(f'''<tr>
           <td>{dot}{esc(name)}{' <span class="gate-tag">gate</span>' if s["gate"] else ''}</td>
-          <td>{s["runs"]}</td><td>{fmt_dur(s["total"])}</td><td>{fmt_dur(avg)}</td>
-          <td>{val}</td><td>{errc}</td></tr>''')
-    return f'''<table class="vtable">
-      <thead><tr><th>Subagent</th><th>Runs</th><th>Total time</th><th>Avg</th>
-      <th>Gate value</th><th>Errors</th></tr></thead>
+          <td class="num">{s["runs"]}</td><td class="num">{fmt_dur(s["total"])}</td>
+          <td class="num">{fmt_dur(avg)}</td>{work}
+          <td>{val}</td><td class="num">{errc}</td></tr>''')
+    work_head = ('<th class="num">Tool calls</th><th class="num">Files</th>'
+                 '<th class="num">Out tokens</th>') if has_sub else ""
+    hint = ('<p class="note">Tool calls / Files / Out tokens are the work done '
+            '<em>inside</em> each subagent (summed across its runs).</p>'
+            if has_sub else "")
+    return f'''{hint}<table class="vtable">
+      <thead><tr><th>Subagent</th><th class="num">Runs</th><th class="num">Total time</th>
+      <th class="num">Avg</th>{work_head}<th>Gate value</th><th class="num">Errors</th></tr></thead>
       <tbody>{''.join(rows)}</tbody></table>'''
 
 
@@ -638,16 +816,54 @@ def render_error_panel(errors):
     return "\n".join(rows)
 
 
-def render_tools(counter):
-    if not counter:
+def render_tools(stats):
+    if not stats:
         return '<p class="empty">No tool calls.</p>'
-    mx = max(counter.values())
+    mx = max(s["count"] for s in stats.values())
     rows = []
-    for name, c in counter.most_common():
-        rows.append(f'''<div class="tool-row"><div class="tool-name">{esc(name)}</div>
-          <div class="tool-bar-wrap"><div class="tool-bar" style="width:{100*c/mx:.1f}%"></div></div>
-          <div class="tool-count">{c}</div></div>''')
-    return "\n".join(rows)
+    for name, s in sorted(stats.items(), key=lambda kv: -kv[1]["count"]):
+        errc = f'<span class="pill bad">{s["err"]}</span>' if s["err"] else "—"
+        rows.append(f'''<tr>
+          <td>{esc(name)}</td>
+          <td><div class="tool-bar-wrap"><div class="tool-bar" style="width:{100*s["count"]/mx:.1f}%"></div></div></td>
+          <td class="num">{s["count"]}</td>
+          <td class="num muted">{esc(fmt_dur(s["time"]))}</td>
+          <td class="num">{errc}</td></tr>''')
+    return f'''<table class="vtable">
+      <thead><tr><th>Tool</th><th style="width:38%"></th><th class="num">Calls</th>
+      <th class="num">Total time</th><th class="num">Errors</th></tr></thead>
+      <tbody>{''.join(rows)}</tbody></table>'''
+
+
+def render_files(files):
+    if not files:
+        return '<p class="empty">No files read, written, or edited.</p>'
+    rows = []
+    ordered = sorted(files.items(),
+                     key=lambda kv: -(kv[1]["read"] + kv[1]["write"] + kv[1]["edit"]))
+    for path, f in ordered[:60]:
+        total = f["read"] + f["write"] + f["edit"]
+        badges = []
+        if f["write"]:
+            badges.append(f'<span class="fop write">write ×{f["write"]}</span>')
+        if f["edit"]:
+            badges.append(f'<span class="fop edit">edit ×{f["edit"]}</span>')
+        if f["read"]:
+            badges.append(f'<span class="fop read">read ×{f["read"]}</span>')
+        short = path.replace("/Users/", "~/").rsplit("/", 4)
+        disp = "/".join(short[-4:]) if len(short) > 4 else path
+        rows.append(f'''<tr>
+          <td class="fpath" title="{esc(path)}">{esc(disp)}</td>
+          <td>{' '.join(badges)}</td>
+          <td class="num muted">{total}</td></tr>''')
+    more = (f'<p class="note">…and {len(ordered) - 60} more files.</p>'
+            if len(ordered) > 60 else "")
+    created = sum(1 for _, f in files.items() if f["write"] and not f["read"] and not f["edit"])
+    summary = (f'<p class="note">{len(files)} files touched · '
+               f'{created} written fresh (no prior read).</p>')
+    return f'''{summary}<table class="vtable">
+      <thead><tr><th>File</th><th>Operations</th><th class="num">Total</th></tr></thead>
+      <tbody>{''.join(rows)}</tbody></table>{more}'''
 
 
 def render_feed(timeline, colours):
@@ -786,11 +1002,16 @@ h2 {{ font-size:14px; text-transform:uppercase; letter-spacing:.06em;
 .err-body {{ flex:1; min-width:0; }}
 .err-msg {{ margin-top:5px; font-size:12px; color:var(--bad); white-space:pre-wrap; }}
 .err-item.rejected .err-msg {{ color:var(--warn); }}
-.tool-row {{ display:flex; align-items:center; gap:12px; margin:5px 0; }}
-.tool-name {{ width:200px; flex:none; font-size:13px; }}
-.tool-bar-wrap {{ flex:1; background:var(--panel2); border-radius:5px; height:16px; }}
+.tool-bar-wrap {{ background:var(--panel2); border-radius:5px; height:14px; min-width:60px; }}
 .tool-bar {{ height:100%; background:var(--accent); border-radius:5px; }}
-.tool-count {{ width:44px; text-align:right; color:var(--muted); font-size:12px; }}
+.vtable td.num {{ text-align:right; font-variant-numeric:tabular-nums; }}
+.vtable th.num {{ text-align:right; }}
+.fpath {{ font-family:ui-monospace,Menlo,monospace; font-size:12px; word-break:break-all; }}
+.fop {{ display:inline-block; font-size:10px; font-weight:600; padding:1px 7px;
+  border-radius:20px; margin-right:5px; }}
+.fop.write {{ background:rgba(99,102,241,.16); color:var(--accent); }}
+.fop.edit {{ background:rgba(245,158,11,.16); color:var(--warn); }}
+.fop.read {{ background:var(--panel2); color:var(--muted); }}
 .feed {{ display:flex; gap:14px; padding:12px 0; border-top:1px solid var(--line); }}
 .feed-time {{ width:66px; flex:none; color:var(--muted); font-size:12px;
   font-variant-numeric:tabular-nums; }}
@@ -839,6 +1060,9 @@ h2 {{ font-size:14px; text-transform:uppercase; letter-spacing:.06em;
   <h2>Tool usage</h2>
   <div class="panel">{tools}</div>
 
+  <h2>Files touched</h2>
+  <div class="panel">{files}</div>
+
   <h2>Activity feed</h2>
   <div class="filters">
     <button data-f="all" class="active">All</button>
@@ -876,6 +1100,8 @@ def main():
                     "project so reports live alongside the code)")
     ap.add_argument("--compact", action="store_true",
                     help="collapse idle gaps in the agent timeline")
+    ap.add_argument("--no-subagents", action="store_true",
+                    help="ignore the subagents/ transcripts (top-level only)")
     ap.add_argument("--open", action="store_true",
                     help="open the report in a browser when done")
     args = ap.parse_args()
@@ -888,6 +1114,9 @@ def main():
         ap.error("no parseable events found")
 
     data = analyze(events)
+    subs = {} if args.no_subagents else load_subagents(src)
+    if subs:
+        link_subagents(data, subs)
     if args.output:
         out = Path(args.output)
     else:
@@ -898,8 +1127,11 @@ def main():
 
     n_caught = sum(1 for a in data["agents"] if a.get("caught"))
     n_err = sum(1 for e in data["errors"] if e["kind"] == "error")
+    sub_note = (f" · {len(subs)} subagent transcripts "
+                f"({sum(s['tool_calls'] for s in subs.values())} inner tool calls)"
+                if subs else " · no subagent transcripts found")
     print(f"parsed {len(events)} events · {len(data['agents'])} agent runs · "
-          f"{n_caught} issues caught by gates · {n_err} errors")
+          f"{n_caught} issues caught by gates · {n_err} errors{sub_note}")
     print(f"wrote {out}")
     if args.open:
         webbrowser.open(out.resolve().as_uri())

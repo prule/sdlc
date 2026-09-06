@@ -13,6 +13,7 @@ It answers, at a glance:
   verdict and a snippet of what it caught.
 - **What went wrong?** — failed commands, rejected tool calls, failed agents.
 - **What decisions were made?** — a filterable, chronological activity feed.
+- **What was touched?** — tools used (with time and errors) and every file read/written/edited.
 
 This is a Claude Code [skill](https://docs.claude.com/en/docs/claude-code/skills):
 Claude picks it up automatically when you ask to analyse a session. You can also
@@ -69,8 +70,27 @@ No third-party packages — Python 3.8+ standard library only.
 | **Subagent value & efficiency** | Per-subagent table: runs, total time, average, gate catch-rate, errors. Reviewers show `caught N/M`; a gate that approves everything is flagged. |
 | **Review-gate value** | Each review run (`spec-reviewer`, `senior-dev`, `qa`, …) with a verdict badge and a snippet of *what it caught* — the evidence that the gates are worth their cost. |
 | **Errors & friction** | Failed commands, failed agents, and tool calls you rejected (where the agent guessed wrong). Your list of things to look into. |
-| **Tool usage** | Ranked breakdown of every tool called. |
+| **Tool usage** | Every tool called (top-level **and** inside subagents), with call count, total time spent, and error count. |
+| **Files touched** | Every file read / written / edited across the whole run (subagents included), ranked by activity, with per-operation counts and how many were written fresh (no prior read). |
 | **Activity feed** | Chronological, filterable stream: prompts, decisions, tool calls (with durations), agent results, thinking. |
+
+## Subagents are included
+
+The multi-agent pipeline does most of its real work *inside* subagents
+(`architect`, `junior-dev`, `qa`, …), and each gets its own full transcript at
+`~/.claude/projects/<slug>/<session-id>/subagents/agent-<id>.jsonl`. The script
+reads those too and folds them in:
+
+- **Tool usage** and **Files touched** aggregate the top-level session *plus*
+  every subagent — so you see all files read/written/edited across the run, not
+  just the handful the orchestrator touched directly (e.g. 335 files instead of
+  67 in one sample run).
+- The **Subagent value & efficiency** table gains per-subagent columns —
+  inner **Tool calls**, **Files**, and **Out tokens** — so you can see who did
+  the heavy lifting (typically `junior-dev`) versus the lighter review gates.
+
+Each transcript is matched back to its parent Agent call by prompt. Pass
+`--no-subagents` to report the top-level session only.
 
 ## How it works (and its limits)
 

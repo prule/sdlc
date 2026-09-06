@@ -9,3 +9,7 @@ node_modules/
 
 # pipeline observability runtime logs
 logs/
+
+# python
+__pycache__/
+*.pyc
