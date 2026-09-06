@@ -216,7 +216,24 @@ open http://localhost:3000                                             # view (G
 docker compose -f observability/otel/docker-compose.yml down           # stop
 ```
 
-Hooks answer "what did this run touch?"; OTel answers "what did it cost, how many tokens, how does it trend?"
+**3. Session report + evaluation (is the pipeline actually *good*?)** — the
+`session-report` skill turns a run's session log into an HTML report: agent
+timeline, per-subagent value/efficiency, which review gates caught what, errors &
+friction, files touched, and **context ingestion** (are `domain/`/`standards/`
+being read and used). Ask Claude *"analyse this session"*, or:
+
+```
+python3 .claude/skills/session-report/session_report.py \
+    ~/.claude/projects/<slug>/<session-id>.jsonl --compact --open   # → reports/sessions/
+```
+
+To judge whether a change (context, input format, an agent) makes outcomes better
+or worse, run an A/B ablation with `--compare`. **Full method:
+[docs/evaluating-the-pipeline.md](docs/evaluating-the-pipeline.md)** — a manual
+for figuring out how well the pipeline is working.
+
+Hooks answer "what did this run touch?"; OTel answers "what did it cost, how many tokens, how does it trend?";
+the session report answers "did each agent and each piece of context earn its place?".
 
 ---
 
