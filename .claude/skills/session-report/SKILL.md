@@ -54,6 +54,12 @@ ls -lt ~/.claude/projects/-Users-paulrule-projects-current-sdlc/*.jsonl | head
 
 ## Notes / gotchas
 
+- **Subagents are included by default.** Each subagent has its own transcript at
+  `<session-id>/subagents/agent-<id>.jsonl`; the script reads them all, folds
+  their tool/file activity into the Tool-usage and Files-touched panels, and adds
+  per-subagent workload columns (inner tool calls, files, output tokens) to the
+  value table. Matched to parent Agent calls by prompt. Pass `--no-subagents`
+  for top-level only.
 - **Background agents** (`run_in_background: true`, e.g. `qa`, `senior-dev`)
   return an instant "launched" stub; their real duration and output arrive later
   in a `<task-notification>`. The script correlates the two by tool-use-id, so
