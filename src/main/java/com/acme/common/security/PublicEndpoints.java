@@ -14,16 +14,7 @@ public final class PublicEndpoints {
    * server.servlet.context-path: /api/v1}), that require no authentication. Spring Security matches
    * request matchers against the path within the application, i.e. excluding the context path.
    */
-  public static final List<String> PATTERNS =
-      List.of(
-          "/ping",
-          "/samples",
-          "/movies",
-          "/movies/{id}",
-          "/movies/{id}/credits",
-          "/people",
-          "/people/{id}",
-          "/people/{id}/credits");
+  public static final List<String> PATTERNS = List.of("/ping", "/samples");
 
   private PublicEndpoints() {}
 }

@@ -60,6 +60,10 @@ live in the ticket; durable policies live here.
   unlike movie Search's `releaseYear`-descending default, since a Person has no date-like field to
   default-sort by. An empty result set is a normal 200, not an error. (Decided in CAT-006.)
 - A request for a non-existent movie/person id returns **404** (problem+json), not an empty 200.
+- A **malformed identifier** (a value that is not a well-formed catalog identifier at all) is a
+  distinct outcome from **not-found**: it is rejected as a **bad request** before any lookup, whereas a
+  well-formed identifier that matches nothing is a not-found. The two are reported as different
+  failures. (Recorded UC-001.)
 
 ## Privacy / compliance
 - The catalog is not personal data of API users (no accounts, minimal PII). Data about **people**

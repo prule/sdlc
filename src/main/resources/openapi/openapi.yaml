@@ -12,10 +12,6 @@ tags:
     description: >-
       Demonstrative, throwaway sample collection proving the HAL pagination-link
       convention. Not a real catalog capability.
-  - name: movies
-    description: Public, read-only catalog data for a single Movie.
-  - name: people
-    description: Public, read-only catalog data for a single Person.
 security:
   - bearerAuth: []
 paths:
@@ -23,18 +19,6 @@ paths:
     $ref: 'paths/health.yaml'
   /samples:
     $ref: 'paths/samples.yaml'
-  /movies:
-    $ref: 'paths/movies-collection.yaml'
-  /movies/{id}:
-    $ref: 'paths/movies.yaml'
-  /movies/{id}/credits:
-    $ref: 'paths/movie-credits.yaml'
-  /people:
-    $ref: 'paths/people-collection.yaml'
-  /people/{id}:
-    $ref: 'paths/people.yaml'
-  /people/{id}/credits:
-    $ref: 'paths/person-filmography.yaml'
 components:
   securitySchemes:
     bearerAuth:
@@ -68,66 +52,6 @@ components:
       $ref: 'components/schemas/sample.yaml#/SampleCollectionData'
     SampleCollectionEnvelope:
       $ref: 'components/schemas/sample.yaml#/SampleCollectionEnvelope'
-    MovieLinks:
-      $ref: 'components/schemas/common.yaml#/MovieLinks'
-    MovieCollectionLinks:
-      $ref: 'components/schemas/common.yaml#/MovieCollectionLinks'
-    MovieSummaryLinks:
-      $ref: 'components/schemas/common.yaml#/MovieSummaryLinks'
-    MovieDetail:
-      $ref: 'components/schemas/movie.yaml#/MovieDetail'
-    MovieDetailEnvelope:
-      $ref: 'components/schemas/movie.yaml#/MovieDetailEnvelope'
-    MovieSummary:
-      $ref: 'components/schemas/movie.yaml#/MovieSummary'
-    MovieCollectionData:
-      $ref: 'components/schemas/movie.yaml#/MovieCollectionData'
-    MovieCollectionEnvelope:
-      $ref: 'components/schemas/movie.yaml#/MovieCollectionEnvelope'
-    MovieCreditsLinks:
-      $ref: 'components/schemas/common.yaml#/MovieCreditsLinks'
-    CreditPerson:
-      $ref: 'components/schemas/credit.yaml#/CreditPerson'
-    CastCredit:
-      $ref: 'components/schemas/credit.yaml#/CastCredit'
-    CrewCredit:
-      $ref: 'components/schemas/credit.yaml#/CrewCredit'
-    MovieCreditsData:
-      $ref: 'components/schemas/credit.yaml#/MovieCreditsData'
-    MovieCreditsEnvelope:
-      $ref: 'components/schemas/credit.yaml#/MovieCreditsEnvelope'
-    CreditPersonLinks:
-      $ref: 'components/schemas/common.yaml#/CreditPersonLinks'
-    PersonLinks:
-      $ref: 'components/schemas/common.yaml#/PersonLinks'
-    Person:
-      $ref: 'components/schemas/person.yaml#/Person'
-    PersonDetailEnvelope:
-      $ref: 'components/schemas/person.yaml#/PersonDetailEnvelope'
-    ActingCapacity:
-      $ref: 'components/schemas/person.yaml#/ActingCapacity'
-    NonActingCapacity:
-      $ref: 'components/schemas/person.yaml#/NonActingCapacity'
-    FilmographyCapacity:
-      $ref: 'components/schemas/person.yaml#/FilmographyCapacity'
-    FilmographyItem:
-      $ref: 'components/schemas/person.yaml#/FilmographyItem'
-    PersonFilmographyLinks:
-      $ref: 'components/schemas/common.yaml#/PersonFilmographyLinks'
-    PersonFilmographyData:
-      $ref: 'components/schemas/person.yaml#/PersonFilmographyData'
-    PersonFilmographyEnvelope:
-      $ref: 'components/schemas/person.yaml#/PersonFilmographyEnvelope'
-    PersonCollectionLinks:
-      $ref: 'components/schemas/common.yaml#/PersonCollectionLinks'
-    PersonSummaryLinks:
-      $ref: 'components/schemas/common.yaml#/PersonSummaryLinks'
-    PersonSummary:
-      $ref: 'components/schemas/person.yaml#/PersonSummary'
-    PersonCollectionData:
-      $ref: 'components/schemas/person.yaml#/PersonCollectionData'
-    PersonCollectionEnvelope:
-      $ref: 'components/schemas/person.yaml#/PersonCollectionEnvelope'
   responses:
     BadRequest:
       $ref: 'components/responses/common.yaml#/BadRequest'
