@@ -109,7 +109,7 @@ question:
 | **Summary cards** | Scale & cost of the run | — |
 | **Insights** | Auto-generated callouts | Read these first; they flag the obvious wins and smells |
 | **Agent timeline** (Gantt) | *When* each agent ran, how long, overlaps | Work is progressing, not stalled; parallel where possible |
-| **Subagent value & efficiency** | Q1 — who does the work, who catches issues, at what cost | Producers do most tool calls/files; gates are cheaper but catch things |
+| **Subagent value & efficiency** | Q1 — who does the work, who catches issues, at what cost, and **which model each agent ran** | Producers do most tool calls/files; gates are cheaper but catch things; model matches the job (e.g. reasoning/review on the stronger model, high-volume implementation on the faster one) |
 | **Review-gate value** | Q2 — what each reviewer actually caught | Gates with real, specific findings (not rubber-stamps) |
 | **Errors & friction** | Where the run stumbled | Few command errors; few rejected tool calls |
 | **Tool usage** | Where time/effort went per tool | No single tool dominating unexpectedly |
@@ -145,6 +145,16 @@ The **Context ingestion** panel scores each `domain/`/`standards/` doc by:
 **Catches attributed to a doc** are the strongest single-run signal of value: a
 `REQUEST CHANGES` that cites `clean-architecture.md` is direct evidence that
 document earned its place.
+
+**Is a doc too wordy / bloated?** The panel also shows each doc's **size**
+(approx tokens), **read cost** (reads × size — the context tokens spent
+re-reading it), and **Value/1K** = influence per 1000 tokens, i.e. *value per
+word*. Docs are flagged `dense` (lean, heavily used) or `wordy / low-signal?`
+(large, rarely used). Treat Value/1K as a **proxy that tells you where to look**,
+not a verdict: a low score means "candidate to trim", which you then confirm with
+an ablation (§6). It cannot tell you *which paragraphs* are noise — for that,
+either trim the suspect sections and `--compare`, or have an LLM rate each
+section's actionability against how agents actually used it.
 
 > `CLAUDE.md` is always in every agent's context and is **not** counted as a
 > read. A doc showing "never read" may still be reaching agents via the summary
@@ -240,7 +250,10 @@ tell you *where* to look, the reports tell you *why*.
 | **Output tokens** | Generation cost | Lower for equal quality |
 | **Influence** (per doc) | reads + citations | Higher = the doc is engaged with |
 | **Informed %** (per doc) | reads before the agent's first write | Higher = context shaped the work |
+| **Value/1K** (per doc) | influence per 1000 tokens of the doc | Higher = denser signal; low + large = bloat candidate |
+| **Read cost** (per doc) | reads × size (tokens) | Lower for equal value = cheaper context |
 | **Catches citing a doc** | Gate findings that name the doc | Higher = doc demonstrably useful |
+| **Model** (per agent) | model that produced the agent's messages | Should match the job (stronger for reasoning/review, faster for volume) |
 
 ---
 
@@ -258,6 +271,10 @@ Skim these on any run:
 - [ ] **One agent dominates tokens** with little to show (few files, no catches)
       → cost without value.
 - [ ] **Errors clustered in one tool** → an environment or instruction problem.
+- [ ] A **large doc with low Value/1K** (`wordy / low-signal?`) → trim it and
+      `--compare` to confirm nothing regresses.
+- [ ] An **agent on an unexpected model** (e.g. a review gate on the faster model)
+      → check the agent's config; model should match the job.
 
 ---
 

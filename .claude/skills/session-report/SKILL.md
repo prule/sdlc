@@ -59,8 +59,11 @@ read / are helping or hindering:
 
 - The **Context ingestion** panel already answers "are they read and used?" —
   per-doc reads, informed reads (before first write), citations, influence
-  score, and never-read / read-but-never-cited flags, plus reviewer catches
-  attributed to the doc they cite. Point them there first.
+  score, never-read / read-but-never-cited flags, reviewer catches attributed to
+  the doc they cite, and a **Value/1K** (influence per 1000 tokens) signal-density
+  score that flags large-but-rarely-used docs as `wordy / low-signal?`. The
+  **Subagent value** table also shows **which model** each agent ran. Point them
+  there first.
 - "Helping vs hindering" is a causal question that needs a counterfactual, not a
   single run. Recommend an **ablation**: run the same ticket with vs without (or
   with trimmed) context, then diff the two runs:

@@ -305,8 +305,21 @@ def load_subagents(session_path):
             "duration": dur, "prompt": prompt,
             "errors": sum(1 for t in tools if t["error"]),
             "ctx": context_signals(events),
+            "model": primary_model(events),
         }
     return out
+
+
+def primary_model(events):
+    """The model that produced the most assistant messages in a transcript."""
+    c = Counter()
+    for ev in events:
+        m = ev.get("message")
+        if isinstance(m, dict) and m.get("role") == "assistant":
+            mdl = m.get("model")
+            if mdl and mdl != "<synthetic>":
+                c[mdl] += 1
+    return c.most_common(1)[0][0] if c else None
 
 
 # --------------------------------------------------------------------------- #
@@ -380,20 +393,26 @@ def build_context(data, project_root=None):
             for doc in set(CONTEXT_RE.findall(a["result"])):
                 catches_by_doc[doc] += 1
 
-    # universe of docs (to flag never-read), if we can see the project tree
+    # universe of docs + their sizes (to flag never-read and gauge bloat)
     universe = set()
+    sizes = {}                          # relpath -> approx tokens (chars / 4)
     root = Path(project_root or Path.cwd())
     for sub in ("domain", "standards"):
         d = root / sub
         if d.is_dir():
             for p in d.glob("*.md"):
-                universe.add(f"{sub}/{p.name}")
+                rel = f"{sub}/{p.name}"
+                universe.add(rel)
+                try:
+                    sizes[rel] = max(1, len(p.read_text(encoding="utf-8")) // 4)
+                except OSError:
+                    pass
     never_read = sorted(universe - set(per_file)) if universe else []
     read_never_ref = sorted(f for f, v in per_file.items()
                             if v["reads"] and not v["refs"])
 
     return {"per_file": dict(per_file), "per_agent": dict(per_agent),
-            "catches_by_doc": dict(catches_by_doc),
+            "catches_by_doc": dict(catches_by_doc), "sizes": sizes,
             "never_read": never_read, "read_never_ref": read_never_ref,
             "universe": bool(universe)}
 
@@ -409,6 +428,7 @@ def link_subagents(data, subs):
     for a in data["agents"]:
         s = by_prompt.get(_norm_prompt(a["input"].get("prompt")))
         a["sub"] = s
+        a["model"] = s.get("model") if s else None
     data["files_all"] = merge_file_ops(
         [data["files"]] + [s["file_ops"] for s in subs.values()])
     data["tool_stats_all"] = merge_tool_stats(
@@ -659,6 +679,14 @@ def colour_map(names):
     return {n: PALETTE[i % len(PALETTE)] for i, n in enumerate(sorted(names))}
 
 
+def _median(xs):
+    xs = sorted(x for x in xs if x is not None)
+    if not xs:
+        return 0
+    n = len(xs)
+    return xs[n // 2] if n % 2 else (xs[n // 2 - 1] + xs[n // 2]) / 2
+
+
 # --------------------------------------------------------------------------- #
 # Rendering
 # --------------------------------------------------------------------------- #
@@ -781,7 +809,7 @@ def render_value_table(agents, colours, has_sub=False):
         return '<p class="empty">No agents.</p>'
     stats = defaultdict(lambda: {"runs": 0, "total": 0.0, "gate": False,
                                  "caught": 0, "err": 0, "calls": 0,
-                                 "files": 0, "out_tok": 0})
+                                 "files": 0, "out_tok": 0, "models": set()})
     for a in agents:
         s = stats[a["subagent"]]
         s["runs"] += 1
@@ -791,6 +819,8 @@ def render_value_table(agents, colours, has_sub=False):
             s["caught"] += 1
         if a["error"]:
             s["err"] += 1
+        if a.get("model"):
+            s["models"].add(a["model"])
         sub = a.get("sub")
         if sub:
             s["calls"] += sub["tool_calls"]
@@ -807,11 +837,13 @@ def render_value_table(agents, colours, has_sub=False):
             val = '<span class="muted">producer</span>'
         errc = f'<span class="pill bad">{s["err"]}</span>' if s["err"] else "0"
         dot = f'<i class="dot" style="background:{colours[name]}"></i>'
+        model = ", ".join(short_model(m) for m in sorted(s["models"])) or "—"
         work = (f'<td class="num">{s["calls"]}</td>'
                 f'<td class="num">{s["files"]}</td>'
                 f'<td class="num muted">{fmt_num(s["out_tok"])}</td>') if has_sub else ""
         rows.append(f'''<tr>
           <td>{dot}{esc(name)}{' <span class="gate-tag">gate</span>' if s["gate"] else ''}</td>
+          <td>{esc(model)}</td>
           <td class="num">{s["runs"]}</td><td class="num">{fmt_dur(s["total"])}</td>
           <td class="num">{fmt_dur(avg)}</td>{work}
           <td>{val}</td><td class="num">{errc}</td></tr>''')
@@ -821,9 +853,15 @@ def render_value_table(agents, colours, has_sub=False):
             '<em>inside</em> each subagent (summed across its runs).</p>'
             if has_sub else "")
     return f'''{hint}<table class="vtable">
-      <thead><tr><th>Subagent</th><th class="num">Runs</th><th class="num">Total time</th>
-      <th class="num">Avg</th>{work_head}<th>Gate value</th><th class="num">Errors</th></tr></thead>
+      <thead><tr><th>Subagent</th><th>Model</th><th class="num">Runs</th>
+      <th class="num">Total time</th><th class="num">Avg</th>{work_head}
+      <th>Gate value</th><th class="num">Errors</th></tr></thead>
       <tbody>{''.join(rows)}</tbody></table>'''
+
+
+def short_model(m):
+    """claude-opus-4-8 -> opus-4-8; claude-sonnet-5 -> sonnet-5."""
+    return re.sub(r"^claude-", "", m or "").replace("-latest", "")
 
 
 def render_insights(agents, errors):
@@ -964,33 +1002,60 @@ def render_context(ctx, colours):
     if not per_file and not ctx["never_read"]:
         return '<p class="empty">No domain/ or standards/ docs were read.</p>'
 
-    # per-file influence table
+    sizes = ctx.get("sizes", {})
+    # density = influence per 1K tokens of the doc; used to spot wordy/low-signal docs
+    dens = {p: (v["reads"] + v["refs"]) / (sizes[p] / 1000)
+            for p, v in per_file.items() if sizes.get(p)}
+    med_d = _median(list(dens.values()))
+    med_sz = _median([sizes[p] for p in per_file if sizes.get(p)])
+    total_read_cost = sum(v["reads"] * sizes.get(p, 0) for p, v in per_file.items())
+
+    # per-file influence + efficiency table
     frows = []
     ordered = sorted(per_file.items(),
                      key=lambda kv: -(kv[1]["reads"] + kv[1]["refs"]))
     for path, v in ordered:
         influence = v["reads"] + v["refs"]
         inf_pct = (100 * v["informed"] / v["reads"]) if v["reads"] else 0
+        size = sizes.get(path)
+        density = dens.get(path)
+        read_cost = v["reads"] * size if size else None
         readers = " ".join(
             f'<span class="rdr" style="background:{colours.get(r, "#888")}" '
             f'title="{esc(r)}"></span>' for r in sorted(v["readers"]))
-        flag = ""
+        verdict = ""
+        if density is not None and med_d:
+            if density >= 1.5 * med_d:
+                verdict = '<span class="pill good">dense</span>'
+            elif density <= 0.5 * med_d and size >= med_sz:
+                verdict = '<span class="pill warn">wordy / low-signal?</span>'
         if v["reads"] and not v["refs"]:
-            flag = '<span class="pill warn">read, never cited</span>'
+            verdict = '<span class="pill warn">read, never cited</span>'
         frows.append(f'''<tr>
           <td class="fpath">{esc(path)}</td>
+          <td class="num muted">{fmt_num(size) if size else "—"}</td>
           <td class="num">{v["reads"]}</td>
           <td class="num muted">{inf_pct:.0f}%</td>
           <td class="num">{v["refs"]}</td>
           <td class="num"><b>{influence}</b></td>
+          <td class="num muted">{f"{density:.1f}" if density is not None else "—"}</td>
+          <td class="num muted">{fmt_num(read_cost) if read_cost else "—"}</td>
           <td>{readers}</td>
-          <td>{flag}</td></tr>''')
+          <td>{verdict}</td></tr>''')
     file_table = f'''<table class="vtable">
-      <thead><tr><th>Doc</th><th class="num">Reads</th>
-      <th class="num" title="share of reads that happened before the agent's first write">Informed</th>
+      <thead><tr><th>Doc</th><th class="num" title="approx tokens (chars/4)">Size</th>
+      <th class="num">Reads</th>
+      <th class="num" title="share of reads before the agent's first write">Informed</th>
       <th class="num">Cited</th><th class="num">Influence</th>
+      <th class="num" title="influence per 1K tokens of the doc — value per word">Value/1K</th>
+      <th class="num" title="reads × size = context tokens spent re-reading it">Read cost</th>
       <th>Readers</th><th></th></tr></thead>
-      <tbody>{''.join(frows)}</tbody></table>'''
+      <tbody>{''.join(frows)}</tbody></table>
+      <p class="note">~{fmt_num(total_read_cost)} tokens were spent re-reading
+      context docs across the run. <b>Value/1K</b> (influence per 1000 tokens of the
+      doc) is the signal-density proxy: a large doc with low Value/1K is a
+      bloat/trim candidate; confirm by trimming it and re-running with
+      <code>--compare</code>.</p>'''
 
     # catches attributed to docs
     catches = ctx["catches_by_doc"]
