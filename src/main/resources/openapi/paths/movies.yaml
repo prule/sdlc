@@ -1,0 +1,33 @@
+get:
+  operationId: getMovieById
+  tags: [movies]
+  summary: Retrieve a movie's detail by id
+  description: >-
+    Public, read-only retrieval of one movie's detail by its stable, opaque
+    identifier.
+  security: []
+  parameters:
+    - $ref: '../openapi.yaml#/components/parameters/CorrelationId'
+    - name: id
+      in: path
+      required: true
+      description: The movie's stable, opaque identifier.
+      schema:
+        type: string
+        format: uuid
+  responses:
+    '200':
+      description: The movie detail
+      headers:
+        X-Correlation-Id:
+          $ref: '../openapi.yaml#/components/headers/CorrelationId'
+      content:
+        application/json:
+          schema:
+            $ref: '../openapi.yaml#/components/schemas/MovieDetailEnvelope'
+    '400':
+      $ref: '../openapi.yaml#/components/responses/BadRequest'
+    '404':
+      $ref: '../openapi.yaml#/components/responses/NotFound'
+    '500':
+      $ref: '../openapi.yaml#/components/responses/InternalError'

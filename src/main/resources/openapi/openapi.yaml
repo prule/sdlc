@@ -12,6 +12,8 @@ tags:
     description: >-
       Demonstrative, throwaway sample collection proving the HAL pagination-link
       convention. Not a real catalog capability.
+  - name: movies
+    description: Public catalog movie detail.
 security:
   - bearerAuth: []
 paths:
@@ -19,6 +21,8 @@ paths:
     $ref: 'paths/health.yaml'
   /samples:
     $ref: 'paths/samples.yaml'
+  /movies/{id}:
+    $ref: 'paths/movies.yaml'
 components:
   securitySchemes:
     bearerAuth:
@@ -42,6 +46,8 @@ components:
       $ref: 'components/schemas/common.yaml#/SampleCollectionLinks'
     SampleItemLinks:
       $ref: 'components/schemas/common.yaml#/SampleItemLinks'
+    MovieLinks:
+      $ref: 'components/schemas/common.yaml#/MovieLinks'
     PingData:
       $ref: 'components/schemas/health.yaml#/PingData'
     PingEnvelope:
@@ -52,6 +58,14 @@ components:
       $ref: 'components/schemas/sample.yaml#/SampleCollectionData'
     SampleCollectionEnvelope:
       $ref: 'components/schemas/sample.yaml#/SampleCollectionEnvelope'
+    Genre:
+      $ref: 'components/schemas/movie.yaml#/Genre'
+    MovieDetail:
+      $ref: 'components/schemas/movie.yaml#/MovieDetail'
+    MovieDetailData:
+      $ref: 'components/schemas/movie.yaml#/MovieDetailData'
+    MovieDetailEnvelope:
+      $ref: 'components/schemas/movie.yaml#/MovieDetailEnvelope'
   responses:
     BadRequest:
       $ref: 'components/responses/common.yaml#/BadRequest'

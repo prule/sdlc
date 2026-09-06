@@ -1,0 +1,61 @@
+Genre:
+  type: string
+  enum:
+    - Action
+    - Adventure
+    - Animation
+    - Comedy
+    - Crime
+    - Documentary
+    - Drama
+    - Family
+    - Fantasy
+    - History
+    - Horror
+    - Music
+    - Mystery
+    - Romance
+    - SciFi
+    - Thriller
+    - War
+    - Western
+
+MovieDetail:
+  type: object
+  required: [id, title, releaseYear, genres, _links]
+  properties:
+    id:
+      type: string
+      format: uuid
+    title:
+      type: string
+    releaseYear:
+      type: integer
+    genres:
+      type: array
+      minItems: 1
+      items:
+        $ref: '#/Genre'
+    runtimeMinutes:
+      type: integer
+      minimum: 1
+    synopsis:
+      type: string
+    rating:
+      type: number
+      minimum: 0
+      maximum: 5
+    _links:
+      $ref: '../../openapi.yaml#/components/schemas/MovieLinks'
+
+MovieDetailData:
+  $ref: '#/MovieDetail'
+
+MovieDetailEnvelope:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      $ref: '#/MovieDetailData'
+    meta:
+      $ref: '../../openapi.yaml#/components/schemas/Meta'

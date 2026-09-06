@@ -69,6 +69,14 @@ class H2DefaultRuntimeSmokeTest {
   }
 
   @Test
+  void movieEndpointRespondsOnDefaultH2Runtime() {
+    ResponseEntity<String> response =
+        restTemplate.getForEntity("/movies/11111111-1111-1111-1111-111111111111", String.class);
+
+    assertThat(response.getStatusCode().value()).isEqualTo(200);
+  }
+
+  @Test
   void swaggerUiIsServedPubliclyOnDefaultH2Runtime() {
     ResponseEntity<String> response =
         restTemplate.getForEntity("/swagger-ui/index.html", String.class);

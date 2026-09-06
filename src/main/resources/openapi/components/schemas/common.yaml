@@ -77,6 +77,13 @@ SampleItemLinks:
     self:
       $ref: '#/Link'
 
+MovieLinks:
+  type: object
+  required: [self]
+  properties:
+    self:
+      $ref: '#/Link'
+
 Problem:
   type: object
   required: [type, title, status, code, correlationId]
