@@ -19,7 +19,7 @@ whenever a new term appears.
 | Rating | The **aggregate** score for a Movie on a **0–5 star** scale (curated). | 0–5 stars (decided, CAT-001). Whether a vote count is exposed is a per-endpoint detail. Curated, not user-submitted. |
 | Review | A curated written critique associated with a Movie (author, text, optional score). Served read-only. | Not user-submitted via this API. |
 | Search | Finding movies by a query (title match) optionally narrowed by **filters** (genre, year, rating) with pagination and sorting. | — |
-| Filter | A constraint that narrows a search (e.g. genre=Drama, year=1999, minRating=7). | — |
+| Filter | A constraint that narrows a search (e.g. genre=Drama, year 1990–1999, minRating=4 on the 0–5 scale). Multiple genres are AND (a movie must carry all); year is a range; minRating is inclusive and excludes unrated movies. | — |
 | Catalog | The whole curated body of movie data the API serves. | The `catalog` bounded context (see bounded-contexts.md). |
 | Correlation id | A UUID on every request/response and log line to trace one request end-to-end. | Technical, appears in NFRs. |
 

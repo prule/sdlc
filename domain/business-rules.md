@@ -53,6 +53,13 @@ live in the ticket; durable policies live here.
   **sortable** by `title`, `releaseYear`, or `rating` (asc/desc); **default sort is `releaseYear`
   descending**, `title` ascending as tiebreak. An empty result set is a normal 200, not an error.
   (Decided in CAT-002.)
+- **Search matching semantics** (decided CAT-002 / UC-002): the **title** term is a **case-insensitive
+  substring** match; **genre** filtering with multiple values is **conjunctive** (a movie must carry
+  **all** supplied genres); the **release-year** filter is a **range** with an optional lower and/or
+  upper bound (a single year = that year to itself); the **minimum-rating** filter is inclusive (`>=`)
+  on the **0–5** scale and **excludes movies with no recorded rating**. All supplied criteria combine
+  conjunctively (narrow only). Invalid search parameters (unsupported sort field, negative page, size
+  <1 or >100) are a **bad request**, distinct from a valid request that matches nothing.
 - The **people search/list** collection (`GET /people`) follows the same pagination convention as
   movie Search (zero-based `page`; `size` default 20, max 100), filtered by `name` (case-insensitive
   substring — the only filter; no role/department/known-for/has-credits filter exists at the Person
