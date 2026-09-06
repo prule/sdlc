@@ -52,6 +52,28 @@ ls -lt ~/.claude/projects/-Users-paulrule-projects-current-sdlc/*.jsonl | head
    sections — those are the ones built to show whether each subagent is pulling
    its weight.
 
+## Measuring whether domain/ & standards/ context helps
+
+If the user asks whether the curated `domain/` and `standards/` docs are being
+read / are helping or hindering:
+
+- The **Context ingestion** panel already answers "are they read and used?" —
+  per-doc reads, informed reads (before first write), citations, influence
+  score, and never-read / read-but-never-cited flags, plus reviewer catches
+  attributed to the doc they cite. Point them there first.
+- "Helping vs hindering" is a causal question that needs a counterfactual, not a
+  single run. Recommend an **ablation**: run the same ticket with vs without (or
+  with trimmed) context, then diff the two runs:
+
+  ```bash
+  python3 .claude/skills/session-report/session_report.py <full>.jsonl \
+      --compare <stripped>.jsonl --label-a "full" --label-b "stripped"
+  ```
+
+  This writes a `compare-…report.html` diffing outcome metrics (issues caught,
+  errors, rework, tool calls, output tokens = cost, context reads/catches).
+  Don't claim causation from one run's reads alone.
+
 ## Notes / gotchas
 
 - **Subagents are included by default.** Each subagent has its own transcript at

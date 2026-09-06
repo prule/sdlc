@@ -55,6 +55,10 @@ python3 session_report.py <session.jsonl> [-o OUTPUT] [--compact] [--open]
   -o, --output      Output HTML path. Default: reports/sessions/<name>.report.html
   --compact         Collapse idle gaps in the agent timeline (recommended —
                     runs span hours/days, so absolute-time bars become slivers).
+  --no-subagents    Report the top-level session only (skip subagent transcripts).
+  --compare OTHER   A/B-compare two runs on outcome metrics (SESSION is A,
+                    OTHER is B). See "Measuring whether domain & standards help".
+  --label-a/-b      Labels for the two runs in a --compare report.
   --open            Open the finished report in your browser.
 ```
 
@@ -72,6 +76,7 @@ No third-party packages — Python 3.8+ standard library only.
 | **Errors & friction** | Failed commands, failed agents, and tool calls you rejected (where the agent guessed wrong). Your list of things to look into. |
 | **Tool usage** | Every tool called (top-level **and** inside subagents), with call count, total time spent, and error count. |
 | **Files touched** | Every file read / written / edited across the whole run (subagents included), ranked by activity, with per-operation counts and how many were written fresh (no prior read). |
+| **Context ingestion** | Whether the `domain/` and `standards/` docs are actually reaching the agents — see below. |
 | **Activity feed** | Chronological, filterable stream: prompts, decisions, tool calls (with durations), agent results, thinking. |
 
 ## Subagents are included
@@ -91,6 +96,51 @@ reads those too and folds them in:
 
 Each transcript is matched back to its parent Agent call by prompt. Pass
 `--no-subagents` to report the top-level session only.
+
+## Measuring whether `domain/` & `standards/` help
+
+A recurring question with the multi-agent pipeline: *is the context we curate in
+`domain/` and `standards/` actually being used, and is it helping or hindering?*
+That splits into three layers — the report measures the first two; `--compare`
+handles the third.
+
+**1. Ingestion — are they read?** The **Context ingestion** panel lists every
+`domain/*` and `standards/*` doc with:
+- **Reads** — how many times agents opened it (across all subagents);
+- **Informed** — the share of those reads that happened *before* the agent's
+  first write (i.e. the doc could actually shape the output, vs. being opened
+  after the fact);
+- **Cited** — how often the agent's own reasoning text references the doc;
+- **Influence** = reads + citations, and which agent types read it;
+- flags for docs **never read** (dead weight) and **read but never cited**.
+
+**2. Attribution — did they help catch anything?** When a review gate's verdict
+explicitly names a doc (e.g. a `REQUEST CHANGES` citing `clean-architecture.md`),
+that catch is attributed to the doc — direct evidence it earned its place.
+
+**3. Effect on outcome — help or hinder?** Reading ≠ benefit. Proving effect
+needs a **counterfactual**: run the *same* ticket twice, once with the context and
+once without (or trimmed), and diff the outcomes:
+
+```bash
+python3 .claude/skills/session-report/session_report.py \
+    <full-context-run>.jsonl \
+    --compare <stripped-context-run>.jsonl \
+    --label-a "full context" --label-b "stripped"
+```
+
+This writes `reports/sessions/compare-<a>-vs-<b>.report.html`: a metric-by-metric
+diff (issues caught, errors, rejections, rework, tool calls, files, **output
+tokens = cost**, context reads/catches). Green/red is applied only where the
+direction is unambiguous (fewer errors/tokens = better; more doc-cited catches =
+better); ambiguous metrics are shown without a verdict, because their meaning
+depends on your hypothesis. Because this repo is an experiment harness
+(`EXPERIMENT.md`), the ablation is cheap to run: reset, strip `domain/`+
+`standards/` (or a subset), re-run the ticket, compare.
+
+> Note: `CLAUDE.md` is always in every agent's context and is **not** counted as a
+> read here — so a doc showing "never read" may still be reaching agents via the
+> summary in `CLAUDE.md`.
 
 ## How it works (and its limits)
 
