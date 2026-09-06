@@ -304,8 +304,98 @@ def load_subagents(session_path):
             "tool_calls": len(tools), "tokens": tokens,
             "duration": dur, "prompt": prompt,
             "errors": sum(1 for t in tools if t["error"]),
+            "ctx": context_signals(events),
         }
     return out
+
+
+# --------------------------------------------------------------------------- #
+# Context ingestion — did agents read/use the domain/ and standards/ docs?
+# --------------------------------------------------------------------------- #
+
+CONTEXT_RE = re.compile(r"(?:domain|standards)/[A-Za-z0-9_.-]+\.md")
+WRITE_ALL = WRITE_TOOLS | EDIT_TOOLS
+
+
+def context_signals(events):
+    """From one transcript, return context-doc reads (with timing relative to
+    the first write), and references to those docs in the agent's own text."""
+    reads = []          # (relpath, ts)
+    refs = Counter()    # relpath -> mentions in assistant text
+    first_write = None
+    for ev in events:
+        ts = parse_ts(ev.get("timestamp"))
+        m = ev.get("message")
+        if not isinstance(m, dict):
+            continue
+        for b in blocks(m):
+            bt = b.get("type")
+            if bt == "tool_use":
+                name = b.get("name")
+                inp = b.get("input") or {}
+                if name in WRITE_ALL and ts:
+                    first_write = ts if first_write is None else min(first_write, ts)
+                if name == "Read":
+                    mt = CONTEXT_RE.search(str(inp.get("file_path", "")))
+                    if mt:
+                        reads.append((mt.group(0), ts))
+            elif bt == "text" and ev.get("type") == "assistant":
+                for mt in CONTEXT_RE.findall(b.get("text", "")):
+                    refs[mt] += 1
+    informed = sum(1 for _, ts in reads
+                   if first_write is None or (ts and ts < first_write))
+    return {"reads": reads, "refs": dict(refs),
+            "first_write": first_write, "informed": informed}
+
+
+def build_context(data, project_root=None):
+    """Aggregate context ingestion across the orchestrator and all subagents."""
+    per_file = defaultdict(lambda: {"reads": 0, "informed": 0, "refs": 0,
+                                    "readers": set()})
+    per_agent = defaultdict(lambda: {"reads": 0, "informed": 0, "refs": 0})
+    catches_by_doc = Counter()          # doc -> # gate catches that cite it
+
+    def ingest(cs, agent):
+        for relpath, ts in cs["reads"]:
+            f = per_file[relpath]
+            f["reads"] += 1
+            f["readers"].add(agent)
+            informed = cs["first_write"] is None or (ts and ts < cs["first_write"])
+            if informed:
+                f["informed"] += 1
+            per_agent[agent]["reads"] += 1
+            per_agent[agent]["informed"] += int(bool(informed))
+        for relpath, n in cs["refs"].items():
+            per_file[relpath]["refs"] += n
+            per_agent[agent]["refs"] += n
+
+    if data.get("ctx_main"):
+        ingest(data["ctx_main"], "(orchestrator)")
+    for a in data["agents"]:
+        s = a.get("sub")
+        if s and s.get("ctx"):
+            ingest(s["ctx"], a["subagent"])
+        # attribute reviewer catches to the docs they cite
+        if a.get("gate") and a.get("caught") and a.get("result"):
+            for doc in set(CONTEXT_RE.findall(a["result"])):
+                catches_by_doc[doc] += 1
+
+    # universe of docs (to flag never-read), if we can see the project tree
+    universe = set()
+    root = Path(project_root or Path.cwd())
+    for sub in ("domain", "standards"):
+        d = root / sub
+        if d.is_dir():
+            for p in d.glob("*.md"):
+                universe.add(f"{sub}/{p.name}")
+    never_read = sorted(universe - set(per_file)) if universe else []
+    read_never_ref = sorted(f for f, v in per_file.items()
+                            if v["reads"] and not v["refs"])
+
+    return {"per_file": dict(per_file), "per_agent": dict(per_agent),
+            "catches_by_doc": dict(catches_by_doc),
+            "never_read": never_read, "read_never_ref": read_never_ref,
+            "universe": bool(universe)}
 
 
 def _norm_prompt(s):
@@ -484,6 +574,7 @@ def analyze(events):
         "models": models, "tokens": dict(tokens),
         "tool_counter": tool_counter, "tool_stats": dict(tool_stats),
         "tools": tools, "agents": agents, "files": dict(files),
+        "ctx_main": context_signals(events),
         "errors": errors, "timeline": timeline,
     }
 
@@ -621,6 +712,7 @@ def render(data, source_name, compact):
                   'session.</p>' if has_sub else "")
     tools_html = scope_note + render_tools(tool_stats)
     files_html = scope_note + render_files(files)
+    context_html = render_context(build_context(data), colours)
     feed_html = render_feed(data["timeline"], colours)
 
     span = f"{fmt_ts(first)} → {fmt_ts(last)}" if first else "—"
@@ -635,7 +727,8 @@ def render(data, source_name, compact):
         cards=cards_html, insights=insights_html,
         gantt_note=note, legend=legend, gantt=gantt_html,
         value=value_html, gates=gates_html, errors=errors_html,
-        tools=tools_html, files=files_html, feed=feed_html)
+        tools=tools_html, files=files_html, context=context_html,
+        feed=feed_html)
 
 
 def render_gantt(agents, first, total_dur, colours, compact):
@@ -866,6 +959,72 @@ def render_files(files):
       <tbody>{''.join(rows)}</tbody></table>{more}'''
 
 
+def render_context(ctx, colours):
+    per_file = ctx["per_file"]
+    if not per_file and not ctx["never_read"]:
+        return '<p class="empty">No domain/ or standards/ docs were read.</p>'
+
+    # per-file influence table
+    frows = []
+    ordered = sorted(per_file.items(),
+                     key=lambda kv: -(kv[1]["reads"] + kv[1]["refs"]))
+    for path, v in ordered:
+        influence = v["reads"] + v["refs"]
+        inf_pct = (100 * v["informed"] / v["reads"]) if v["reads"] else 0
+        readers = " ".join(
+            f'<span class="rdr" style="background:{colours.get(r, "#888")}" '
+            f'title="{esc(r)}"></span>' for r in sorted(v["readers"]))
+        flag = ""
+        if v["reads"] and not v["refs"]:
+            flag = '<span class="pill warn">read, never cited</span>'
+        frows.append(f'''<tr>
+          <td class="fpath">{esc(path)}</td>
+          <td class="num">{v["reads"]}</td>
+          <td class="num muted">{inf_pct:.0f}%</td>
+          <td class="num">{v["refs"]}</td>
+          <td class="num"><b>{influence}</b></td>
+          <td>{readers}</td>
+          <td>{flag}</td></tr>''')
+    file_table = f'''<table class="vtable">
+      <thead><tr><th>Doc</th><th class="num">Reads</th>
+      <th class="num" title="share of reads that happened before the agent's first write">Informed</th>
+      <th class="num">Cited</th><th class="num">Influence</th>
+      <th>Readers</th><th></th></tr></thead>
+      <tbody>{''.join(frows)}</tbody></table>'''
+
+    # catches attributed to docs
+    catches = ctx["catches_by_doc"]
+    if catches:
+        crows = " ".join(
+            f'<span class="pill good">{esc(d)} → {n} catch{"es" if n>1 else ""}</span>'
+            for d, n in sorted(catches.items(), key=lambda kv: -kv[1]))
+        catch_html = (f'<p class="note">Reviewer catches that explicitly cite a doc '
+                      f'— direct evidence the doc earned its place:</p><div>{crows}</div>')
+    else:
+        catch_html = ('<p class="note">No reviewer catch explicitly cited a '
+                      'domain/standards doc by filename.</p>')
+
+    # flags
+    flags = []
+    if ctx["universe"] and ctx["never_read"]:
+        flags.append('<li class="ins warn">Never read by any agent: '
+                     + ", ".join(esc(f) for f in ctx["never_read"])
+                     + " — dead weight, or context you assume is absorbed via CLAUDE.md.</li>")
+    if ctx["read_never_ref"]:
+        flags.append('<li class="ins info">Read but never cited in reasoning: '
+                     + ", ".join(esc(f) for f in ctx["read_never_ref"])
+                     + " — opened, but did it actually shape the output?</li>")
+    flags_html = f'<ul class="insights">{"".join(flags)}</ul>' if flags else ""
+
+    note = ('<p class="note"><b>Reading is not proof of benefit.</b> This shows the '
+            'docs reach the agents and are used (Influence = reads + citations; '
+            'Informed = read before the agent started writing). To prove they '
+            '<em>help vs hinder</em>, compare two runs with <code>--compare</code> '
+            '(full vs stripped context). Note CLAUDE.md is always in-context and '
+            'is not counted here.</p>')
+    return note + file_table + catch_html + flags_html
+
+
 def render_feed(timeline, colours):
     feed = []
     for it in timeline:
@@ -1012,6 +1171,8 @@ h2 {{ font-size:14px; text-transform:uppercase; letter-spacing:.06em;
 .fop.write {{ background:rgba(99,102,241,.16); color:var(--accent); }}
 .fop.edit {{ background:rgba(245,158,11,.16); color:var(--warn); }}
 .fop.read {{ background:var(--panel2); color:var(--muted); }}
+.rdr {{ display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:3px; }}
+.vtable code {{ font-size:12px; }}
 .feed {{ display:flex; gap:14px; padding:12px 0; border-top:1px solid var(--line); }}
 .feed-time {{ width:66px; flex:none; color:var(--muted); font-size:12px;
   font-variant-numeric:tabular-nums; }}
@@ -1063,6 +1224,9 @@ h2 {{ font-size:14px; text-transform:uppercase; letter-spacing:.06em;
   <h2>Files touched</h2>
   <div class="panel">{files}</div>
 
+  <h2>Context ingestion — domain &amp; standards</h2>
+  <div class="panel">{context}</div>
+
   <h2>Activity feed</h2>
   <div class="filters">
     <button data-f="all" class="active">All</button>
@@ -1091,6 +1255,136 @@ btns.forEach(b=>b.onclick=()=>{{
 
 
 # --------------------------------------------------------------------------- #
+# Compare mode — diff two runs (e.g. full vs stripped context) on outcomes
+# --------------------------------------------------------------------------- #
+
+def session_metrics(path):
+    """Load a session and reduce it to the scalar outcome metrics used to
+    compare two runs in an ablation."""
+    events = load_events(path)
+    data = analyze(events)
+    subs = load_subagents(path)
+    if subs:
+        link_subagents(data, subs)
+    ctx = build_context(data, project_root=Path.cwd())
+
+    agents = data["agents"]
+    first, last = data["first_ts"], data["last_ts"]
+    has_sub = data.get("has_sub")
+    tool_stats = data["tool_stats_all"] if has_sub else data["tool_stats"]
+    files = data["files_all"] if has_sub else data["files"]
+    out_tok = data["tokens"].get("output_tokens", 0) + sum(
+        s["tokens"].get("output_tokens", 0) for s in subs.values())
+    per_file = ctx["per_file"]
+
+    return {
+        "name": Path(path).stem,
+        "wall": (last - first).total_seconds() if first and last else 0,
+        "agent_runs": len(agents),
+        "gate_runs": sum(1 for a in agents if a["gate"]),
+        "issues_caught": sum(1 for a in agents if a.get("caught")),
+        "errors": sum(1 for e in data["errors"] if e["kind"] == "error"),
+        "rejections": sum(1 for e in data["errors"] if e["kind"] == "rejected"),
+        "tool_calls": sum(s["count"] for s in tool_stats.values()),
+        "files": len(files),
+        "out_tokens": out_tok,
+        "ctx_reads": sum(v["reads"] for v in per_file.values()),
+        "ctx_docs": len(per_file),
+        "ctx_catches": sum(ctx["catches_by_doc"].values()),
+    }
+
+
+# metric key -> (label, better-direction, formatter)
+COMPARE_METRICS = [
+    ("wall", "Wall-clock", "neutral", fmt_dur),
+    ("agent_runs", "Agent runs", "neutral", str),
+    ("gate_runs", "Review-gate runs", "neutral", str),
+    ("issues_caught", "Issues caught by gates", "neutral", str),
+    ("errors", "Errors", "lower", str),
+    ("rejections", "Rejections", "lower", str),
+    ("tool_calls", "Tool calls (incl. subagents)", "lower", str),
+    ("files", "Files touched (incl. subagents)", "neutral", str),
+    ("out_tokens", "Output tokens (cost)", "lower", fmt_num),
+    ("ctx_reads", "Context-doc reads", "neutral", str),
+    ("ctx_docs", "Distinct context docs used", "neutral", str),
+    ("ctx_catches", "Catches citing a context doc", "higher", str),
+]
+
+
+def render_compare(a, b, label_a, label_b):
+    rows = []
+    for key, label, better, fmt in COMPARE_METRICS:
+        va, vb = a[key], b[key]
+        delta = vb - va
+        cls = ""
+        if better != "neutral" and delta != 0:
+            improved = (delta < 0) if better == "lower" else (delta > 0)
+            cls = "good" if improved else "bad"
+        sign = "+" if delta > 0 else "−"
+        if delta == 0:
+            dtxt = "—"
+        elif fmt in (fmt_dur, fmt_num):
+            dtxt = sign + fmt(abs(delta))
+        else:
+            dtxt = sign + str(abs(delta))
+        rows.append(f'''<tr>
+          <td>{esc(label)}</td>
+          <td class="num">{esc(fmt(va))}</td>
+          <td class="num">{esc(fmt(vb))}</td>
+          <td class="num {cls}"><b>{esc(dtxt)}</b></td></tr>''')
+    generated = datetime.now().strftime("%Y-%m-%d %H:%M")
+    return COMPARE_TEMPLATE.format(
+        label_a=esc(label_a), label_b=esc(label_b),
+        name_a=esc(a["name"]), name_b=esc(b["name"]),
+        rows="".join(rows), generated=esc(generated))
+
+
+COMPARE_TEMPLATE = """<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{label_a} vs {label_b} — session compare</title>
+<style>
+:root {{ --bg:#0f1117; --panel:#171a23; --panel2:#1e222d; --line:#2a2f3c;
+  --fg:#e6e8ee; --muted:#9aa2b4; --good:#10b981; --bad:#ef4444; }}
+@media (prefers-color-scheme: light) {{ :root {{ --bg:#f6f7f9; --panel:#fff;
+  --panel2:#f0f2f6; --line:#e2e5ec; --fg:#1c2027; --muted:#5c6472; }} }}
+* {{ box-sizing:border-box; }}
+body {{ margin:0; background:var(--bg); color:var(--fg);
+  font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; }}
+.wrap {{ max-width:820px; margin:0 auto; padding:32px 20px 80px; }}
+h1 {{ font-size:23px; margin:0 0 4px; }}
+.sub {{ color:var(--muted); font-size:13px; margin-bottom:22px; }}
+table {{ width:100%; border-collapse:collapse; }}
+th, td {{ padding:10px 12px; border-bottom:1px solid var(--line); text-align:left; }}
+th {{ color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.05em; }}
+td.num, th.num {{ text-align:right; font-variant-numeric:tabular-nums; }}
+.good {{ color:var(--good); }} .bad {{ color:var(--bad); }}
+.note {{ color:var(--muted); font-size:13px; margin-top:20px;
+  background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px 16px; }}
+.note b {{ color:var(--fg); }}
+</style></head>
+<body><div class="wrap">
+  <h1>{label_a} <span style="color:var(--muted)">vs</span> {label_b}</h1>
+  <div class="sub">{name_a} → {name_b} · generated {generated}</div>
+  <table>
+    <thead><tr><th>Metric</th><th class="num">{label_a}</th>
+    <th class="num">{label_b}</th><th class="num">Δ</th></tr></thead>
+    <tbody>{rows}</tbody>
+  </table>
+  <div class="note">
+    <b>How to read this.</b> Δ is {label_b} minus {label_a}. Green/red is applied
+    only where direction is unambiguous — fewer <b>errors</b>, <b>rejections</b>,
+    <b>tokens</b> is better; more <b>catches that cite a context doc</b> is better.
+    The rest (runs, issues caught, files) are shown without a verdict because
+    their meaning depends on your hypothesis: e.g. if the stripped-context run
+    catches <em>more</em> issues late, the context was preventing defects; if it
+    catches <em>fewer</em> but ships worse code, the gates lost their reference.
+    Pair this with a look at the two full reports.
+  </div>
+</div></body></html>"""
+
+
+# --------------------------------------------------------------------------- #
 def main():
     ap = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -1102,6 +1396,12 @@ def main():
                     help="collapse idle gaps in the agent timeline")
     ap.add_argument("--no-subagents", action="store_true",
                     help="ignore the subagents/ transcripts (top-level only)")
+    ap.add_argument("--compare", metavar="OTHER.jsonl",
+                    help="produce an A/B comparison of two runs (e.g. full vs "
+                    "stripped context) instead of a normal report; SESSION is A, "
+                    "this is B")
+    ap.add_argument("--label-a", default="Run A", help="label for the SESSION run")
+    ap.add_argument("--label-b", default="Run B", help="label for the --compare run")
     ap.add_argument("--open", action="store_true",
                     help="open the report in a browser when done")
     args = ap.parse_args()
@@ -1109,6 +1409,25 @@ def main():
     src = Path(args.session)
     if not src.exists():
         ap.error(f"no such file: {src}")
+
+    # ---- compare mode: diff two runs on outcome metrics ----------------- #
+    if args.compare:
+        other = Path(args.compare)
+        if not other.exists():
+            ap.error(f"no such file: {other}")
+        m_a, m_b = session_metrics(src), session_metrics(other)
+        out = (Path(args.output) if args.output else
+               Path.cwd() / "reports" / "sessions" /
+               f"compare-{src.stem}-vs-{other.stem}.report.html")
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(render_compare(m_a, m_b, args.label_a, args.label_b),
+                       encoding="utf-8")
+        print(f"compared {args.label_a} vs {args.label_b}")
+        print(f"wrote {out}")
+        if args.open:
+            webbrowser.open(out.resolve().as_uri())
+        return
+
     events = load_events(src)
     if not events:
         ap.error("no parseable events found")

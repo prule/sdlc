@@ -84,6 +84,8 @@ h2 { font-size:14px; text-transform:uppercase; letter-spacing:.06em;
 .fop.write { background:rgba(99,102,241,.16); color:var(--accent); }
 .fop.edit { background:rgba(245,158,11,.16); color:var(--warn); }
 .fop.read { background:var(--panel2); color:var(--muted); }
+.rdr { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:3px; }
+.vtable code { font-size:12px; }
 .feed { display:flex; gap:14px; padding:12px 0; border-top:1px solid var(--line); }
 .feed-time { width:66px; flex:none; color:var(--muted); font-size:12px;
   font-variant-numeric:tabular-nums; }
@@ -109,19 +111,19 @@ h2 { font-size:14px; text-transform:uppercase; letter-spacing:.06em;
 </style></head>
 <body><div class="wrap">
   <h1>Multiagent software development workflow</h1>
-  <div class="sub">76912675-ce3c-406f-8e4e-cf70e7271d58.jsonl · 05:00:40 → 05:42:21 · generated 2026-09-06 15:43</div>
+  <div class="sub">76912675-ce3c-406f-8e4e-cf70e7271d58.jsonl · 05:00:40 → 05:56:12 · generated 2026-09-06 15:56</div>
   <div class="meta">HEAD · /Users/paulrule/projects/current/sdlc · v2.1.246</div>
-  <div class="cards"><div class="card"><div class="card-val">120h 41m</div><div class="card-lbl">Duration</div></div>
-<div class="card"><div class="card-val">87</div><div class="card-lbl">Agent runs</div></div>
-<div class="card"><div class="card-val">3928</div><div class="card-lbl">Tool calls (incl. subagents)</div></div>
-<div class="card"><div class="card-val">335</div><div class="card-lbl">Files touched (incl. subagents)</div></div>
+  <div class="cards"><div class="card"><div class="card-val">120h 55m</div><div class="card-lbl">Duration</div></div>
+<div class="card"><div class="card-val">88</div><div class="card-lbl">Agent runs</div></div>
+<div class="card"><div class="card-val">3995</div><div class="card-lbl">Tool calls (incl. subagents)</div></div>
+<div class="card"><div class="card-val">338</div><div class="card-lbl">Files touched (incl. subagents)</div></div>
 <div class="card"><div class="card-val">10</div><div class="card-lbl">Errors</div></div>
 <div class="card"><div class="card-val">3</div><div class="card-lbl">Rejections</div></div>
-<div class="card"><div class="card-val">18</div><div class="card-lbl">Issues caught by gates</div></div>
-<div class="card"><div class="card-val">1,786,297</div><div class="card-lbl">Output tokens</div></div></div>
+<div class="card"><div class="card-val">19</div><div class="card-lbl">Issues caught by gates</div></div>
+<div class="card"><div class="card-val">1,863,117</div><div class="card-lbl">Output tokens</div></div></div>
 
   <h2>Insights</h2><ul class="insights"><li class="ins good">qa proved its worth — caught something in 4/12 runs (4 issues).</li>
-<li class="ins good">senior-dev proved its worth — caught something in 3/12 runs.</li>
+<li class="ins good">senior-dev proved its worth — caught something in 4/13 runs (99 issues).</li>
 <li class="ins good">spec-reviewer proved its worth — caught something in 11/16 runs (202 issues).</li>
 <li class="ins bad">10 command/tool errors — most in Bash (8). Worth investigating.</li>
 <li class="ins warn">3 tool calls you rejected — friction points where the agent guessed wrong.</li>
@@ -134,7 +136,7 @@ h2 { font-size:14px; text-transform:uppercase; letter-spacing:.06em;
         <div class="gantt-row">
           <div class="gantt-label" title="Architect: password reset via email">Architect: password reset via email</div>
           <div class="gantt-track">
-            <div class="gantt-bar error" style="left:0.00%;width:0.76%;background:#6366f1"
+            <div class="gantt-bar error" style="left:0.00%;width:0.75%;background:#6366f1"
                  title="architect — Architect: password reset via email
 start 05:19:36 · 3m 7s · FAILED/REJECTED"><span>architect · 3m 7s</span></div>
           </div>
@@ -143,7 +145,7 @@ start 05:19:36 · 3m 7s · FAILED/REJECTED"><span>architect · 3m 7s</span></div
         <div class="gantt-row">
           <div class="gantt-label" title="Architect: password reset via email">Architect: password reset via email</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:0.79%;width:0.70%;background:#6366f1"
+            <div class="gantt-bar ok" style="left:0.78%;width:0.70%;background:#6366f1"
                  title="architect — Architect: password reset via email
 start 05:23:01 · 1m 31s"><span>architect · 1m 31s</span></div>
           </div>
@@ -152,7 +154,7 @@ start 05:23:01 · 1m 31s"><span>architect · 1m 31s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="Architect dry-run via opsx:propose">Architect dry-run via opsx:propose</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:1.20%;width:0.72%;background:#6366f1"
+            <div class="gantt-bar ok" style="left:1.18%;width:0.72%;background:#6366f1"
                  title="architect — Architect dry-run via opsx:propose
 start 05:53:15 · 2m 59s"><span>architect · 2m 59s</span></div>
           </div>
@@ -161,7 +163,7 @@ start 05:53:15 · 2m 59s"><span>architect · 2m 59s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="Architect: bootstrap walking skeleton">Architect: bootstrap walking skeleton</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:1.95%;width:0.88%;background:#6366f1"
+            <div class="gantt-bar ok" style="left:1.93%;width:0.87%;background:#6366f1"
                  title="architect — Architect: bootstrap walking skeleton
 start 06:07:12 · 3m 37s"><span>architect · 3m 37s</span></div>
           </div>
@@ -170,7 +172,7 @@ start 06:07:12 · 3m 37s"><span>architect · 3m 37s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="Spec review: add-walking-skeleton">Spec review: add-walking-skeleton</div>
           <div class="gantt-track">
-            <div class="gantt-bar caught" style="left:2.86%;width:0.70%;background:#8b5cf6"
+            <div class="gantt-bar caught" style="left:2.83%;width:0.70%;background:#8b5cf6"
                  title="spec-reviewer — Spec review: add-walking-skeleton
 start 06:29:04 · 2m 8s · REQUEST CHANGES"><span>spec-reviewer · 2m 8s</span></div>
           </div>
@@ -179,7 +181,7 @@ start 06:29:04 · 2m 8s · REQUEST CHANGES"><span>spec-reviewer · 2m 8s</span><
         <div class="gantt-row">
           <div class="gantt-label" title="Implement add-walking-skeleton">Implement add-walking-skeleton</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:3.42%;width:6.30%;background:#ec4899"
+            <div class="gantt-bar ok" style="left:3.38%;width:6.23%;background:#ec4899"
                  title="junior-dev — Implement add-walking-skeleton
 start 06:37:33 · 25m 56s · BACKGROUND"><span>junior-dev · 25m 56s</span></div>
           </div>
@@ -188,7 +190,7 @@ start 06:37:33 · 25m 56s · BACKGROUND"><span>junior-dev · 25m 56s</span></div
         <div class="gantt-row">
           <div class="gantt-label" title="QA verify add-walking-skeleton">QA verify add-walking-skeleton</div>
           <div class="gantt-track">
-            <div class="gantt-bar caught" style="left:9.75%;width:1.13%;background:#14b8a6"
+            <div class="gantt-bar caught" style="left:9.64%;width:1.12%;background:#14b8a6"
                  title="qa — QA verify add-walking-skeleton
 start 07:04:32 · 4m 40s · BACKGROUND · ISSUES FOUND"><span>qa · 4m 40s</span></div>
           </div>
@@ -197,7 +199,7 @@ start 07:04:32 · 4m 40s · BACKGROUND · ISSUES FOUND"><span>qa · 4m 40s</span
         <div class="gantt-row">
           <div class="gantt-label" title="Code review add-walking-skeleton">Code review add-walking-skeleton</div>
           <div class="gantt-track">
-            <div class="gantt-bar error" style="left:10.92%;width:0.70%;background:#f59e0b"
+            <div class="gantt-bar error" style="left:10.79%;width:0.70%;background:#f59e0b"
                  title="senior-dev — Code review add-walking-skeleton
 start 07:14:32 · 41.1s · BACKGROUND · FAILED/REJECTED"><span>senior-dev · 41.1s</span></div>
           </div>
@@ -206,7 +208,7 @@ start 07:14:32 · 41.1s · BACKGROUND · FAILED/REJECTED"><span>senior-dev · 41
         <div class="gantt-row">
           <div class="gantt-label" title="Code review add-walking-skeleton">Code review add-walking-skeleton</div>
           <div class="gantt-track">
-            <div class="gantt-bar caught" style="left:11.12%;width:1.13%;background:#f59e0b"
+            <div class="gantt-bar caught" style="left:10.98%;width:1.12%;background:#f59e0b"
                  title="senior-dev — Code review add-walking-skeleton
 start 11:13:44 · 4m 39s · BACKGROUND · REQUEST CHANGES"><span>senior-dev · 4m 39s</span></div>
           </div>
@@ -215,7 +217,7 @@ start 11:13:44 · 4m 39s · BACKGROUND · REQUEST CHANGES"><span>senior-dev · 4
         <div class="gantt-row">
           <div class="gantt-label" title="Architect: fix codegen DTO duplication">Architect: fix codegen DTO duplication</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:12.28%;width:1.02%;background:#6366f1"
+            <div class="gantt-bar ok" style="left:12.13%;width:1.00%;background:#6366f1"
                  title="architect — Architect: fix codegen DTO duplication
 start 12:04:09 · 4m 11s · BACKGROUND"><span>architect · 4m 11s</span></div>
           </div>
@@ -224,7 +226,7 @@ start 12:04:09 · 4m 11s · BACKGROUND"><span>architect · 4m 11s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="Spec review PLAT-002">Spec review PLAT-002</div>
           <div class="gantt-track">
-            <div class="gantt-bar caught" style="left:13.33%;width:0.70%;background:#8b5cf6"
+            <div class="gantt-bar caught" style="left:13.17%;width:0.70%;background:#8b5cf6"
                  title="spec-reviewer — Spec review PLAT-002
 start 10:58:16 · 2m 41s · BACKGROUND · REQUEST CHANGES"><span>spec-reviewer · 2m 41s</span></div>
           </div>
@@ -233,7 +235,7 @@ start 10:58:16 · 2m 41s · BACKGROUND · REQUEST CHANGES"><span>spec-reviewer �
         <div class="gantt-row">
           <div class="gantt-label" title="Implement PLAT-002 codegen reuse">Implement PLAT-002 codegen reuse</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:14.01%;width:1.39%;background:#ec4899"
+            <div class="gantt-bar ok" style="left:13.85%;width:1.38%;background:#ec4899"
                  title="junior-dev — Implement PLAT-002 codegen reuse
 start 11:05:25 · 5m 44s · BACKGROUND"><span>junior-dev · 5m 44s</span></div>
           </div>
@@ -242,7 +244,7 @@ start 11:05:25 · 5m 44s · BACKGROUND"><span>junior-dev · 5m 44s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="QA verify PLAT-002">QA verify PLAT-002</div>
           <div class="gantt-track">
-            <div class="gantt-bar caught" style="left:15.44%;width:0.81%;background:#14b8a6"
+            <div class="gantt-bar caught" style="left:15.26%;width:0.80%;background:#14b8a6"
                  title="qa — QA verify PLAT-002
 start 11:12:06 · 3m 19s · BACKGROUND · ISSUES FOUND"><span>qa · 3m 19s</span></div>
           </div>
@@ -251,7 +253,7 @@ start 11:12:06 · 3m 19s · BACKGROUND · ISSUES FOUND"><span>qa · 3m 19s</span
         <div class="gantt-row">
           <div class="gantt-label" title="Code review PLAT-002">Code review PLAT-002</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:16.28%;width:0.70%;background:#f59e0b"
+            <div class="gantt-bar ok" style="left:16.08%;width:0.70%;background:#f59e0b"
                  title="senior-dev — Code review PLAT-002
 start 11:16:05 · 1m 41s · BACKGROUND · APPROVED / PASS"><span>senior-dev · 1m 41s</span></div>
           </div>
@@ -260,7 +262,7 @@ start 11:16:05 · 1m 41s · BACKGROUND · APPROVED / PASS"><span>senior-dev · 1
         <div class="gantt-row">
           <div class="gantt-label" title="Architect: foundational auth">Architect: foundational auth</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:16.72%;width:0.99%;background:#6366f1"
+            <div class="gantt-bar ok" style="left:16.52%;width:0.98%;background:#6366f1"
                  title="architect — Architect: foundational auth
 start 11:49:39 · 4m 4s · BACKGROUND"><span>architect · 4m 4s</span></div>
           </div>
@@ -269,7 +271,7 @@ start 11:49:39 · 4m 4s · BACKGROUND"><span>architect · 4m 4s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="Spec review foundational auth">Spec review foundational auth</div>
           <div class="gantt-track">
-            <div class="gantt-bar caught" style="left:17.74%;width:0.70%;background:#8b5cf6"
+            <div class="gantt-bar caught" style="left:17.53%;width:0.70%;background:#8b5cf6"
                  title="spec-reviewer — Spec review foundational auth
 start 11:54:03 · 2m 51s · BACKGROUND · REQUEST CHANGES"><span>spec-reviewer · 2m 51s</span></div>
           </div>
@@ -278,7 +280,7 @@ start 11:54:03 · 2m 51s · BACKGROUND · REQUEST CHANGES"><span>spec-reviewer �
         <div class="gantt-row">
           <div class="gantt-label" title="Draft HATEOAS technical ticket">Draft HATEOAS technical ticket</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:18.47%;width:0.70%;background:#ef4444"
+            <div class="gantt-bar ok" style="left:18.25%;width:0.70%;background:#ef4444"
                  title="ticket-writer — Draft HATEOAS technical ticket
 start 22:41:11 · 1m 29s · BACKGROUND"><span>ticket-writer · 1m 29s</span></div>
           </div>
@@ -287,7 +289,7 @@ start 22:41:11 · 1m 29s · BACKGROUND"><span>ticket-writer · 1m 29s</span></di
         <div class="gantt-row">
           <div class="gantt-label" title="Architect: PLAT-003 HATEOAS">Architect: PLAT-003 HATEOAS</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:18.86%;width:1.28%;background:#6366f1"
+            <div class="gantt-bar ok" style="left:18.64%;width:1.27%;background:#6366f1"
                  title="architect — Architect: PLAT-003 HATEOAS
 start 22:44:19 · 5m 17s · BACKGROUND"><span>architect · 5m 17s</span></div>
           </div>
@@ -296,7 +298,7 @@ start 22:44:19 · 5m 17s · BACKGROUND"><span>architect · 5m 17s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="Spec review HATEOAS plan">Spec review HATEOAS plan</div>
           <div class="gantt-track">
-            <div class="gantt-bar caught" style="left:20.18%;width:0.84%;background:#8b5cf6"
+            <div class="gantt-bar caught" style="left:19.94%;width:0.83%;background:#8b5cf6"
                  title="spec-reviewer — Spec review HATEOAS plan
 start 22:49:58 · 3m 27s · BACKGROUND · REQUEST CHANGES"><span>spec-reviewer · 3m 27s</span></div>
           </div>
@@ -305,7 +307,7 @@ start 22:49:58 · 3m 27s · BACKGROUND · REQUEST CHANGES"><span>spec-reviewer �
         <div class="gantt-row">
           <div class="gantt-label" title="Implement HATEOAS (adopt-hal-hypermedia)">Implement HATEOAS (adopt-hal-hypermedia)</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:21.05%;width:2.95%;background:#ec4899"
+            <div class="gantt-bar ok" style="left:20.80%;width:2.92%;background:#ec4899"
                  title="junior-dev — Implement HATEOAS (adopt-hal-hypermedia)
 start 23:05:21 · 12m 9s · BACKGROUND"><span>junior-dev · 12m 9s</span></div>
           </div>
@@ -314,7 +316,7 @@ start 23:05:21 · 12m 9s · BACKGROUND"><span>junior-dev · 12m 9s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="QA verify HATEOAS">QA verify HATEOAS</div>
           <div class="gantt-track">
-            <div class="gantt-bar caught" style="left:24.03%;width:1.10%;background:#14b8a6"
+            <div class="gantt-bar caught" style="left:23.75%;width:1.09%;background:#14b8a6"
                  title="qa — QA verify HATEOAS
 start 23:18:21 · 4m 31s · BACKGROUND · ISSUES FOUND"><span>qa · 4m 31s</span></div>
           </div>
@@ -323,7 +325,7 @@ start 23:18:21 · 4m 31s · BACKGROUND · ISSUES FOUND"><span>qa · 4m 31s</span
         <div class="gantt-row">
           <div class="gantt-label" title="Code review HATEOAS">Code review HATEOAS</div>
           <div class="gantt-track">
-            <div class="gantt-bar caught" style="left:25.16%;width:0.72%;background:#f59e0b"
+            <div class="gantt-bar caught" style="left:24.86%;width:0.72%;background:#f59e0b"
                  title="senior-dev — Code review HATEOAS
 start 23:23:19 · 2m 58s · BACKGROUND · REQUEST CHANGES"><span>senior-dev · 2m 58s</span></div>
           </div>
@@ -332,7 +334,7 @@ start 23:23:19 · 2m 58s · BACKGROUND · REQUEST CHANGES"><span>senior-dev · 2
         <div class="gantt-row">
           <div class="gantt-label" title="Draft GET movie by id ticket">Draft GET movie by id ticket</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:25.92%;width:0.70%;background:#ef4444"
+            <div class="gantt-bar ok" style="left:25.61%;width:0.70%;background:#ef4444"
                  title="ticket-writer — Draft GET movie by id ticket
 start 03:16:17 · 1m 41s · BACKGROUND"><span>ticket-writer · 1m 41s</span></div>
           </div>
@@ -341,7 +343,7 @@ start 03:16:17 · 1m 41s · BACKGROUND"><span>ticket-writer · 1m 41s</span></di
         <div class="gantt-row">
           <div class="gantt-label" title="Architect: CAT-001 movie detail">Architect: CAT-001 movie detail</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:26.36%;width:1.03%;background:#6366f1"
+            <div class="gantt-bar ok" style="left:26.05%;width:1.02%;background:#6366f1"
                  title="architect — Architect: CAT-001 movie detail
 start 03:30:31 · 4m 14s · BACKGROUND"><span>architect · 4m 14s</span></div>
           </div>
@@ -350,7 +352,7 @@ start 03:30:31 · 4m 14s · BACKGROUND"><span>architect · 4m 14s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="Spec review CAT-001">Spec review CAT-001</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:27.42%;width:0.74%;background:#8b5cf6"
+            <div class="gantt-bar ok" style="left:27.10%;width:0.73%;background:#8b5cf6"
                  title="spec-reviewer — Spec review CAT-001
 start 03:35:08 · 3m 1s · BACKGROUND · APPROVED / PASS"><span>spec-reviewer · 3m 1s</span></div>
           </div>
@@ -359,7 +361,7 @@ start 03:35:08 · 3m 1s · BACKGROUND · APPROVED / PASS"><span>spec-reviewer ·
         <div class="gantt-row">
           <div class="gantt-label" title="Implement CAT-001 movie detail">Implement CAT-001 movie detail</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:28.19%;width:6.78%;background:#ec4899"
+            <div class="gantt-bar ok" style="left:27.85%;width:6.70%;background:#ec4899"
                  title="junior-dev — Implement CAT-001 movie detail
 start 04:07:15 · 27m 55s · BACKGROUND"><span>junior-dev · 27m 55s</span></div>
           </div>
@@ -368,7 +370,7 @@ start 04:07:15 · 27m 55s · BACKGROUND"><span>junior-dev · 27m 55s</span></div
         <div class="gantt-row">
           <div class="gantt-label" title="QA verify CAT-001">QA verify CAT-001</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:35.00%;width:0.70%;background:#14b8a6"
+            <div class="gantt-bar ok" style="left:34.58%;width:0.70%;background:#14b8a6"
                  title="qa — QA verify CAT-001
 start 05:05:09 · 2m 12s · BACKGROUND · APPROVED / PASS"><span>qa · 2m 12s</span></div>
           </div>
@@ -377,7 +379,7 @@ start 05:05:09 · 2m 12s · BACKGROUND · APPROVED / PASS"><span>qa · 2m 12s</s
         <div class="gantt-row">
           <div class="gantt-label" title="Code review CAT-001">Code review CAT-001</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:35.57%;width:0.72%;background:#f59e0b"
+            <div class="gantt-bar ok" style="left:35.15%;width:0.71%;background:#f59e0b"
                  title="senior-dev — Code review CAT-001
 start 05:07:46 · 2m 56s · BACKGROUND · APPROVED / PASS"><span>senior-dev · 2m 56s</span></div>
           </div>
@@ -386,7 +388,7 @@ start 05:07:46 · 2m 56s · BACKGROUND · APPROVED / PASS"><span>senior-dev · 2
         <div class="gantt-row">
           <div class="gantt-label" title="Draft movie search ticket">Draft movie search ticket</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:36.32%;width:0.70%;background:#ef4444"
+            <div class="gantt-bar ok" style="left:35.89%;width:0.70%;background:#ef4444"
                  title="ticket-writer — Draft movie search ticket
 start 08:43:47 · 1m 52s · BACKGROUND"><span>ticket-writer · 1m 52s</span></div>
           </div>
@@ -395,7 +397,7 @@ start 08:43:47 · 1m 52s · BACKGROUND"><span>ticket-writer · 1m 52s</span></di
         <div class="gantt-row">
           <div class="gantt-label" title="Architect: CAT-002 movie search">Architect: CAT-002 movie search</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:36.81%;width:1.59%;background:#6366f1"
+            <div class="gantt-bar ok" style="left:36.37%;width:1.57%;background:#6366f1"
                  title="architect — Architect: CAT-002 movie search
 start 08:55:50 · 6m 32s · BACKGROUND"><span>architect · 6m 32s</span></div>
           </div>
@@ -404,7 +406,7 @@ start 08:55:50 · 6m 32s · BACKGROUND"><span>architect · 6m 32s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="Spec review CAT-002">Spec review CAT-002</div>
           <div class="gantt-track">
-            <div class="gantt-bar caught" style="left:38.43%;width:0.70%;background:#8b5cf6"
+            <div class="gantt-bar caught" style="left:37.97%;width:0.70%;background:#8b5cf6"
                  title="spec-reviewer — Spec review CAT-002
 start 09:02:51 · 1m 57s · BACKGROUND · REQUEST CHANGES"><span>spec-reviewer · 1m 57s</span></div>
           </div>
@@ -413,7 +415,7 @@ start 09:02:51 · 1m 57s · BACKGROUND · REQUEST CHANGES"><span>spec-reviewer �
         <div class="gantt-row">
           <div class="gantt-label" title="Implement CAT-002 movie search">Implement CAT-002 movie search</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:38.94%;width:4.45%;background:#ec4899"
+            <div class="gantt-bar ok" style="left:38.47%;width:4.40%;background:#ec4899"
                  title="junior-dev — Implement CAT-002 movie search
 start 09:17:34 · 18m 20s · BACKGROUND"><span>junior-dev · 18m 20s</span></div>
           </div>
@@ -422,7 +424,7 @@ start 09:17:34 · 18m 20s · BACKGROUND"><span>junior-dev · 18m 20s</span></div
         <div class="gantt-row">
           <div class="gantt-label" title="QA verify CAT-002">QA verify CAT-002</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:43.42%;width:0.70%;background:#14b8a6"
+            <div class="gantt-bar ok" style="left:42.91%;width:0.70%;background:#14b8a6"
                  title="qa — QA verify CAT-002
 start 09:37:04 · 2m 17s · BACKGROUND · APPROVED / PASS"><span>qa · 2m 17s</span></div>
           </div>
@@ -431,7 +433,7 @@ start 09:37:04 · 2m 17s · BACKGROUND · APPROVED / PASS"><span>qa · 2m 17s</s
         <div class="gantt-row">
           <div class="gantt-label" title="Code review CAT-002">Code review CAT-002</div>
           <div class="gantt-track">
-            <div class="gantt-bar caught" style="left:44.01%;width:0.70%;background:#f59e0b"
+            <div class="gantt-bar caught" style="left:43.49%;width:0.70%;background:#f59e0b"
                  title="senior-dev — Code review CAT-002
 start 09:39:46 · 2m 49s · BACKGROUND · REQUEST CHANGES"><span>senior-dev · 2m 49s</span></div>
           </div>
@@ -440,7 +442,7 @@ start 09:39:46 · 2m 49s · BACKGROUND · REQUEST CHANGES"><span>senior-dev · 2
         <div class="gantt-row">
           <div class="gantt-label" title="Draft movie credits ticket">Draft movie credits ticket</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:44.73%;width:0.70%;background:#ef4444"
+            <div class="gantt-bar ok" style="left:44.20%;width:0.70%;background:#ef4444"
                  title="ticket-writer — Draft movie credits ticket
 start 05:15:43 · 2m 24s · BACKGROUND"><span>ticket-writer · 2m 24s</span></div>
           </div>
@@ -449,7 +451,7 @@ start 05:15:43 · 2m 24s · BACKGROUND"><span>ticket-writer · 2m 24s</span></di
         <div class="gantt-row">
           <div class="gantt-label" title="Architect: CAT-003 movie credits">Architect: CAT-003 movie credits</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:45.35%;width:1.09%;background:#6366f1"
+            <div class="gantt-bar ok" style="left:44.81%;width:1.07%;background:#6366f1"
                  title="architect — Architect: CAT-003 movie credits
 start 05:22:36 · 4m 28s · BACKGROUND"><span>architect · 4m 28s</span></div>
           </div>
@@ -458,7 +460,7 @@ start 05:22:36 · 4m 28s · BACKGROUND"><span>architect · 4m 28s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="Spec review CAT-003">Spec review CAT-003</div>
           <div class="gantt-track">
-            <div class="gantt-bar caught" style="left:46.47%;width:1.56%;background:#8b5cf6"
+            <div class="gantt-bar caught" style="left:45.92%;width:1.54%;background:#8b5cf6"
                  title="spec-reviewer — Spec review CAT-003
 start 05:27:35 · 6m 25s · BACKGROUND · REQUEST CHANGES"><span>spec-reviewer · 6m 25s</span></div>
           </div>
@@ -467,7 +469,7 @@ start 05:27:35 · 6m 25s · BACKGROUND · REQUEST CHANGES"><span>spec-reviewer �
         <div class="gantt-row">
           <div class="gantt-label" title="Implement CAT-003 movie credits">Implement CAT-003 movie credits</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:48.06%;width:6.17%;background:#ec4899"
+            <div class="gantt-bar ok" style="left:47.49%;width:6.10%;background:#ec4899"
                  title="junior-dev — Implement CAT-003 movie credits
 start 05:49:07 · 25m 24s · BACKGROUND"><span>junior-dev · 25m 24s</span></div>
           </div>
@@ -476,7 +478,7 @@ start 05:49:07 · 25m 24s · BACKGROUND"><span>junior-dev · 25m 24s</span></div
         <div class="gantt-row">
           <div class="gantt-label" title="QA verify CAT-003">QA verify CAT-003</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:54.26%;width:0.83%;background:#14b8a6"
+            <div class="gantt-bar ok" style="left:53.62%;width:0.82%;background:#14b8a6"
                  title="qa — QA verify CAT-003
 start 06:25:36 · 3m 24s · BACKGROUND · APPROVED / PASS"><span>qa · 3m 24s</span></div>
           </div>
@@ -485,7 +487,7 @@ start 06:25:36 · 3m 24s · BACKGROUND · APPROVED / PASS"><span>qa · 3m 24s</s
         <div class="gantt-row">
           <div class="gantt-label" title="Code review CAT-003">Code review CAT-003</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:55.12%;width:2.95%;background:#f59e0b"
+            <div class="gantt-bar ok" style="left:54.47%;width:2.91%;background:#f59e0b"
                  title="senior-dev — Code review CAT-003
 start 06:29:30 · 12m 8s · BACKGROUND · APPROVED / PASS"><span>senior-dev · 12m 8s</span></div>
           </div>
@@ -494,7 +496,7 @@ start 06:29:30 · 12m 8s · BACKGROUND · APPROVED / PASS"><span>senior-dev · 1
         <div class="gantt-row">
           <div class="gantt-label" title="Draft CAT-004 person detail ticket">Draft CAT-004 person detail ticket</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:58.10%;width:0.70%;background:#ef4444"
+            <div class="gantt-bar ok" style="left:57.41%;width:0.70%;background:#ef4444"
                  title="ticket-writer — Draft CAT-004 person detail ticket
 start 10:43:31 · 2m 0s"><span>ticket-writer · 2m 0s</span></div>
           </div>
@@ -503,7 +505,7 @@ start 10:43:31 · 2m 0s"><span>ticket-writer · 2m 0s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="Architect: plan CAT-004">Architect: plan CAT-004</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:58.62%;width:1.11%;background:#6366f1"
+            <div class="gantt-bar ok" style="left:57.93%;width:1.10%;background:#6366f1"
                  title="architect — Architect: plan CAT-004
 start 11:26:56 · 4m 33s"><span>architect · 4m 33s</span></div>
           </div>
@@ -512,7 +514,7 @@ start 11:26:56 · 4m 33s"><span>architect · 4m 33s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="Spec-review CAT-004 plan">Spec-review CAT-004 plan</div>
           <div class="gantt-track">
-            <div class="gantt-bar caught" style="left:59.76%;width:0.83%;background:#8b5cf6"
+            <div class="gantt-bar caught" style="left:59.05%;width:0.82%;background:#8b5cf6"
                  title="spec-reviewer — Spec-review CAT-004 plan
 start 11:31:47 · 3m 23s · REQUEST CHANGES"><span>spec-reviewer · 3m 23s</span></div>
           </div>
@@ -521,7 +523,7 @@ start 11:31:47 · 3m 23s · REQUEST CHANGES"><span>spec-reviewer · 3m 23s</span
         <div class="gantt-row">
           <div class="gantt-label" title="Architect: revise CAT-004 plan">Architect: revise CAT-004 plan</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:60.62%;width:0.70%;background:#6366f1"
+            <div class="gantt-bar ok" style="left:59.90%;width:0.70%;background:#6366f1"
                  title="architect — Architect: revise CAT-004 plan
 start 11:35:46 · 1m 5s"><span>architect · 1m 5s</span></div>
           </div>
@@ -530,7 +532,7 @@ start 11:35:46 · 1m 5s"><span>architect · 1m 5s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="Spec-review CAT-004 (re-review)">Spec-review CAT-004 (re-review)</div>
           <div class="gantt-track">
-            <div class="gantt-bar caught" style="left:60.92%;width:0.70%;background:#8b5cf6"
+            <div class="gantt-bar caught" style="left:60.20%;width:0.70%;background:#8b5cf6"
                  title="spec-reviewer — Spec-review CAT-004 (re-review)
 start 11:37:04 · 1m 17s · REQUEST CHANGES"><span>spec-reviewer · 1m 17s</span></div>
           </div>
@@ -539,7 +541,7 @@ start 11:37:04 · 1m 17s · REQUEST CHANGES"><span>spec-reviewer · 1m 17s</span
         <div class="gantt-row">
           <div class="gantt-label" title="Architect: fix stale §7.1 ref">Architect: fix stale §7.1 ref</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:61.27%;width:0.70%;background:#6366f1"
+            <div class="gantt-bar ok" style="left:60.54%;width:0.70%;background:#6366f1"
                  title="architect — Architect: fix stale §7.1 ref
 start 11:38:36 · 30.0s"><span>architect · 30.0s</span></div>
           </div>
@@ -548,7 +550,7 @@ start 11:38:36 · 30.0s"><span>architect · 30.0s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="Junior-dev: implement CAT-004">Junior-dev: implement CAT-004</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:61.42%;width:1.54%;background:#ec4899"
+            <div class="gantt-bar ok" style="left:60.69%;width:1.52%;background:#ec4899"
                  title="junior-dev — Junior-dev: implement CAT-004
 start 11:39:53 · 6m 20s"><span>junior-dev · 6m 20s</span></div>
           </div>
@@ -557,7 +559,7 @@ start 11:39:53 · 6m 20s"><span>junior-dev · 6m 20s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="QA: verify CAT-004">QA: verify CAT-004</div>
           <div class="gantt-track">
-            <div class="gantt-bar caught" style="left:62.99%;width:0.70%;background:#14b8a6"
+            <div class="gantt-bar caught" style="left:62.25%;width:0.70%;background:#14b8a6"
                  title="qa — QA: verify CAT-004
 start 11:46:38 · 2m 45s · ISSUES FOUND"><span>qa · 2m 45s</span></div>
           </div>
@@ -566,7 +568,7 @@ start 11:46:38 · 2m 45s · ISSUES FOUND"><span>qa · 2m 45s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="Code review CAT-004">Code review CAT-004</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:63.70%;width:0.70%;background:#f59e0b"
+            <div class="gantt-bar ok" style="left:62.94%;width:0.70%;background:#f59e0b"
                  title="senior-dev — Code review CAT-004
 start 11:49:45 · 1m 27s · APPROVED / PASS"><span>senior-dev · 1m 27s</span></div>
           </div>
@@ -575,7 +577,7 @@ start 11:49:45 · 1m 27s · APPROVED / PASS"><span>senior-dev · 1m 27s</span></
         <div class="gantt-row">
           <div class="gantt-label" title="Draft CAT-005 filmography ticket">Draft CAT-005 filmography ticket</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:64.08%;width:0.70%;background:#ef4444"
+            <div class="gantt-bar ok" style="left:63.32%;width:0.70%;background:#ef4444"
                  title="ticket-writer — Draft CAT-005 filmography ticket
 start 01:35:32 · 2m 24s"><span>ticket-writer · 2m 24s</span></div>
           </div>
@@ -584,7 +586,7 @@ start 01:35:32 · 2m 24s"><span>ticket-writer · 2m 24s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="Architect: plan CAT-005">Architect: plan CAT-005</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:64.70%;width:1.43%;background:#6366f1"
+            <div class="gantt-bar ok" style="left:63.94%;width:1.42%;background:#6366f1"
                  title="architect — Architect: plan CAT-005
 start 01:48:35 · 5m 54s"><span>architect · 5m 54s</span></div>
           </div>
@@ -593,7 +595,7 @@ start 01:48:35 · 5m 54s"><span>architect · 5m 54s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="Spec-review CAT-005 plan">Spec-review CAT-005 plan</div>
           <div class="gantt-track">
-            <div class="gantt-bar caught" style="left:66.17%;width:0.70%;background:#8b5cf6"
+            <div class="gantt-bar caught" style="left:65.38%;width:0.70%;background:#8b5cf6"
                  title="spec-reviewer — Spec-review CAT-005 plan
 start 01:54:52 · 2m 17s · REQUEST CHANGES"><span>spec-reviewer · 2m 17s</span></div>
           </div>
@@ -602,7 +604,7 @@ start 01:54:52 · 2m 17s · REQUEST CHANGES"><span>spec-reviewer · 2m 17s</span
         <div class="gantt-row">
           <div class="gantt-label" title="Junior-dev: implement CAT-005">Junior-dev: implement CAT-005</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:66.76%;width:4.69%;background:#ec4899"
+            <div class="gantt-bar ok" style="left:65.96%;width:4.63%;background:#ec4899"
                  title="junior-dev — Junior-dev: implement CAT-005
 start 01:58:13 · 19m 18s"><span>junior-dev · 19m 18s</span></div>
           </div>
@@ -611,7 +613,7 @@ start 01:58:13 · 19m 18s"><span>junior-dev · 19m 18s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="QA: verify CAT-005">QA: verify CAT-005</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:71.48%;width:0.78%;background:#14b8a6"
+            <div class="gantt-bar ok" style="left:70.63%;width:0.77%;background:#14b8a6"
                  title="qa — QA: verify CAT-005
 start 02:18:01 · 3m 11s · APPROVED / PASS"><span>qa · 3m 11s</span></div>
           </div>
@@ -620,7 +622,7 @@ start 02:18:01 · 3m 11s · APPROVED / PASS"><span>qa · 3m 11s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="Code review CAT-005">Code review CAT-005</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:72.29%;width:0.78%;background:#f59e0b"
+            <div class="gantt-bar ok" style="left:71.43%;width:0.77%;background:#f59e0b"
                  title="senior-dev — Code review CAT-005
 start 02:21:40 · 3m 12s · APPROVED / PASS"><span>senior-dev · 3m 12s</span></div>
           </div>
@@ -629,7 +631,7 @@ start 02:21:40 · 3m 12s · APPROVED / PASS"><span>senior-dev · 3m 12s</span></
         <div class="gantt-row">
           <div class="gantt-label" title="Junior-dev: remove dead comparator">Junior-dev: remove dead comparator</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:73.10%;width:0.70%;background:#ec4899"
+            <div class="gantt-bar ok" style="left:72.23%;width:0.70%;background:#ec4899"
                  title="junior-dev — Junior-dev: remove dead comparator
 start 02:28:41 · 1m 21s"><span>junior-dev · 1m 21s</span></div>
           </div>
@@ -638,7 +640,7 @@ start 02:28:41 · 1m 21s"><span>junior-dev · 1m 21s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="Draft CAT-006 person search ticket">Draft CAT-006 person search ticket</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:73.46%;width:0.70%;background:#ef4444"
+            <div class="gantt-bar ok" style="left:72.59%;width:0.70%;background:#ef4444"
                  title="ticket-writer — Draft CAT-006 person search ticket
 start 02:36:28 · 2m 8s"><span>ticket-writer · 2m 8s</span></div>
           </div>
@@ -647,7 +649,7 @@ start 02:36:28 · 2m 8s"><span>ticket-writer · 2m 8s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="Architect: plan CAT-006">Architect: plan CAT-006</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:74.01%;width:1.06%;background:#6366f1"
+            <div class="gantt-bar ok" style="left:73.13%;width:1.05%;background:#6366f1"
                  title="architect — Architect: plan CAT-006
 start 02:42:20 · 4m 23s"><span>architect · 4m 23s</span></div>
           </div>
@@ -656,7 +658,7 @@ start 02:42:20 · 4m 23s"><span>architect · 4m 23s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="Spec-review CAT-006 plan">Spec-review CAT-006 plan</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:75.11%;width:0.70%;background:#8b5cf6"
+            <div class="gantt-bar ok" style="left:74.22%;width:0.70%;background:#8b5cf6"
                  title="spec-reviewer — Spec-review CAT-006 plan
 start 02:47:08 · 1m 54s · APPROVED / PASS"><span>spec-reviewer · 1m 54s</span></div>
           </div>
@@ -665,7 +667,7 @@ start 02:47:08 · 1m 54s · APPROVED / PASS"><span>spec-reviewer · 1m 54s</span
         <div class="gantt-row">
           <div class="gantt-label" title="Junior-dev: implement CAT-006">Junior-dev: implement CAT-006</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:75.60%;width:2.50%;background:#ec4899"
+            <div class="gantt-bar ok" style="left:74.71%;width:2.47%;background:#ec4899"
                  title="junior-dev — Junior-dev: implement CAT-006
 start 02:50:02 · 10m 18s"><span>junior-dev · 10m 18s</span></div>
           </div>
@@ -674,7 +676,7 @@ start 02:50:02 · 10m 18s"><span>junior-dev · 10m 18s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="QA: verify CAT-006">QA: verify CAT-006</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:78.14%;width:1.24%;background:#14b8a6"
+            <div class="gantt-bar ok" style="left:77.21%;width:1.22%;background:#14b8a6"
                  title="qa — QA: verify CAT-006
 start 03:00:53 · 5m 5s · APPROVED / PASS"><span>qa · 5m 5s</span></div>
           </div>
@@ -683,7 +685,7 @@ start 03:00:53 · 5m 5s · APPROVED / PASS"><span>qa · 5m 5s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="Code review CAT-006">Code review CAT-006</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:79.41%;width:0.70%;background:#f59e0b"
+            <div class="gantt-bar ok" style="left:78.47%;width:0.70%;background:#f59e0b"
                  title="senior-dev — Code review CAT-006
 start 03:06:30 · 1m 38s"><span>senior-dev · 1m 38s</span></div>
           </div>
@@ -692,7 +694,7 @@ start 03:06:30 · 1m 38s"><span>senior-dev · 1m 38s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="Draft PLAT-004 H2 default ticket">Draft PLAT-004 H2 default ticket</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:79.84%;width:0.70%;background:#ef4444"
+            <div class="gantt-bar ok" style="left:78.89%;width:0.70%;background:#ef4444"
                  title="ticket-writer — Draft PLAT-004 H2 default ticket
 start 06:54:26 · 1m 51s"><span>ticket-writer · 1m 51s</span></div>
           </div>
@@ -701,7 +703,7 @@ start 06:54:26 · 1m 51s"><span>ticket-writer · 1m 51s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="Architect: plan PLAT-004">Architect: plan PLAT-004</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:80.32%;width:1.43%;background:#6366f1"
+            <div class="gantt-bar ok" style="left:79.37%;width:1.42%;background:#6366f1"
                  title="architect — Architect: plan PLAT-004
 start 06:57:58 · 5m 54s"><span>architect · 5m 54s</span></div>
           </div>
@@ -710,7 +712,7 @@ start 06:57:58 · 5m 54s"><span>architect · 5m 54s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="Spec-review PLAT-004 plan">Spec-review PLAT-004 plan</div>
           <div class="gantt-track">
-            <div class="gantt-bar caught" style="left:81.79%;width:0.70%;background:#8b5cf6"
+            <div class="gantt-bar caught" style="left:80.82%;width:0.70%;background:#8b5cf6"
                  title="spec-reviewer — Spec-review PLAT-004 plan
 start 07:04:22 · 2m 41s · REQUEST CHANGES"><span>spec-reviewer · 2m 41s</span></div>
           </div>
@@ -719,7 +721,7 @@ start 07:04:22 · 2m 41s · REQUEST CHANGES"><span>spec-reviewer · 2m 41s</span
         <div class="gantt-row">
           <div class="gantt-label" title="Junior-dev: implement PLAT-004">Junior-dev: implement PLAT-004</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:82.47%;width:1.34%;background:#ec4899"
+            <div class="gantt-bar ok" style="left:81.49%;width:1.32%;background:#ec4899"
                  title="junior-dev — Junior-dev: implement PLAT-004
 start 07:08:05 · 5m 31s"><span>junior-dev · 5m 31s</span></div>
           </div>
@@ -728,7 +730,7 @@ start 07:08:05 · 5m 31s"><span>junior-dev · 5m 31s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="Junior-dev: finish PLAT-004 + UUID fix">Junior-dev: finish PLAT-004 + UUID fix</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:83.84%;width:1.32%;background:#ec4899"
+            <div class="gantt-bar ok" style="left:82.85%;width:1.30%;background:#ec4899"
                  title="junior-dev — Junior-dev: finish PLAT-004 + UUID fix
 start 11:45:03 · 5m 26s"><span>junior-dev · 5m 26s</span></div>
           </div>
@@ -737,7 +739,7 @@ start 11:45:03 · 5m 26s"><span>junior-dev · 5m 26s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="QA: verify PLAT-004">QA: verify PLAT-004</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:85.20%;width:0.81%;background:#14b8a6"
+            <div class="gantt-bar ok" style="left:84.18%;width:0.80%;background:#14b8a6"
                  title="qa — QA: verify PLAT-004
 start 11:50:58 · 3m 19s · APPROVED / PASS"><span>qa · 3m 19s</span></div>
           </div>
@@ -746,7 +748,7 @@ start 11:50:58 · 3m 19s · APPROVED / PASS"><span>qa · 3m 19s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="Code review PLAT-004">Code review PLAT-004</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:86.04%;width:0.70%;background:#f59e0b"
+            <div class="gantt-bar ok" style="left:85.01%;width:0.70%;background:#f59e0b"
                  title="senior-dev — Code review PLAT-004
 start 11:55:18 · 2m 4s · APPROVED / PASS"><span>senior-dev · 2m 4s</span></div>
           </div>
@@ -755,7 +757,7 @@ start 11:55:18 · 2m 4s · APPROVED / PASS"><span>senior-dev · 2m 4s</span></di
         <div class="gantt-row">
           <div class="gantt-label" title="Draft PLAT-005 Swagger UI ticket">Draft PLAT-005 Swagger UI ticket</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:86.57%;width:0.70%;background:#ef4444"
+            <div class="gantt-bar ok" style="left:85.54%;width:0.70%;background:#ef4444"
                  title="ticket-writer — Draft PLAT-005 Swagger UI ticket
 start 12:04:31 · 2m 14s"><span>ticket-writer · 2m 14s</span></div>
           </div>
@@ -764,7 +766,7 @@ start 12:04:31 · 2m 14s"><span>ticket-writer · 2m 14s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="Architect: plan PLAT-005">Architect: plan PLAT-005</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:87.15%;width:1.27%;background:#6366f1"
+            <div class="gantt-bar ok" style="left:86.11%;width:1.25%;background:#6366f1"
                  title="architect — Architect: plan PLAT-005
 start 12:07:47 · 5m 12s"><span>architect · 5m 12s</span></div>
           </div>
@@ -773,7 +775,7 @@ start 12:07:47 · 5m 12s"><span>architect · 5m 12s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="Spec-review PLAT-005 plan">Spec-review PLAT-005 plan</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:88.45%;width:0.70%;background:#8b5cf6"
+            <div class="gantt-bar ok" style="left:87.40%;width:0.70%;background:#8b5cf6"
                  title="spec-reviewer — Spec-review PLAT-005 plan
 start 12:13:33 · 2m 49s · APPROVED / PASS"><span>spec-reviewer · 2m 49s</span></div>
           </div>
@@ -782,7 +784,7 @@ start 12:13:33 · 2m 49s · APPROVED / PASS"><span>spec-reviewer · 2m 49s</span
         <div class="gantt-row">
           <div class="gantt-label" title="Junior-dev: implement PLAT-005">Junior-dev: implement PLAT-005</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:89.17%;width:1.17%;background:#ec4899"
+            <div class="gantt-bar ok" style="left:88.11%;width:1.16%;background:#ec4899"
                  title="junior-dev — Junior-dev: implement PLAT-005
 start 12:42:15 · 4m 49s"><span>junior-dev · 4m 49s</span></div>
           </div>
@@ -791,7 +793,7 @@ start 12:42:15 · 4m 49s"><span>junior-dev · 4m 49s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="Architect: revise PLAT-005 to webjar">Architect: revise PLAT-005 to webjar</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:90.37%;width:1.09%;background:#6366f1"
+            <div class="gantt-bar ok" style="left:89.30%;width:1.08%;background:#6366f1"
                  title="architect — Architect: revise PLAT-005 to webjar
 start 12:48:48 · 4m 30s"><span>architect · 4m 30s</span></div>
           </div>
@@ -800,7 +802,7 @@ start 12:48:48 · 4m 30s"><span>architect · 4m 30s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="Spec-review PLAT-005 revision">Spec-review PLAT-005 revision</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:91.50%;width:0.70%;background:#8b5cf6"
+            <div class="gantt-bar ok" style="left:90.41%;width:0.70%;background:#8b5cf6"
                  title="spec-reviewer — Spec-review PLAT-005 revision
 start 12:53:52 · 2m 11s · APPROVED / PASS"><span>spec-reviewer · 2m 11s</span></div>
           </div>
@@ -809,7 +811,7 @@ start 12:53:52 · 2m 11s · APPROVED / PASS"><span>spec-reviewer · 2m 11s</span
         <div class="gantt-row">
           <div class="gantt-label" title="Junior-dev: finish PLAT-005 webjar">Junior-dev: finish PLAT-005 webjar</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:92.06%;width:0.96%;background:#ec4899"
+            <div class="gantt-bar ok" style="left:90.97%;width:0.95%;background:#ec4899"
                  title="junior-dev — Junior-dev: finish PLAT-005 webjar
 start 12:56:48 · 3m 56s"><span>junior-dev · 3m 56s</span></div>
           </div>
@@ -818,7 +820,7 @@ start 12:56:48 · 3m 56s"><span>junior-dev · 3m 56s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="QA: verify PLAT-005">QA: verify PLAT-005</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:93.05%;width:0.70%;background:#14b8a6"
+            <div class="gantt-bar ok" style="left:91.95%;width:0.70%;background:#14b8a6"
                  title="qa — QA: verify PLAT-005
 start 13:01:16 · 2m 4s · APPROVED / PASS"><span>qa · 2m 4s</span></div>
           </div>
@@ -827,7 +829,7 @@ start 13:01:16 · 2m 4s · APPROVED / PASS"><span>qa · 2m 4s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="Code review PLAT-005">Code review PLAT-005</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:93.59%;width:0.70%;background:#f59e0b"
+            <div class="gantt-bar ok" style="left:92.48%;width:0.70%;background:#f59e0b"
                  title="senior-dev — Code review PLAT-005
 start 13:03:55 · 2m 4s · APPROVED / PASS"><span>senior-dev · 2m 4s</span></div>
           </div>
@@ -836,7 +838,7 @@ start 13:03:55 · 2m 4s · APPROVED / PASS"><span>senior-dev · 2m 4s</span></di
         <div class="gantt-row">
           <div class="gantt-label" title="Author UC-001 movie details">Author UC-001 movie details</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:94.12%;width:0.70%;background:#10b981"
+            <div class="gantt-bar ok" style="left:93.00%;width:0.70%;background:#10b981"
                  title="use-case-writer — Author UC-001 movie details
 start 23:03:49 · 50.5s"><span>use-case-writer · 50.5s</span></div>
           </div>
@@ -845,7 +847,7 @@ start 23:03:49 · 50.5s"><span>use-case-writer · 50.5s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="Architect: plan UC-001">Architect: plan UC-001</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:94.36%;width:1.10%;background:#6366f1"
+            <div class="gantt-bar ok" style="left:93.24%;width:1.08%;background:#6366f1"
                  title="architect — Architect: plan UC-001
 start 23:07:49 · 4m 30s"><span>architect · 4m 30s</span></div>
           </div>
@@ -854,7 +856,7 @@ start 23:07:49 · 4m 30s"><span>architect · 4m 30s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="Spec-review UC-001 plan">Spec-review UC-001 plan</div>
           <div class="gantt-track">
-            <div class="gantt-bar caught" style="left:95.49%;width:0.70%;background:#8b5cf6"
+            <div class="gantt-bar caught" style="left:94.35%;width:0.70%;background:#8b5cf6"
                  title="spec-reviewer — Spec-review UC-001 plan
 start 23:12:52 · 2m 16s · REQUEST CHANGES"><span>spec-reviewer · 2m 16s</span></div>
           </div>
@@ -863,7 +865,7 @@ start 23:12:52 · 2m 16s · REQUEST CHANGES"><span>spec-reviewer · 2m 16s</span
         <div class="gantt-row">
           <div class="gantt-label" title="Architect: fix UC-001 plan">Architect: fix UC-001 plan</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:96.07%;width:0.70%;background:#6366f1"
+            <div class="gantt-bar ok" style="left:94.93%;width:0.70%;background:#6366f1"
                  title="architect — Architect: fix UC-001 plan
 start 23:15:28 · 1m 6s"><span>architect · 1m 6s</span></div>
           </div>
@@ -872,7 +874,7 @@ start 23:15:28 · 1m 6s"><span>architect · 1m 6s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="Junior-dev: implement UC-001">Junior-dev: implement UC-001</div>
           <div class="gantt-track">
-            <div class="gantt-bar error" style="left:96.37%;width:0.70%;background:#ec4899"
+            <div class="gantt-bar error" style="left:95.23%;width:0.70%;background:#ec4899"
                  title="junior-dev — Junior-dev: implement UC-001
 start 23:18:05 · 8.3s · FAILED/REJECTED"><span>junior-dev · 8.3s</span></div>
           </div>
@@ -881,7 +883,7 @@ start 23:18:05 · 8.3s · FAILED/REJECTED"><span>junior-dev · 8.3s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="Architect: re-plan UC-001 clean">Architect: re-plan UC-001 clean</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:96.44%;width:1.18%;background:#6366f1"
+            <div class="gantt-bar ok" style="left:95.29%;width:1.17%;background:#6366f1"
                  title="architect — Architect: re-plan UC-001 clean
 start 23:25:01 · 4m 51s"><span>architect · 4m 51s</span></div>
           </div>
@@ -890,7 +892,7 @@ start 23:25:01 · 4m 51s"><span>architect · 4m 51s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="Spec-review UC-001 (clean)">Spec-review UC-001 (clean)</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:97.65%;width:0.70%;background:#8b5cf6"
+            <div class="gantt-bar ok" style="left:96.49%;width:0.70%;background:#8b5cf6"
                  title="spec-reviewer — Spec-review UC-001 (clean)
 start 23:30:16 · 2m 19s · APPROVED / PASS"><span>spec-reviewer · 2m 19s</span></div>
           </div>
@@ -899,7 +901,7 @@ start 23:30:16 · 2m 19s · APPROVED / PASS"><span>spec-reviewer · 2m 19s</span
         <div class="gantt-row">
           <div class="gantt-label" title="Junior-dev: implement UC-001">Junior-dev: implement UC-001</div>
           <div class="gantt-track">
-            <div class="gantt-bar ok" style="left:98.25%;width:1.72%;background:#ec4899"
+            <div class="gantt-bar ok" style="left:97.08%;width:1.70%;background:#ec4899"
                  title="junior-dev — Junior-dev: implement UC-001
 start 05:34:52 · 7m 5s"><span>junior-dev · 7m 5s</span></div>
           </div>
@@ -908,9 +910,18 @@ start 05:34:52 · 7m 5s"><span>junior-dev · 7m 5s</span></div>
         <div class="gantt-row">
           <div class="gantt-label" title="QA: verify UC-001">QA: verify UC-001</div>
           <div class="gantt-track">
-            <div class="gantt-bar pending" style="left:100.00%;width:0.70%;background:#14b8a6"
+            <div class="gantt-bar ok" style="left:98.81%;width:0.70%;background:#14b8a6"
                  title="qa — QA: verify UC-001
-start 05:42:21 · —"><span>qa · —</span></div>
+start 05:42:21 · 2m 10s · APPROVED / PASS"><span>qa · 2m 10s</span></div>
+          </div>
+        </div>
+
+        <div class="gantt-row">
+          <div class="gantt-label" title="Code review UC-001">Code review UC-001</div>
+          <div class="gantt-track">
+            <div class="gantt-bar caught" style="left:99.37%;width:0.70%;background:#f59e0b"
+                 title="senior-dev — Code review UC-001
+start 05:44:56 · 2m 37s · REQUEST CHANGES"><span>senior-dev · 2m 37s</span></div>
           </div>
         </div></div>
 
@@ -932,12 +943,12 @@ start 05:42:21 · —"><span>qa · —</span></div>
           <td class="num">2m 44s</td><td class="num">263</td><td class="num">150</td><td class="num muted">93,839</td>
           <td><span class="pill good">caught 11/16</span></td><td class="num">0</td></tr><tr>
           <td><i class="dot" style="background:#f59e0b"></i>senior-dev <span class="gate-tag">gate</span></td>
-          <td class="num">12</td><td class="num">38m 22s</td>
-          <td class="num">3m 11s</td><td class="num">301</td><td class="num">166</td><td class="num muted">124,070</td>
-          <td><span class="pill good">caught 3/12</span></td><td class="num"><span class="pill bad">1</span></td></tr><tr>
+          <td class="num">13</td><td class="num">41m 0s</td>
+          <td class="num">3m 9s</td><td class="num">336</td><td class="num">193</td><td class="num muted">127,090</td>
+          <td><span class="pill good">caught 4/13</span></td><td class="num"><span class="pill bad">1</span></td></tr><tr>
           <td><i class="dot" style="background:#14b8a6"></i>qa <span class="gate-tag">gate</span></td>
-          <td class="num">12</td><td class="num">36m 53s</td>
-          <td class="num">3m 4s</td><td class="num">487</td><td class="num">205</td><td class="num muted">85,645</td>
+          <td class="num">12</td><td class="num">39m 4s</td>
+          <td class="num">3m 15s</td><td class="num">501</td><td class="num">210</td><td class="num muted">86,413</td>
           <td><span class="pill good">caught 4/12</span></td><td class="num">0</td></tr><tr>
           <td><i class="dot" style="background:#ef4444"></i>ticket-writer</td>
           <td class="num">9</td><td class="num">18m 7s</td>
@@ -1343,11 +1354,21 @@ start 05:42:21 · —"><span>qa · —</span></div>
         <div class="gate-item clean">
           <div class="gate-head">
             <span class="agent-badge" style="background:#14b8a6">qa</span>
-            <span class="verdict clean">—</span>
-            <span class="muted">05:42:21 · —</span>
+            <span class="verdict clean">APPROVED / PASS</span>
+            <span class="muted">05:42:21 · 2m 10s</span>
           </div>
           <div class="gate-desc">QA: verify UC-001</div>
-          
+          <div class="gate-snip">PASS | `MovieControllerTest.getMovieById_existingMovieWithAllOptionalFields_returns200WithAllFieldsAndSelfLink` | | 2 | BR-1 Public access — no auth required, `security: []` | PASS | `MovieControllerTest.getMovieById_requiresNoAuthenticatio</div>
+        </div>
+
+        <div class="gate-item caught">
+          <div class="gate-head">
+            <span class="agent-badge" style="background:#f59e0b">senior-dev</span>
+            <span class="verdict caught">REQUEST CHANGES</span>
+            <span class="muted">05:44:56 · 2m 37s</span>
+          </div>
+          <div class="gate-desc">Code review UC-001</div>
+          <div class="gate-snip">REQUEST CHANGES None. ## Verdict: APPROVE Clean as reviewed. The diff faithfully implements UC-001 and adheres to the clean-architecture, OpenAPI, error-handling, security, clean-code, and testing standards. I made no edits, so no rebuild</div>
         </div></div>
 
   <h2>Errors &amp; friction</h2>
@@ -1499,38 +1520,38 @@ git push -u origin feat/cat-003-movie-credits 2&gt;&amp;1 has been denied.</div>
       <tbody><tr>
           <td>Bash</td>
           <td><div class="tool-bar-wrap"><div class="tool-bar" style="width:100.0%"></div></div></td>
-          <td class="num">1581</td>
-          <td class="num muted">2h 3m</td>
+          <td class="num">1610</td>
+          <td class="num muted">2h 5m</td>
           <td class="num"><span class="pill bad">23</span></td></tr><tr>
           <td>Read</td>
-          <td><div class="tool-bar-wrap"><div class="tool-bar" style="width:79.5%"></div></div></td>
-          <td class="num">1257</td>
-          <td class="num muted">9m 1s</td>
+          <td><div class="tool-bar-wrap"><div class="tool-bar" style="width:80.1%"></div></div></td>
+          <td class="num">1290</td>
+          <td class="num muted">9m 15s</td>
           <td class="num"><span class="pill bad">4</span></td></tr><tr>
           <td>Edit</td>
-          <td><div class="tool-bar-wrap"><div class="tool-bar" style="width:29.5%"></div></div></td>
-          <td class="num">467</td>
+          <td><div class="tool-bar-wrap"><div class="tool-bar" style="width:29.1%"></div></div></td>
+          <td class="num">468</td>
           <td class="num muted">3m 32s</td>
           <td class="num"><span class="pill bad">4</span></td></tr><tr>
           <td>Write</td>
-          <td><div class="tool-bar-wrap"><div class="tool-bar" style="width:22.2%"></div></div></td>
-          <td class="num">351</td>
-          <td class="num muted">2m 33s</td>
+          <td><div class="tool-bar-wrap"><div class="tool-bar" style="width:21.9%"></div></div></td>
+          <td class="num">352</td>
+          <td class="num muted">2m 34s</td>
           <td class="num">—</td></tr><tr>
           <td>Agent</td>
           <td><div class="tool-bar-wrap"><div class="tool-bar" style="width:5.5%"></div></div></td>
-          <td class="num">87</td>
-          <td class="num muted">6h 40m</td>
+          <td class="num">88</td>
+          <td class="num muted">6h 45m</td>
           <td class="num"><span class="pill bad">3</span></td></tr><tr>
           <td>Skill</td>
-          <td><div class="tool-bar-wrap"><div class="tool-bar" style="width:3.3%"></div></div></td>
+          <td><div class="tool-bar-wrap"><div class="tool-bar" style="width:3.2%"></div></div></td>
           <td class="num">52</td>
           <td class="num muted">1m 47s</td>
           <td class="num"><span class="pill bad">1</span></td></tr><tr>
           <td>AskUserQuestion</td>
-          <td><div class="tool-bar-wrap"><div class="tool-bar" style="width:2.8%"></div></div></td>
-          <td class="num">45</td>
-          <td class="num muted">25h 10m</td>
+          <td><div class="tool-bar-wrap"><div class="tool-bar" style="width:2.9%"></div></div></td>
+          <td class="num">47</td>
+          <td class="num muted">25h 11m</td>
           <td class="num"><span class="pill bad">1</span></td></tr><tr>
           <td>SendMessage</td>
           <td><div class="tool-bar-wrap"><div class="tool-bar" style="width:1.6%"></div></div></td>
@@ -1538,7 +1559,7 @@ git push -u origin feat/cat-003-movie-credits 2&gt;&amp;1 has been denied.</div>
           <td class="num muted">51m 29s</td>
           <td class="num"><span class="pill bad">1</span></td></tr><tr>
           <td>Glob</td>
-          <td><div class="tool-bar-wrap"><div class="tool-bar" style="width:1.5%"></div></div></td>
+          <td><div class="tool-bar-wrap"><div class="tool-bar" style="width:1.4%"></div></div></td>
           <td class="num">23</td>
           <td class="num muted">10.5s</td>
           <td class="num">—</td></tr><tr>
@@ -1599,7 +1620,7 @@ git push -u origin feat/cat-003-movie-credits 2&gt;&amp;1 has been denied.</div>
           <td class="num">—</td></tr></tbody></table></div>
 
   <h2>Files touched</h2>
-  <div class="panel"><p class="note">Includes tool calls and file access from inside every subagent transcript, not just the top-level session.</p><p class="note">335 files touched · 37 written fresh (no prior read).</p><table class="vtable">
+  <div class="panel"><p class="note">Includes tool calls and file access from inside every subagent transcript, not just the top-level session.</p><p class="note">338 files touched · 32 written fresh (no prior read).</p><table class="vtable">
       <thead><tr><th>File</th><th>Operations</th><th class="num">Total</th></tr></thead>
       <tbody><tr>
           <td class="fpath" title="/Users/paulrule/projects/current/sdlc/src/main/resources/openapi/openapi.yaml">main/resources/openapi/openapi.yaml</td>
@@ -1626,17 +1647,20 @@ git push -u origin feat/cat-003-movie-credits 2&gt;&amp;1 has been denied.</div>
           <td class="fpath" title="/Users/paulrule/projects/current/sdlc/domain/glossary.md">current/sdlc/domain/glossary.md</td>
           <td><span class="fop write">write ×2</span> <span class="fop edit">edit ×10</span> <span class="fop read">read ×15</span></td>
           <td class="num muted">27</td></tr><tr>
+          <td class="fpath" title="/Users/paulrule/projects/current/sdlc/src/test/java/com/acme/common/runtime/H2DefaultRuntimeSmokeTest.java">acme/common/runtime/H2DefaultRuntimeSmokeTest.java</td>
+          <td><span class="fop write">write ×3</span> <span class="fop edit">edit ×10</span> <span class="fop read">read ×14</span></td>
+          <td class="num muted">27</td></tr><tr>
           <td class="fpath" title="/Users/paulrule/projects/current/sdlc/src/test/java/com/acme/common/security/PublicEndpointsConsistencyTest.java">acme/common/security/PublicEndpointsConsistencyTest.java</td>
           <td><span class="fop write">write ×1</span> <span class="fop edit">edit ×6</span> <span class="fop read">read ×19</span></td>
           <td class="num muted">26</td></tr><tr>
           <td class="fpath" title="/Users/paulrule/projects/current/sdlc/src/test/java/com/acme/platform/health/adapters/in/web/PingControllerTest.java">adapters/in/web/PingControllerTest.java</td>
           <td><span class="fop write">write ×1</span> <span class="fop edit">edit ×12</span> <span class="fop read">read ×13</span></td>
           <td class="num muted">26</td></tr><tr>
-          <td class="fpath" title="/Users/paulrule/projects/current/sdlc/src/test/java/com/acme/common/runtime/H2DefaultRuntimeSmokeTest.java">acme/common/runtime/H2DefaultRuntimeSmokeTest.java</td>
-          <td><span class="fop write">write ×3</span> <span class="fop edit">edit ×10</span> <span class="fop read">read ×12</span></td>
-          <td class="num muted">25</td></tr><tr>
           <td class="fpath" title="/Users/paulrule/projects/current/sdlc/standards/openapi.md">current/sdlc/standards/openapi.md</td>
           <td><span class="fop write">write ×1</span> <span class="fop edit">edit ×3</span> <span class="fop read">read ×20</span></td>
+          <td class="num muted">24</td></tr><tr>
+          <td class="fpath" title="/Users/paulrule/projects/current/sdlc/src/main/java/com/acme/catalog/movies/adapters/in/web/MovieController.java">adapters/in/web/MovieController.java</td>
+          <td><span class="fop write">write ×3</span> <span class="fop edit">edit ×7</span> <span class="fop read">read ×14</span></td>
           <td class="num muted">24</td></tr><tr>
           <td class="fpath" title="/Users/paulrule/projects/current/sdlc/build.gradle.kts">projects/current/sdlc/build.gradle.kts</td>
           <td><span class="fop write">write ×1</span> <span class="fop edit">edit ×11</span> <span class="fop read">read ×11</span></td>
@@ -1644,18 +1668,15 @@ git push -u origin feat/cat-003-movie-credits 2&gt;&amp;1 has been denied.</div>
           <td class="fpath" title="/Users/paulrule/projects/current/sdlc/domain/bounded-contexts.md">current/sdlc/domain/bounded-contexts.md</td>
           <td><span class="fop write">write ×2</span> <span class="fop edit">edit ×6</span> <span class="fop read">read ×15</span></td>
           <td class="num muted">23</td></tr><tr>
-          <td class="fpath" title="/Users/paulrule/projects/current/sdlc/src/main/java/com/acme/catalog/movies/adapters/in/web/MovieController.java">adapters/in/web/MovieController.java</td>
-          <td><span class="fop write">write ×3</span> <span class="fop edit">edit ×7</span> <span class="fop read">read ×13</span></td>
-          <td class="num muted">23</td></tr><tr>
           <td class="fpath" title="/Users/paulrule/projects/current/sdlc/src/test/java/com/acme/common/test/PostgresIntegrationTest.java">acme/common/test/PostgresIntegrationTest.java</td>
           <td><span class="fop write">write ×2</span> <span class="fop edit">edit ×4</span> <span class="fop read">read ×14</span></td>
+          <td class="num muted">20</td></tr><tr>
+          <td class="fpath" title="/Users/paulrule/projects/current/sdlc/src/main/java/com/acme/platform/sample/adapters/in/web/SampleController.java">adapters/in/web/SampleController.java</td>
+          <td><span class="fop write">write ×1</span> <span class="fop edit">edit ×7</span> <span class="fop read">read ×12</span></td>
           <td class="num muted">20</td></tr><tr>
           <td class="fpath" title="/Users/paulrule/projects/current/sdlc/src/main/resources/application.yml">src/main/resources/application.yml</td>
           <td><span class="fop write">write ×1</span> <span class="fop edit">edit ×6</span> <span class="fop read">read ×13</span></td>
           <td class="num muted">20</td></tr><tr>
-          <td class="fpath" title="/Users/paulrule/projects/current/sdlc/src/main/java/com/acme/platform/sample/adapters/in/web/SampleController.java">adapters/in/web/SampleController.java</td>
-          <td><span class="fop write">write ×1</span> <span class="fop edit">edit ×7</span> <span class="fop read">read ×11</span></td>
-          <td class="num muted">19</td></tr><tr>
           <td class="fpath" title="/Users/paulrule/projects/current/sdlc/src/main/java/com/acme/catalog/movies/adapters/out/persistence/MovieSearchPersistenceAdapter.java">adapters/out/persistence/MovieSearchPersistenceAdapter.java</td>
           <td><span class="fop write">write ×1</span> <span class="fop edit">edit ×6</span> <span class="fop read">read ×12</span></td>
           <td class="num muted">19</td></tr><tr>
@@ -1680,6 +1701,12 @@ git push -u origin feat/cat-003-movie-credits 2&gt;&amp;1 has been denied.</div>
           <td class="fpath" title="/Users/paulrule/projects/current/sdlc/tickets/CAT-004-retrieve-person-detail.md">current/sdlc/tickets/CAT-004-retrieve-person-detail.md</td>
           <td><span class="fop write">write ×1</span> <span class="fop edit">edit ×8</span> <span class="fop read">read ×6</span></td>
           <td class="num muted">15</td></tr><tr>
+          <td class="fpath" title="/Users/paulrule/projects/current/sdlc/openspec/changes/add-movie-detail/design.md">openspec/changes/add-movie-detail/design.md</td>
+          <td><span class="fop write">write ×3</span> <span class="fop edit">edit ×3</span> <span class="fop read">read ×9</span></td>
+          <td class="num muted">15</td></tr><tr>
+          <td class="fpath" title="/Users/paulrule/projects/current/sdlc/openspec/changes/add-movie-detail/tasks.md">openspec/changes/add-movie-detail/tasks.md</td>
+          <td><span class="fop write">write ×3</span> <span class="fop edit">edit ×3</span> <span class="fop read">read ×9</span></td>
+          <td class="num muted">15</td></tr><tr>
           <td class="fpath" title="/Users/paulrule/projects/current/sdlc/src/main/java/com/acme/catalog/movies/adapters/out/persistence/DemoMovieSeedLoader.java">adapters/out/persistence/DemoMovieSeedLoader.java</td>
           <td><span class="fop write">write ×1</span> <span class="fop edit">edit ×3</span> <span class="fop read">read ×11</span></td>
           <td class="num muted">15</td></tr><tr>
@@ -1692,14 +1719,14 @@ git push -u origin feat/cat-003-movie-credits 2&gt;&amp;1 has been denied.</div>
           <td class="fpath" title="/Users/paulrule/projects/current/sdlc/src/main/resources/openapi/components/schemas/health.yaml">openapi/components/schemas/health.yaml</td>
           <td><span class="fop write">write ×1</span> <span class="fop edit">edit ×4</span> <span class="fop read">read ×9</span></td>
           <td class="num muted">14</td></tr><tr>
-          <td class="fpath" title="/Users/paulrule/projects/current/sdlc/openspec/changes/add-movie-detail/design.md">openspec/changes/add-movie-detail/design.md</td>
-          <td><span class="fop write">write ×3</span> <span class="fop edit">edit ×3</span> <span class="fop read">read ×8</span></td>
-          <td class="num muted">14</td></tr><tr>
-          <td class="fpath" title="/Users/paulrule/projects/current/sdlc/openspec/changes/add-movie-detail/tasks.md">openspec/changes/add-movie-detail/tasks.md</td>
-          <td><span class="fop write">write ×3</span> <span class="fop edit">edit ×3</span> <span class="fop read">read ×8</span></td>
-          <td class="num muted">14</td></tr><tr>
           <td class="fpath" title="/Users/paulrule/projects/current/sdlc/openspec/changes/add-h2-default-runtime/tasks.md">openspec/changes/add-h2-default-runtime/tasks.md</td>
           <td><span class="fop write">write ×1</span> <span class="fop edit">edit ×9</span> <span class="fop read">read ×4</span></td>
+          <td class="num muted">14</td></tr><tr>
+          <td class="fpath" title="/Users/paulrule/projects/current/sdlc/src/main/resources/openapi/components/schemas/movie.yaml">openapi/components/schemas/movie.yaml</td>
+          <td><span class="fop write">write ×2</span> <span class="fop edit">edit ×1</span> <span class="fop read">read ×11</span></td>
+          <td class="num muted">14</td></tr><tr>
+          <td class="fpath" title="/Users/paulrule/projects/current/sdlc/src/test/java/com/acme/catalog/movies/adapters/in/web/MovieControllerTest.java">adapters/in/web/MovieControllerTest.java</td>
+          <td><span class="fop write">write ×2</span> <span class="fop edit">edit ×6</span> <span class="fop read">read ×6</span></td>
           <td class="num muted">14</td></tr><tr>
           <td class="fpath" title="/Users/paulrule/projects/current/sdlc/standards/error-handling.md">current/sdlc/standards/error-handling.md</td>
           <td><span class="fop write">write ×1</span> <span class="fop read">read ×12</span></td>
@@ -1707,14 +1734,8 @@ git push -u origin feat/cat-003-movie-credits 2&gt;&amp;1 has been denied.</div>
           <td class="fpath" title="/Users/paulrule/projects/current/sdlc/src/main/resources/openapi/components/parameters/common.yaml">openapi/components/parameters/common.yaml</td>
           <td><span class="fop write">write ×1</span> <span class="fop edit">edit ×1</span> <span class="fop read">read ×11</span></td>
           <td class="num muted">13</td></tr><tr>
-          <td class="fpath" title="/Users/paulrule/projects/current/sdlc/src/main/resources/openapi/components/schemas/movie.yaml">openapi/components/schemas/movie.yaml</td>
-          <td><span class="fop write">write ×2</span> <span class="fop edit">edit ×1</span> <span class="fop read">read ×10</span></td>
-          <td class="num muted">13</td></tr><tr>
           <td class="fpath" title="/Users/paulrule/projects/current/sdlc/src/main/resources/openapi/components/schemas/person.yaml">openapi/components/schemas/person.yaml</td>
           <td><span class="fop write">write ×1</span> <span class="fop edit">edit ×4</span> <span class="fop read">read ×8</span></td>
-          <td class="num muted">13</td></tr><tr>
-          <td class="fpath" title="/Users/paulrule/projects/current/sdlc/src/test/java/com/acme/catalog/movies/adapters/in/web/MovieControllerTest.java">adapters/in/web/MovieControllerTest.java</td>
-          <td><span class="fop write">write ×2</span> <span class="fop edit">edit ×6</span> <span class="fop read">read ×5</span></td>
           <td class="num muted">13</td></tr><tr>
           <td class="fpath" title="/Users/paulrule/projects/current/sdlc/standards/testing.md">current/sdlc/standards/testing.md</td>
           <td><span class="fop write">write ×1</span> <span class="fop edit">edit ×1</span> <span class="fop read">read ×10</span></td>
@@ -1725,11 +1746,17 @@ git push -u origin feat/cat-003-movie-credits 2&gt;&amp;1 has been denied.</div>
           <td class="fpath" title="/Users/paulrule/projects/current/sdlc/src/main/java/com/acme/platform/health/adapters/in/web/PingController.java">adapters/in/web/PingController.java</td>
           <td><span class="fop write">write ×2</span> <span class="fop edit">edit ×1</span> <span class="fop read">read ×9</span></td>
           <td class="num muted">12</td></tr><tr>
+          <td class="fpath" title="/Users/paulrule/projects/current/sdlc/src/main/java/com/acme/catalog/movies/adapters/out/persistence/MovieJpaEntity.java">adapters/out/persistence/MovieJpaEntity.java</td>
+          <td><span class="fop write">write ×2</span> <span class="fop edit">edit ×1</span> <span class="fop read">read ×9</span></td>
+          <td class="num muted">12</td></tr><tr>
           <td class="fpath" title="/Users/paulrule/projects/current/sdlc/src/test/java/com/acme/catalog/people/adapters/in/web/PersonControllerTest.java">adapters/in/web/PersonControllerTest.java</td>
           <td><span class="fop write">write ×1</span> <span class="fop edit">edit ×6</span> <span class="fop read">read ×5</span></td>
           <td class="num muted">12</td></tr><tr>
           <td class="fpath" title="/Users/paulrule/projects/current/sdlc/src/main/java/com/acme/common/error/ResourceNotFoundException.java">acme/common/error/ResourceNotFoundException.java</td>
           <td><span class="fop write">write ×1</span> <span class="fop edit">edit ×2</span> <span class="fop read">read ×9</span></td>
+          <td class="num muted">12</td></tr><tr>
+          <td class="fpath" title="/Users/paulrule/projects/current/sdlc/src/main/java/com/acme/catalog/movies/adapters/out/persistence/MoviePersistenceAdapter.java">adapters/out/persistence/MoviePersistenceAdapter.java</td>
+          <td><span class="fop write">write ×2</span> <span class="fop edit">edit ×2</span> <span class="fop read">read ×8</span></td>
           <td class="num muted">12</td></tr><tr>
           <td class="fpath" title="/Users/paulrule/projects/current/sdlc/.claude/agents/senior-dev.md">sdlc/.claude/agents/senior-dev.md</td>
           <td><span class="fop write">write ×1</span> <span class="fop edit">edit ×7</span> <span class="fop read">read ×3</span></td>
@@ -1746,8 +1773,8 @@ git push -u origin feat/cat-003-movie-credits 2&gt;&amp;1 has been denied.</div>
           <td class="fpath" title="/Users/paulrule/projects/current/sdlc/openspec/changes/add-movie-detail/proposal.md">openspec/changes/add-movie-detail/proposal.md</td>
           <td><span class="fop write">write ×3</span> <span class="fop edit">edit ×2</span> <span class="fop read">read ×6</span></td>
           <td class="num muted">11</td></tr><tr>
-          <td class="fpath" title="/Users/paulrule/projects/current/sdlc/src/main/java/com/acme/catalog/movies/adapters/out/persistence/MovieJpaEntity.java">adapters/out/persistence/MovieJpaEntity.java</td>
-          <td><span class="fop write">write ×2</span> <span class="fop edit">edit ×1</span> <span class="fop read">read ×8</span></td>
+          <td class="fpath" title="/Users/paulrule/projects/current/sdlc/openspec/changes/add-movie-detail/specs/catalog/movies/spec.md">specs/catalog/movies/spec.md</td>
+          <td><span class="fop write">write ×3</span> <span class="fop read">read ×8</span></td>
           <td class="num muted">11</td></tr><tr>
           <td class="fpath" title="/Users/paulrule/projects/current/sdlc/openspec/changes/add-swagger-ui/design.md">openspec/changes/add-swagger-ui/design.md</td>
           <td><span class="fop write">write ×1</span> <span class="fop edit">edit ×6</span> <span class="fop read">read ×4</span></td>
@@ -1757,9 +1784,6 @@ git push -u origin feat/cat-003-movie-credits 2&gt;&amp;1 has been denied.</div>
           <td class="num muted">11</td></tr><tr>
           <td class="fpath" title="/Users/paulrule/projects/current/sdlc/src/main/java/com/acme/catalog/people/adapters/out/persistence/PersonJpaRepository.java">adapters/out/persistence/PersonJpaRepository.java</td>
           <td><span class="fop write">write ×1</span> <span class="fop edit">edit ×3</span> <span class="fop read">read ×7</span></td>
-          <td class="num muted">11</td></tr><tr>
-          <td class="fpath" title="/Users/paulrule/projects/current/sdlc/src/main/java/com/acme/catalog/movies/adapters/out/persistence/MoviePersistenceAdapter.java">adapters/out/persistence/MoviePersistenceAdapter.java</td>
-          <td><span class="fop write">write ×2</span> <span class="fop edit">edit ×2</span> <span class="fop read">read ×7</span></td>
           <td class="num muted">11</td></tr><tr>
           <td class="fpath" title="/Users/paulrule/projects/current/sdlc/.claude/commands/build-ticket.md">sdlc/.claude/commands/build-ticket.md</td>
           <td><span class="fop write">write ×1</span> <span class="fop edit">edit ×5</span> <span class="fop read">read ×4</span></td>
@@ -1776,12 +1800,101 @@ git push -u origin feat/cat-003-movie-credits 2&gt;&amp;1 has been denied.</div>
           <td class="fpath" title="/Users/paulrule/projects/current/sdlc/tickets/CAT-006-search-list-people.md">current/sdlc/tickets/CAT-006-search-list-people.md</td>
           <td><span class="fop write">write ×1</span> <span class="fop edit">edit ×4</span> <span class="fop read">read ×5</span></td>
           <td class="num muted">10</td></tr><tr>
-          <td class="fpath" title="/Users/paulrule/projects/current/sdlc/openspec/changes/add-movie-detail/specs/catalog/movies/spec.md">specs/catalog/movies/spec.md</td>
-          <td><span class="fop write">write ×3</span> <span class="fop read">read ×7</span></td>
-          <td class="num muted">10</td></tr><tr>
           <td class="fpath" title="/Users/paulrule/projects/current/sdlc/openspec/changes/adopt-hal-hypermedia/tasks.md">openspec/changes/adopt-hal-hypermedia/tasks.md</td>
           <td><span class="fop write">write ×1</span> <span class="fop edit">edit ×4</span> <span class="fop read">read ×5</span></td>
-          <td class="num muted">10</td></tr></tbody></table><p class="note">…and 275 more files.</p></div>
+          <td class="num muted">10</td></tr></tbody></table><p class="note">…and 278 more files.</p></div>
+
+  <h2>Context ingestion — domain &amp; standards</h2>
+  <div class="panel"><p class="note"><b>Reading is not proof of benefit.</b> This shows the docs reach the agents and are used (Influence = reads + citations; Informed = read before the agent started writing). To prove they <em>help vs hinder</em>, compare two runs with <code>--compare</code> (full vs stripped context). Note CLAUDE.md is always in-context and is not counted here.</p><table class="vtable">
+      <thead><tr><th>Doc</th><th class="num">Reads</th>
+      <th class="num" title="share of reads that happened before the agent's first write">Informed</th>
+      <th class="num">Cited</th><th class="num">Influence</th>
+      <th>Readers</th><th></th></tr></thead>
+      <tbody><tr>
+          <td class="fpath">standards/openapi.md</td>
+          <td class="num">22</td>
+          <td class="num muted">95%</td>
+          <td class="num">46</td>
+          <td class="num"><b>68</b></td>
+          <td><span class="rdr" style="background:#6366f1" title="architect"></span> <span class="rdr" style="background:#ec4899" title="junior-dev"></span> <span class="rdr" style="background:#14b8a6" title="qa"></span> <span class="rdr" style="background:#f59e0b" title="senior-dev"></span> <span class="rdr" style="background:#8b5cf6" title="spec-reviewer"></span> <span class="rdr" style="background:#ef4444" title="ticket-writer"></span></td>
+          <td></td></tr><tr>
+          <td class="fpath">domain/business-rules.md</td>
+          <td class="num">19</td>
+          <td class="num muted">68%</td>
+          <td class="num">23</td>
+          <td class="num"><b>42</b></td>
+          <td><span class="rdr" style="background:#888" title="(orchestrator)"></span> <span class="rdr" style="background:#6366f1" title="architect"></span> <span class="rdr" style="background:#ec4899" title="junior-dev"></span> <span class="rdr" style="background:#8b5cf6" title="spec-reviewer"></span> <span class="rdr" style="background:#ef4444" title="ticket-writer"></span> <span class="rdr" style="background:#10b981" title="use-case-writer"></span></td>
+          <td></td></tr><tr>
+          <td class="fpath">standards/testing.md</td>
+          <td class="num">9</td>
+          <td class="num muted">78%</td>
+          <td class="num">26</td>
+          <td class="num"><b>35</b></td>
+          <td><span class="rdr" style="background:#6366f1" title="architect"></span> <span class="rdr" style="background:#ec4899" title="junior-dev"></span> <span class="rdr" style="background:#14b8a6" title="qa"></span> <span class="rdr" style="background:#8b5cf6" title="spec-reviewer"></span> <span class="rdr" style="background:#ef4444" title="ticket-writer"></span></td>
+          <td></td></tr><tr>
+          <td class="fpath">domain/glossary.md</td>
+          <td class="num">14</td>
+          <td class="num muted">79%</td>
+          <td class="num">17</td>
+          <td class="num"><b>31</b></td>
+          <td><span class="rdr" style="background:#6366f1" title="architect"></span> <span class="rdr" style="background:#ec4899" title="junior-dev"></span> <span class="rdr" style="background:#ef4444" title="ticket-writer"></span> <span class="rdr" style="background:#10b981" title="use-case-writer"></span></td>
+          <td></td></tr><tr>
+          <td class="fpath">standards/security.md</td>
+          <td class="num">8</td>
+          <td class="num muted">100%</td>
+          <td class="num">17</td>
+          <td class="num"><b>25</b></td>
+          <td><span class="rdr" style="background:#6366f1" title="architect"></span> <span class="rdr" style="background:#ec4899" title="junior-dev"></span> <span class="rdr" style="background:#14b8a6" title="qa"></span> <span class="rdr" style="background:#f59e0b" title="senior-dev"></span> <span class="rdr" style="background:#8b5cf6" title="spec-reviewer"></span></td>
+          <td></td></tr><tr>
+          <td class="fpath">domain/bounded-contexts.md</td>
+          <td class="num">15</td>
+          <td class="num muted">80%</td>
+          <td class="num">8</td>
+          <td class="num"><b>23</b></td>
+          <td><span class="rdr" style="background:#6366f1" title="architect"></span> <span class="rdr" style="background:#ec4899" title="junior-dev"></span> <span class="rdr" style="background:#ef4444" title="ticket-writer"></span> <span class="rdr" style="background:#10b981" title="use-case-writer"></span></td>
+          <td></td></tr><tr>
+          <td class="fpath">standards/error-handling.md</td>
+          <td class="num">9</td>
+          <td class="num muted">100%</td>
+          <td class="num">13</td>
+          <td class="num"><b>22</b></td>
+          <td><span class="rdr" style="background:#6366f1" title="architect"></span> <span class="rdr" style="background:#ec4899" title="junior-dev"></span> <span class="rdr" style="background:#14b8a6" title="qa"></span> <span class="rdr" style="background:#f59e0b" title="senior-dev"></span> <span class="rdr" style="background:#8b5cf6" title="spec-reviewer"></span> <span class="rdr" style="background:#ef4444" title="ticket-writer"></span></td>
+          <td></td></tr><tr>
+          <td class="fpath">standards/clean-architecture.md</td>
+          <td class="num">7</td>
+          <td class="num muted">71%</td>
+          <td class="num">8</td>
+          <td class="num"><b>15</b></td>
+          <td><span class="rdr" style="background:#6366f1" title="architect"></span> <span class="rdr" style="background:#ec4899" title="junior-dev"></span> <span class="rdr" style="background:#8b5cf6" title="spec-reviewer"></span> <span class="rdr" style="background:#ef4444" title="ticket-writer"></span></td>
+          <td></td></tr><tr>
+          <td class="fpath">domain/overview.md</td>
+          <td class="num">7</td>
+          <td class="num muted">86%</td>
+          <td class="num">3</td>
+          <td class="num"><b>10</b></td>
+          <td><span class="rdr" style="background:#ec4899" title="junior-dev"></span> <span class="rdr" style="background:#ef4444" title="ticket-writer"></span> <span class="rdr" style="background:#10b981" title="use-case-writer"></span></td>
+          <td></td></tr><tr>
+          <td class="fpath">domain/actors-and-personas.md</td>
+          <td class="num">8</td>
+          <td class="num muted">100%</td>
+          <td class="num">1</td>
+          <td class="num"><b>9</b></td>
+          <td><span class="rdr" style="background:#ef4444" title="ticket-writer"></span> <span class="rdr" style="background:#10b981" title="use-case-writer"></span></td>
+          <td></td></tr><tr>
+          <td class="fpath">standards/formatting.md</td>
+          <td class="num">3</td>
+          <td class="num muted">67%</td>
+          <td class="num">5</td>
+          <td class="num"><b>8</b></td>
+          <td><span class="rdr" style="background:#6366f1" title="architect"></span> <span class="rdr" style="background:#ec4899" title="junior-dev"></span> <span class="rdr" style="background:#8b5cf6" title="spec-reviewer"></span></td>
+          <td></td></tr><tr>
+          <td class="fpath">standards/clean-code.md</td>
+          <td class="num">1</td>
+          <td class="num muted">100%</td>
+          <td class="num">2</td>
+          <td class="num"><b>3</b></td>
+          <td><span class="rdr" style="background:#ec4899" title="junior-dev"></span></td>
+          <td></td></tr></tbody></table><p class="note">Reviewer catches that explicitly cite a doc — direct evidence the doc earned its place:</p><div><span class="pill good">standards/openapi.md → 7 catches</span> <span class="pill good">standards/error-handling.md → 4 catches</span> <span class="pill good">standards/security.md → 3 catches</span> <span class="pill good">domain/business-rules.md → 3 catches</span> <span class="pill good">standards/testing.md → 2 catches</span> <span class="pill good">domain/bounded-contexts.md → 1 catch</span> <span class="pill good">domain/glossary.md → 1 catch</span></div><ul class="insights"><li class="ins warn">Never read by any agent: domain/README.md — dead weight, or context you assume is absorbed via CLAUDE.md.</li></ul></div>
 
   <h2>Activity feed</h2>
   <div class="filters">
@@ -7855,8 +7968,160 @@ Nothing was changed by the interrupted step — UC-001 is planned, reviewed (APP
 **Phase 4 — QA (verify).**</div></div></div>
 <div class="feed tool agent"><div class="feed-time">05:42:21</div>
           <div class="feed-body">
-          <div class="feed-who"><span class="agent-badge" style="background:#14b8a6">qa</span> ran <span class="dur">—</span></div>
-          <div class="feed-text">QA: verify UC-001</div></div></div></div>
+          <div class="feed-who"><span class="agent-badge" style="background:#14b8a6">qa</span> ran <span class="dur">2m 10s</span> <span class="verdict clean">APPROVED / PASS</span></div>
+          <div class="feed-text">QA: verify UC-001</div><div class="feed-result">All matches design exactly. Everything verified thoroughly. Now compiling the final report.
+
+## Verification Report: `add-movie-detail`
+
+Verified the working tree (uncommitted) against `openspec/changes/add-movie-detail/{proposal,design,specs,tasks}` and `use-cases/UC-001-retrieve-movie-details.md`.
+
+### Requirement checklist (spec-delta requirements + UC-001 flows)
+
+| # | Requirement / UC-001 fl…</div></div></div>
+<div class="feed assistant"><div class="feed-time">05:44:38</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">`✅ QA — READY. 85 tests, 0 failures; all 10 requirements/flows evidenced (malformed-id 400 proven *before* lookup via `verifyNoInteractions`, optionals verified absent-by-key not null, opaque UUID id, ≥1 genre, `MOVIE_NOT_FOUND`, no bespoke exception); clean architecture, V1 untouched, Testcontainers, demo seed gated. No defects.`
+
+**Phase 5 — Code review.**</div></div></div>
+<div class="feed tool agent"><div class="feed-time">05:44:56</div>
+          <div class="feed-body">
+          <div class="feed-who"><span class="agent-badge" style="background:#f59e0b">senior-dev</span> ran <span class="dur">2m 37s</span> <span class="verdict caught">REQUEST CHANGES</span></div>
+          <div class="feed-text">Code review UC-001</div><div class="feed-result">I&#x27;ve completed a thorough review of the `add-movie-detail` working tree against UC-001, the spec delta, and the standards. Here is my assessment.
+
+## Review coverage
+- Spec artifacts (`proposal`/`design`/`tasks`/`spec.md`), the OpenAPI delta (`movie.yaml`, `movies.yaml`, `common.yaml`, `openapi.yaml`), the generated model/interface, all `catalog.movies` production code, `V2__movies.sql`, the demo…</div></div></div>
+<div class="feed assistant"><div class="feed-time">05:47:48</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">`✅ Code review — APPROVE, clean, no fixes needed. Verified UC-001 fidelity (malformed-400-before-lookup, optional omission, opaque caller-supplied UUID, ≥1 genre enforced in the domain), clean architecture, contract-first no-drift, V2 migration, idempotent profile-gated demo seed, and meaningful tests.`
+
+---
+
+## 🚦 GATE 2 — Commit / archive approval (UC-001)
+
+**Change:** `add-movie-detail` — first catalog feature rebuilt **from a business use case**. QA READY (85 tests), code review APPROVE.
+
+Since this is the `experiment/use-cases` branch (not a PR-to-main), &quot;merge&quot; means: **commit the implem…</div></div></div>
+<div class="feed tool"><div class="feed-time">05:47:51</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">AskUserQuestion</span>
+      <span class="dur">25.6s</span></div>
+      <div class="feed-text mono">{&quot;questions&quot;: [{&quot;question&quot;: &quot;Gate 2: UC-001 (add-movie-detail) passed QA + code review on the experiment branch. Commit and archive?&quot;, &quot;header&quot;: &quot;Gate 2&quot;, &quot;multiSelect&quot;: false, &quot;options&quot;: [{&quot;label&quot;: &quot;</div></div></div>
+<div class="feed assistant"><div class="feed-time">05:48:21</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">Committing the implementation to `experiment/use-cases`:</div></div></div>
+<div class="feed tool"><div class="feed-time">05:48:29</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">Bash</span>
+      <span class="dur">4.4s</span></div>
+      <div class="feed-text mono">git add -A &amp;&amp; git status --short | head -40 &amp;&amp; echo &quot;=== committing ===&quot; &amp;&amp; git commit -q -F - &lt;&lt;&#x27;EOF&#x27; feat(catalog): GET /api/v1/movies/{id} — movie detail, from UC-001 (use-case experiment)  First …</div></div></div>
+<div class="feed assistant"><div class="feed-time">05:48:38</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">Now archive (folds `catalog/movies` into the promoted specs):</div></div></div>
+<div class="feed tool"><div class="feed-time">05:48:39</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">Bash</span>
+      <span class="dur">3.8s</span></div>
+      <div class="feed-text mono">openspec archive add-movie-detail --yes 2&gt;&amp;1 &amp;&amp; echo &quot;=== promoted specs now ===&quot; &amp;&amp; find openspec/specs -name spec.md | sed &#x27;s|/spec.md||;s|openspec/specs/||&#x27; | sort &amp;&amp; echo &quot;=== status ===&quot; &amp;&amp; git …</div></div></div>
+<div class="feed tool"><div class="feed-time">05:48:49</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">Bash</span>
+      <span class="dur">4.5s</span></div>
+      <div class="feed-text mono">git add -A &amp;&amp; git commit -q -F - &lt;&lt;&#x27;EOF&#x27; chore(openspec): archive add-movie-detail, create catalog/movies spec (UC-001)  Fold the UC-001 delta into the promoted specs: create catalog/movies (movie de…</div></div></div>
+<div class="feed assistant"><div class="feed-time">05:49:08</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">Let me verify the push actually landed the latest commits (the range shown looked off):</div></div></div>
+<div class="feed tool"><div class="feed-time">05:49:10</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">Bash</span>
+      <span class="dur">3.9s</span></div>
+      <div class="feed-text mono">git rev-parse HEAD origin/experiment/use-cases; echo &quot;=== are they equal? ===&quot;; [ &quot;$(git rev-parse HEAD)&quot; = &quot;$(git rev-parse origin/experiment/use-cases)&quot; ] &amp;&amp; echo &quot;IN SYNC&quot; || { echo &quot;NOT IN SYNC —…</div></div></div>
+<div class="feed assistant"><div class="feed-time">05:49:25</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">Contradictory output — let me fetch and check the real remote state:</div></div></div>
+<div class="feed tool"><div class="feed-time">05:49:27</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">Bash</span>
+      <span class="dur">3.1s</span></div>
+      <div class="feed-text mono">git fetch origin experiment/use-cases 2&gt;&amp;1 | tail -2; echo &quot;=== local HEAD ===&quot; &amp;&amp; git rev-parse HEAD; echo &quot;=== remote after fetch ===&quot; &amp;&amp; git rev-parse origin/experiment/use-cases; echo &quot;=== log bo…</div></div></div>
+<div class="feed assistant"><div class="feed-time">05:49:58</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">Something&#x27;s off with the git state — my UC-001 commits (`ac1a668`, `f5917f0`) sit on top of two commits I didn&#x27;t make (`5106cae`, `20fb39e` — a &quot;session-report skill&quot;, PRs #21/#22), and `git push` says &quot;up-to-date&quot; while local ≠ remote. That pattern means my commits likely landed on a **detached HEAD**, not the branch. Let me diagnose before touching anything:</div></div></div>
+<div class="feed tool"><div class="feed-time">05:50:02</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">Bash</span>
+      <span class="dur">505ms</span></div>
+      <div class="feed-text mono">echo &quot;=== current branch (empty = detached) ===&quot; &amp;&amp; git branch --show-current; echo &quot;=== HEAD ===&quot; &amp;&amp; git rev-parse HEAD; echo &quot;=== local branches -v ===&quot; &amp;&amp; git branch -vv; echo &quot;=== is 366ddbf an a…</div></div></div>
+<div class="feed assistant"><div class="feed-time">05:50:47</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">I&#x27;ve been committing to **`main`, not `experiment/use-cases`** — the branch switched at some point (main also picked up your `session-report` skill commits #21/#22 and &quot;idea run config&quot; that I didn&#x27;t make). This is a git-state problem I need to untangle carefully without losing the UC-001 work. Let me get the facts about the actual disk state first:</div></div></div>
+<div class="feed tool"><div class="feed-time">05:50:51</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">Bash</span>
+      <span class="dur">2.6s</span></div>
+      <div class="feed-text mono">echo &quot;=== catalog packages on disk (reset = only movies; story = people/credits too) ===&quot; &amp;&amp; ls src/main/java/com/acme/catalog/ 2&gt;/dev/null; echo &quot;=== migrations on disk ===&quot; &amp;&amp; ls src/main/resources…</div></div></div>
+<div class="feed assistant"><div class="feed-time">05:52:30</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">Now I fully understand: the working **tree** is correct (reset + UC-001, coherent — that&#x27;s why the build passed), but my commits landed on **`main`** on top of your `session-report` skill work, instead of on `experiment/use-cases`. No work is lost — it&#x27;s all in commits `ac1a668`/`f5917f0`. I need to (1) move UC-001 onto `experiment/use-cases`, and (2) restore `main` to origin. Let me first enumerate exactly what differs so I bring over *only* UC-001 (not your session-report skill):</div></div></div>
+<div class="feed tool"><div class="feed-time">05:52:34</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">Bash</span>
+      <span class="dur">2.7s</span></div>
+      <div class="feed-text mono">echo &quot;=== safety branch preserving my UC-001 commits ===&quot; &amp;&amp; git branch uc001-safety f5917f0 &amp;&amp; echo &quot;created uc001-safety @ f5917f0&quot;; echo; echo &quot;=== files changed between experiment tip (366ddbf) a…</div></div></div>
+<div class="feed assistant"><div class="feed-time">05:53:14</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">This is more tangled than a simple wrong-branch commit, and you&#x27;re clearly doing git work in parallel — so I&#x27;m going to **stop before anything destructive** and hand you the picture. I&#x27;ve already made the one safe move (a `uc001-safety` branch preserving the UC-001 work). Let me gather a couple more read-only facts:</div></div></div>
+<div class="feed tool"><div class="feed-time">05:53:18</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">Bash</span>
+      <span class="dur">3.2s</span></div>
+      <div class="feed-text mono">echo &quot;=== origin/main tip ===&quot; &amp;&amp; git log --oneline -3 origin/main 2&gt;/dev/null; echo &quot;=== does LOCAL main contain experiment work (use-cases/, EXPERIMENT.md)? ===&quot; &amp;&amp; (git cat-file -e HEAD:EXPERIMENT…</div></div></div>
+<div class="feed assistant"><div class="feed-time">05:53:54</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">I&#x27;ve stopped — this needs your call, because **you&#x27;ve evidently moved the experiment onto `main` in your own terminal**, and I don&#x27;t want to clobber that. Here&#x27;s the true state:
+
+**What I found**
+- **`origin/main` (20fb39e)** already contains the experiment: `EXPERIMENT.md`, the catalog reset, the use-case machinery, tickets removed — **plus** your `session-report` skill (PRs #21/#22) and &quot;idea run config&quot;. So main is now the branch carrying the experiment.
+- **My UC-001 work landed on `main`** (local `main` = `f5917f0`, **2 commits ahead of origin/main**: the UC-001 implementation `ac1a668` …</div></div></div>
+<div class="feed tool"><div class="feed-time">05:54:00</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">AskUserQuestion</span>
+      <span class="dur">35.8s</span></div>
+      <div class="feed-text mono">{&quot;questions&quot;: [{&quot;question&quot;: &quot;origin/main already carries the experiment (EXPERIMENT.md, reset, session-report). Where should the experiment + UC-001 live?&quot;, &quot;header&quot;: &quot;Target branch&quot;, &quot;multiSelect&quot;: f</div></div></div>
+<div class="feed assistant"><div class="feed-time">05:54:47</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">On main it is. Let me fetch first (in case you pushed more to origin/main in parallel), confirm it&#x27;s a clean fast-forward, then push:</div></div></div>
+<div class="feed tool"><div class="feed-time">05:54:48</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">Bash</span>
+      <span class="dur">3.2s</span></div>
+      <div class="feed-text mono">git fetch origin main 2&gt;&amp;1 | tail -2; echo &quot;=== origin/main after fetch ===&quot; &amp;&amp; git rev-parse origin/main; echo &quot;=== local main ===&quot; &amp;&amp; git rev-parse main; echo &quot;=== is origin/main an ancestor of loc…</div></div></div>
+<div class="feed assistant"><div class="feed-time">05:54:57</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">Clean fast-forward. Pushing UC-001 to `main`:</div></div></div>
+<div class="feed tool"><div class="feed-time">05:54:58</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">Bash</span>
+      <span class="dur">5.0s</span></div>
+      <div class="feed-text mono">git push origin main 2&gt;&amp;1 | tail -4; echo &quot;=== verify in sync ===&quot; &amp;&amp; git rev-parse main origin/main; [ &quot;$(git rev-parse main)&quot; = &quot;$(git rev-parse origin/main)&quot; ] &amp;&amp; echo &quot;IN SYNC ✅&quot; || echo &quot;still n…</div></div></div>
+<div class="feed assistant"><div class="feed-time">05:55:12</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">Pushed — UC-001 is on `main` (`20fb39e..f5917f0`), in sync. Cleaning up the temporary safety branch (its job is done; `main` == its content):</div></div></div>
+<div class="feed tool"><div class="feed-time">05:55:14</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">Bash</span>
+      <span class="dur">14.9s</span></div>
+      <div class="feed-text mono">git branch -D uc001-safety &amp;&amp; echo &quot;deleted uc001-safety&quot;; echo &quot;=== branches now ===&quot; &amp;&amp; git branch -vv | grep -E &quot;main|experiment|milestone&quot;; echo &quot;=== build sanity (working tree = main) ===&quot; &amp;&amp; ./…</div></div></div>
+<div class="feed assistant"><div class="feed-time">05:55:40</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">Resolved cleanly. Let me record the process lesson so I don&#x27;t repeat it:</div></div></div>
+<div class="feed tool"><div class="feed-time">05:55:48</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">Write</span>
+      <span class="dur">446ms</span></div>
+      <div class="feed-text mono">/Users/paulrule/.claude/projects/-Users-paulrule-projects-current-sdlc/memory/verify-branch-before-committing.md</div></div></div>
+<div class="feed tool"><div class="feed-time">05:55:53</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">Read</span>
+      <span class="dur">379ms</span></div>
+      <div class="feed-text mono">/Users/paulrule/.claude/projects/-Users-paulrule-projects-current-sdlc/memory/MEMORY.md</div></div></div>
+<div class="feed tool"><div class="feed-time">05:55:59</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">Edit</span>
+      <span class="dur">396ms</span></div>
+      <div class="feed-text mono">/Users/paulrule/.claude/projects/-Users-paulrule-projects-current-sdlc/memory/MEMORY.md</div></div></div>
+<div class="feed assistant"><div class="feed-time">05:56:12</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">Sorted. **UC-001 is complete and correctly on `main`.**
+
+## Where things stand
+- **`main`** (`f5917f0`, pushed, in sync) — carries the experiment: the use-case machinery, catalog reset, your `session-report` skill, and now **UC-001 (`GET /api/v1/movies/{id}`) rebuilt from a business use case**. Build green, 85 tests.
+- **`experiment/use-cases`** (`366ddbf`) — the older experiment line; now **redundant** (no session-report, no UC-001 impl). Left in place — say the word if you want it deleted.
+- **`milestones/movies-1`** — the story-driven snapshot, untouched, for comparison.
+
+## What happened …</div></div></div></div>
 </div>
 <script>
 const btns=[...document.querySelectorAll('.filters button')];
