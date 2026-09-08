@@ -1,0 +1,76 @@
+get:
+  operationId: getMovies
+  tags: [movies]
+  summary: Search/browse the movie catalog
+  description: >-
+    Public, read-only search/browse of the movie catalog as an ordered, paged
+    collection of movie summaries. All criteria are optional and combine
+    conjunctively; supplying none browses the whole catalog.
+  security: []
+  parameters:
+    - $ref: '../openapi.yaml#/components/parameters/CorrelationId'
+    - $ref: '../openapi.yaml#/components/parameters/Page'
+    - $ref: '../openapi.yaml#/components/parameters/Size'
+    - name: title
+      in: query
+      required: false
+      description: Case-insensitive substring match on title.
+      schema:
+        type: string
+    - name: genre
+      in: query
+      required: false
+      style: form
+      explode: true
+      description: >-
+        One or more genres; a movie matches only if it carries all supplied
+        genres.
+      schema:
+        type: array
+        items:
+          $ref: '../openapi.yaml#/components/schemas/Genre'
+    - name: releaseYearFrom
+      in: query
+      required: false
+      description: Inclusive lower bound on release year.
+      schema:
+        type: integer
+    - name: releaseYearTo
+      in: query
+      required: false
+      description: Inclusive upper bound on release year.
+      schema:
+        type: integer
+    - name: minRating
+      in: query
+      required: false
+      description: >-
+        Inclusive minimum aggregate rating (0-5). Movies with no recorded
+        rating are excluded when supplied.
+      schema:
+        type: number
+        minimum: 0
+        maximum: 5
+    - name: sort
+      in: query
+      required: false
+      description: >-
+        Sort field and direction as `field,direction`. Supported fields:
+        `title`, `releaseYear`, `rating`. Directions: `asc`, `desc`.
+      schema:
+        type: string
+        default: releaseYear,desc
+  responses:
+    '200':
+      description: A page of movie summaries
+      headers:
+        X-Correlation-Id:
+          $ref: '../openapi.yaml#/components/headers/CorrelationId'
+      content:
+        application/json:
+          schema:
+            $ref: '../openapi.yaml#/components/schemas/MovieSummaryCollectionEnvelope'
+    '400':
+      $ref: '../openapi.yaml#/components/responses/BadRequest'
+    '500':
+      $ref: '../openapi.yaml#/components/responses/InternalError'
