@@ -59,3 +59,53 @@ MovieDetailEnvelope:
       $ref: '#/MovieDetailData'
     meta:
       $ref: '../../openapi.yaml#/components/schemas/Meta'
+
+MovieSummary:
+  type: object
+  required: [id, title, releaseYear, genres, _links]
+  properties:
+    id:
+      type: string
+      format: uuid
+    title:
+      type: string
+    releaseYear:
+      type: integer
+    genres:
+      type: array
+      minItems: 1
+      items:
+        $ref: '#/Genre'
+    runtimeMinutes:
+      type: integer
+      minimum: 1
+    rating:
+      type: number
+      minimum: 0
+      maximum: 5
+    _links:
+      $ref: '../../openapi.yaml#/components/schemas/MovieLinks'
+
+MovieSummaryCollectionData:
+  type: object
+  required: [_embedded, _links]
+  properties:
+    _embedded:
+      type: object
+      required: [movies]
+      properties:
+        movies:
+          type: array
+          items:
+            $ref: '#/MovieSummary'
+    _links:
+      $ref: '../../openapi.yaml#/components/schemas/MovieCollectionLinks'
+
+MovieSummaryCollectionEnvelope:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      $ref: '#/MovieSummaryCollectionData'
+    meta:
+      $ref: '../../openapi.yaml#/components/schemas/Meta'
