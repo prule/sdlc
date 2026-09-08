@@ -97,6 +97,15 @@ public class SampleController implements SampleApi {
     return new Link(href);
   }
 
+  /**
+   * Builds the pagination navigation links via {@link #pageLink(int, int)}, which forwards every
+   * handler argument (currently only {@code page}/{@code size}; {@code listSamples} has no
+   * filter/sort query params today) into the {@code methodOn(...).listSamples(...)} call. This
+   * mirrors the pattern in {@code MovieController.collectionLinks}: if/when this endpoint gains a
+   * filter or sort query param, add it as a {@link #pageLink(int, int)} argument and forward it
+   * unchanged here so every emitted link preserves it by default, per {@code standards/openapi.md}
+   * §2a.
+   */
   private static SampleCollectionLinks collectionLinks(SamplePage samplePage) {
     int page = samplePage.page();
     int size = samplePage.size();

@@ -82,6 +82,7 @@ public class MovieController implements MoviesApi {
             title, toDomainGenres(genre), releaseYearFrom, releaseYearTo, minRating);
     MoviePageRequest pageRequest = new MoviePageRequest(page, size);
     MovieSort movieSort = MovieSort.parse(sort);
+    String sortForLink = movieSort.equals(MovieSort.defaultSort()) ? null : sort;
 
     MoviePage moviePage = searchMoviesUseCase.search(criteria, pageRequest, movieSort);
     String correlationId = CorrelationId.current();
@@ -91,7 +92,9 @@ public class MovieController implements MoviesApi {
 
     MovieSummaryCollectionData data =
         new MovieSummaryCollectionData(
-            new MovieSummaryCollectionDataEmbedded(summaries), collectionLinks(moviePage));
+            new MovieSummaryCollectionDataEmbedded(summaries),
+            collectionLinks(
+                moviePage, title, genre, releaseYearFrom, releaseYearTo, minRating, sortForLink));
 
     Meta meta =
         new Meta(OffsetDateTime.now(ZoneOffset.UTC), UUID.fromString(correlationId))
@@ -150,28 +153,65 @@ public class MovieController implements MoviesApi {
     return new Link(linkTo(methodOn(MoviesApi.class).getMovieById(id, null)).toUri());
   }
 
-  private static MovieCollectionLinks collectionLinks(MoviePage moviePage) {
+  private static MovieCollectionLinks collectionLinks(
+      MoviePage moviePage,
+      String title,
+      List<Genre> genre,
+      Integer releaseYearFrom,
+      Integer releaseYearTo,
+      BigDecimal minRating,
+      String sort) {
     int page = moviePage.page();
     int size = moviePage.size();
     int totalPages = moviePage.totalPages();
 
-    MovieCollectionLinks links = new MovieCollectionLinks(pageLink(page, size));
-    links.first(pageLink(0, size));
-    links.last(pageLink(Math.max(totalPages - 1, 0), size));
+    MovieCollectionLinks links =
+        new MovieCollectionLinks(
+            pageLink(page, size, title, genre, releaseYearFrom, releaseYearTo, minRating, sort));
+    links.first(pageLink(0, size, title, genre, releaseYearFrom, releaseYearTo, minRating, sort));
+    links.last(
+        pageLink(
+            Math.max(totalPages - 1, 0),
+            size,
+            title,
+            genre,
+            releaseYearFrom,
+            releaseYearTo,
+            minRating,
+            sort));
     if (page > 0) {
-      links.prev(pageLink(page - 1, size));
+      links.prev(
+          pageLink(page - 1, size, title, genre, releaseYearFrom, releaseYearTo, minRating, sort));
     }
     if (page < totalPages - 1) {
-      links.next(pageLink(page + 1, size));
+      links.next(
+          pageLink(page + 1, size, title, genre, releaseYearFrom, releaseYearTo, minRating, sort));
     }
     return links;
   }
 
-  private static Link pageLink(int page, int size) {
+  private static Link pageLink(
+      int page,
+      int size,
+      String title,
+      List<Genre> genre,
+      Integer releaseYearFrom,
+      Integer releaseYearTo,
+      BigDecimal minRating,
+      String sort) {
     return new Link(
         linkTo(
                 methodOn(MoviesApi.class)
-                    .getMovies(null, page, size, null, null, null, null, null, null))
+                    .getMovies(
+                        null,
+                        page,
+                        size,
+                        title,
+                        genre,
+                        releaseYearFrom,
+                        releaseYearTo,
+                        minRating,
+                        sort))
             .toUri());
   }
 }

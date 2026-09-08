@@ -102,6 +102,14 @@ FooLinks:
   controller **must** be class-annotated `@Validated` for those constraints to be enforced —
   without it, invalid input silently reaches the handler and falls through to a generic `500`
   instead of `400` (see `standards/error-handling.md`).
+- **Preserving filter/sort params**: pagination navigation links (`self`, `first`, `last`,
+  `prev`, `next`) MUST preserve every filter and sort query parameter that was present on the
+  originating request, unchanged — each link differs from `self` only in its `page` value
+  (keeping the requested `size`), so following any link walks the *same* filtered, sorted result
+  set rather than a broader, unfiltered, or default-sorted one. Only parameters actually present
+  on the request are echoed: an omitted filter or a sort left at its server default MUST remain
+  absent from the generated links — never re-serialize a parsed/defaulted value back onto the
+  link, as that leaks a default the client never asked for.
 - **Media types**: success stays `application/json` (HAL fields embedded in `data`, not
   `application/hal+json` — the document root is the Envelope, not a pure HAL resource). Errors stay
   `application/problem+json`, conform to the shared `Problem` schema, and never carry
