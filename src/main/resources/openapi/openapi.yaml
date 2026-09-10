@@ -14,6 +14,8 @@ tags:
       convention. Not a real catalog capability.
   - name: movies
     description: Public catalog movie detail and search/browse.
+  - name: people
+    description: Public catalog person detail.
 security:
   - bearerAuth: []
 paths:
@@ -27,6 +29,8 @@ paths:
     $ref: 'paths/movies.yaml'
   /movies/{id}/credits:
     $ref: 'paths/movies-credits.yaml'
+  /people/{id}:
+    $ref: 'paths/people.yaml'
 components:
   securitySchemes:
     bearerAuth:
@@ -56,6 +60,8 @@ components:
       $ref: 'components/schemas/common.yaml#/MovieCollectionLinks'
     CreditsLinks:
       $ref: 'components/schemas/common.yaml#/CreditsLinks'
+    PersonLinks:
+      $ref: 'components/schemas/common.yaml#/PersonLinks'
     PingData:
       $ref: 'components/schemas/health.yaml#/PingData'
     PingEnvelope:
@@ -90,6 +96,10 @@ components:
       $ref: 'components/schemas/movie.yaml#/MovieCreditsData'
     MovieCreditsEnvelope:
       $ref: 'components/schemas/movie.yaml#/MovieCreditsEnvelope'
+    PersonDetail:
+      $ref: 'components/schemas/person.yaml#/PersonDetail'
+    PersonDetailEnvelope:
+      $ref: 'components/schemas/person.yaml#/PersonDetailEnvelope'
   responses:
     BadRequest:
       $ref: 'components/responses/common.yaml#/BadRequest'
