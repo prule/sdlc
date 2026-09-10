@@ -18,3 +18,53 @@ PersonDetailEnvelope:
       $ref: '#/PersonDetail'
     meta:
       $ref: '../../openapi.yaml#/components/schemas/Meta'
+
+CapacityType:
+  type: string
+  enum: [acting, non-acting]
+
+Capacity:
+  type: object
+  required: [type]
+  properties:
+    type:
+      $ref: '#/CapacityType'
+    character:
+      type: string
+    department:
+      type: string
+    job:
+      type: string
+
+FilmographyEntry:
+  type: object
+  required: [movie, capacity]
+  properties:
+    movie:
+      $ref: '../../openapi.yaml#/components/schemas/MovieSummary'
+    capacity:
+      $ref: '#/Capacity'
+
+PersonFilmographyData:
+  type: object
+  required: [_embedded, _links]
+  properties:
+    _embedded:
+      type: object
+      required: [filmography]
+      properties:
+        filmography:
+          type: array
+          items:
+            $ref: '#/FilmographyEntry'
+    _links:
+      $ref: '../../openapi.yaml#/components/schemas/PersonFilmographyLinks'
+
+PersonFilmographyEnvelope:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      $ref: '#/PersonFilmographyData'
+    meta:
+      $ref: '../../openapi.yaml#/components/schemas/Meta'

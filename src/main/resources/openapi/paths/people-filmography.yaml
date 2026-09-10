@@ -1,0 +1,54 @@
+get:
+  operationId: getPersonFilmography
+  tags: [people]
+  summary: Retrieve a person's filmography (person-side credits)
+  description: >-
+    Public, read-only retrieval of a person's filmography — the movies that
+    person is credited in, viewed from the person side — as an ordered, paged
+    collection of movie summaries each annotated with exactly one capacity.
+  security: []
+  parameters:
+    - $ref: '../openapi.yaml#/components/parameters/CorrelationId'
+    - name: id
+      in: path
+      required: true
+      description: The person's stable, opaque identifier.
+      schema:
+        type: string
+        format: uuid
+    - $ref: '../openapi.yaml#/components/parameters/Page'
+    - $ref: '../openapi.yaml#/components/parameters/Size'
+    - name: capacity
+      in: query
+      required: false
+      description: Restrict to entries of this coarse capacity type.
+      schema:
+        $ref: '../openapi.yaml#/components/schemas/CapacityType'
+    - name: releaseYearFrom
+      in: query
+      required: false
+      description: Inclusive lower bound on the movie's release year.
+      schema:
+        type: integer
+    - name: releaseYearTo
+      in: query
+      required: false
+      description: Inclusive upper bound on the movie's release year.
+      schema:
+        type: integer
+  responses:
+    '200':
+      description: A page of the person's filmography
+      headers:
+        X-Correlation-Id:
+          $ref: '../openapi.yaml#/components/headers/CorrelationId'
+      content:
+        application/json:
+          schema:
+            $ref: '../openapi.yaml#/components/schemas/PersonFilmographyEnvelope'
+    '400':
+      $ref: '../openapi.yaml#/components/responses/BadRequest'
+    '404':
+      $ref: '../openapi.yaml#/components/responses/NotFound'
+    '500':
+      $ref: '../openapi.yaml#/components/responses/InternalError'

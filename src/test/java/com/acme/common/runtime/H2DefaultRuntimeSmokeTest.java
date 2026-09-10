@@ -94,6 +94,15 @@ class H2DefaultRuntimeSmokeTest {
   }
 
   @Test
+  void personCreditsLinkFromPersonDetailNowResolvesOnDefaultH2Runtime() {
+    ResponseEntity<String> response =
+        restTemplate.getForEntity(
+            "/people/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa/credits", String.class);
+
+    assertThat(response.getStatusCode().value()).isEqualTo(200);
+  }
+
+  @Test
   void swaggerUiIsServedPubliclyOnDefaultH2Runtime() {
     ResponseEntity<String> response =
         restTemplate.getForEntity("/swagger-ui/index.html", String.class);

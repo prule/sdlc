@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.acme.catalog.people.application.port.in.GetPersonDetailUseCase;
+import com.acme.catalog.people.application.port.in.GetPersonFilmographyUseCase;
 import com.acme.catalog.people.domain.model.Person;
 import com.acme.common.error.GlobalExceptionHandler;
 import com.acme.common.error.ResourceNotFoundException;
@@ -41,6 +42,8 @@ class PersonControllerTest {
   @Autowired private MockMvc mockMvc;
 
   @MockitoBean private GetPersonDetailUseCase getPersonDetailUseCase;
+
+  @MockitoBean private GetPersonFilmographyUseCase getPersonFilmographyUseCase;
 
   @Test
   void getPersonById_existingPerson_returns200WithIdAndNameAndLinksAndNoBiographicalFields()
