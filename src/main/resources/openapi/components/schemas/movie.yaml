@@ -109,3 +109,64 @@ MovieSummaryCollectionEnvelope:
       $ref: '#/MovieSummaryCollectionData'
     meta:
       $ref: '../../openapi.yaml#/components/schemas/Meta'
+
+CreditPerson:
+  type: object
+  required: [id, name]
+  properties:
+    id:
+      type: string
+      format: uuid
+    name:
+      type: string
+
+CastCredit:
+  type: object
+  required: [person, billingOrder]
+  properties:
+    person:
+      $ref: '#/CreditPerson'
+    character:
+      type: string
+    billingOrder:
+      type: integer
+      minimum: 1
+
+CrewCredit:
+  type: object
+  required: [person, department, job]
+  properties:
+    person:
+      $ref: '#/CreditPerson'
+    department:
+      type: string
+    job:
+      type: string
+
+MovieCreditsData:
+  type: object
+  required: [_embedded, _links]
+  properties:
+    _embedded:
+      type: object
+      required: [cast, crew]
+      properties:
+        cast:
+          type: array
+          items:
+            $ref: '#/CastCredit'
+        crew:
+          type: array
+          items:
+            $ref: '#/CrewCredit'
+    _links:
+      $ref: '../../openapi.yaml#/components/schemas/CreditsLinks'
+
+MovieCreditsEnvelope:
+  type: object
+  required: [data, meta]
+  properties:
+    data:
+      $ref: '#/MovieCreditsData'
+    meta:
+      $ref: '../../openapi.yaml#/components/schemas/Meta'
