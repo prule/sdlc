@@ -5,7 +5,7 @@
 **Goal:** Obtain the full list of people who worked on a known movie — its **cast** (performers and the characters they played) and its **crew** (non-acting contributors and their roles) — each presented in a meaningful order, so the consumer can display a movie's credits in their own app.
 **Scope:** The movie catalog (the public read API).
 **Level:** User-goal
-**Status:** Draft
+**Status:** Ready (open questions resolved by the author; see Resolved decisions)
 
 ## Preconditions
 - The catalog contains movie data curated out-of-band (this use case only reads it).
@@ -50,6 +50,9 @@
 - Retrieving the movie's own detail (UC-001) or searching the catalog (UC-002) — those are the routes by which the consumer arrives here, not performed here.
 - Introducing controlled vocabularies for crew area/role, or any create/update/delete of catalog data.
 
-## Open questions (need a human decision before/at Gate 1)
-- **Onward navigation to a person's detail** assumes people are independently addressable. In the catalog's **current** state there is no standalone person resource, so onward navigation cannot yet be offered. Decision needed: does UC-003 ship with credited people named-only (identifier + name, no onward link) and gain the link when the people capability lands, or is a minimal person-detail capability a prerequisite delivered alongside it? (See ROADMAP.md — this is the credits → people ordering.)
-- **Missing character on a cast credit:** is a cast credit ever recorded without a character (e.g. an uncredited or "as self" appearance), and if so should the character simply be omitted (6a) or is a character always required? Confirm with the domain owner.
+## Resolved decisions (settled with the author)
+- **Onward navigation to a person's detail — named-only now, link later.** UC-003 ships with each credited person identified by **identifier and name only, with no onward link** [BR-9], because no standalone person resource exists yet. When person detail (UC-004) lands, the credits response gains the onward person link **without any other change** — this is an additive follow-up, not a breaking change. UC-003 therefore stays the smallest next increment and does **not** pull person-detail in as a prerequisite. (See ROADMAP.md — credits → people ordering.)
+- **Missing character on a cast credit — optional, omitted when absent.** A cast credit may be recorded without a character (e.g. an uncredited appearance or "as self"). When absent, the character is simply omitted from that entry rather than shown empty or blocking the credit (flow 6a, [BR-4]).
+
+## Open questions
+- None outstanding.

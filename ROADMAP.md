@@ -22,18 +22,18 @@ case?"; keep it in step with `use-cases/`, `tickets/`, `domain/bounded-contexts.
 ## Next 🔜
 | Ref | Capability | Use case | Depends on | Notes |
 |-----|------------|----------|------------|-------|
-| UC-003 / CAT-003 | **View a movie's cast & crew** — a movie's credits from the *movie* side | [`use-cases/UC-003-view-movie-credits.md`](use-cases/UC-003-view-movie-credits.md) (Draft) | Movie (done) | Introduces Person/Credit modelling. Smallest next increment; unlocks the people capabilities below. Onward navigation to a person's own detail is deferred until UC-004 (see UC-003 open questions). |
+| UC-003 / CAT-003 | **View a movie's cast & crew** — a movie's credits from the *movie* side | [`use-cases/UC-003-view-movie-credits.md`](use-cases/UC-003-view-movie-credits.md) (Ready) | Movie (done) | Introduces Person/Credit modelling. Smallest next increment; unlocks the people capabilities below. **Resolved:** credited people are named-only now; the onward person link is added when UC-004 lands. |
 
-## Defined 📝 (use case drafted, not yet built)
-Ordered by dependency. Each use case is authored as a **Draft**; resolve its open questions before taking it through the SDLC pipeline. The **people track** (UC-004 → 005 → 006) is sequential; the **genres/keywords** and **ratings/reviews** tracks depend only on Movie and can be scheduled independently.
+## Defined 📝 (use case Ready, not yet built)
+Ordered by dependency; all open questions resolved (each use case is **Ready** for the SDLC pipeline). The **people track** (UC-004 → 005 → 006) is sequential; the **genres/keywords** and **reviews** tracks depend only on Movie and can be scheduled independently.
 
 | Ref | Capability | Use case | Depends on | Why it comes here |
 |-----|------------|----------|------------|-------------------|
-| UC-004 / CAT-004 | **Person detail** — Person as an independently addressable resource (id, name, links) | [`UC-004`](use-cases/UC-004-retrieve-person-details.md) (Draft) | UC-003 (Person/Credit modelling exists) | Makes credited people navigable; completes UC-003's deferred onward link. |
-| UC-005 / CAT-005 | **Person filmography** — the movies a person is credited in, from the *person* side (paginated) | [`UC-005`](use-cases/UC-005-view-person-filmography.md) (Draft) | UC-004 | The inverse of a movie's credits; reuses the credits/movies data from the person side. |
-| UC-006 / CAT-006 | **Search & list people** — name-filtered, paginated, sorted by name | [`UC-006`](use-cases/UC-006-search-people.md) (Draft) | UC-004 | The person-side analogue of movie search (UC-002). |
-| UC-007 | **Browse genres & keywords, and discover movies by them** | [`UC-007`](use-cases/UC-007-browse-genres-and-keywords.md) (Draft) | Movie (done) | Independent of the people track; could be pulled forward. Carries a real scope-split decision (see its open questions). |
-| UC-008 | **Ratings & reviews** — a movie's aggregate rating and its curated reviews (read-only) | [`UC-008`](use-cases/UC-008-view-movie-ratings-and-reviews.md) (Draft) | Movie (done) | Aggregate rating already surfaces on detail/summary; this adds the reviews sub-resource. |
+| UC-004 / CAT-004 | **Person detail** — Person as an independently addressable resource (id, name, links) | [`UC-004`](use-cases/UC-004-retrieve-person-details.md) (Ready) | UC-003 (Person/Credit modelling exists) | Makes credited people navigable; completes UC-003's deferred onward link. |
+| UC-005 / CAT-005 | **Person filmography** — the movies a person is credited in, from the *person* side (paginated, filterable by capacity + year) | [`UC-005`](use-cases/UC-005-view-person-filmography.md) (Ready) | UC-004 | The inverse of a movie's credits; reuses the credits/movies data from the person side. |
+| UC-006 / CAT-006 | **Search & list people** — name-filtered, paginated, sorted by name | [`UC-006`](use-cases/UC-006-search-people.md) (Ready) | UC-004 | The person-side analogue of movie search (UC-002). |
+| UC-007 | **Browse genres & keywords + keyword filter on movie search** | [`UC-007`](use-cases/UC-007-browse-genres-and-keywords.md) (Ready) | Movie (done); keyword filter extends UC-002/CAT-002 | **Resolved:** keyword discovery is a **new filter on movie search** (like genre), not a separate endpoint. May be split so keyword *listing* ships later. |
+| UC-008 | **Movie reviews** — curated read-only reviews sub-resource (aggregate rating stays on detail) | [`UC-008`](use-cases/UC-008-view-movie-reviews.md) (Ready) | Movie (done) | **Resolved:** reviews-only; the aggregate rating already surfaces on detail/summary (UC-001/002) and is not duplicated here. |
 
 ## Ideas 💡 (not yet shaped)
 - Keyword-based discovery / "more like this" across movies.

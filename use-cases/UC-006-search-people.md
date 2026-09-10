@@ -5,7 +5,7 @@
 **Goal:** Find people without already knowing an identifier — browse the people in the catalog and narrow them by name, seeing a manageable, ordered portion at a time — so the consumer can present a browsable/searchable list of people in their own app.
 **Scope:** The movie catalog (the public read API).
 **Level:** User-goal
-**Status:** Draft
+**Status:** Ready (open questions resolved by the author; see Resolved decisions)
 
 ## Preconditions
 - The catalog contains person data curated out-of-band (this use case only reads it). People exist by virtue of being credited on movies.
@@ -49,5 +49,8 @@
 - Filtering people by anything other than name (see [BR-5]); no role/department/known-for facets.
 - Any create, update, or delete of catalog data.
 
-## Open questions (need a human decision before/at Gate 1)
-- **Name-match scope:** the name term matches the person's single stored name as a substring [BR-5]. If names are ever split into given/family parts, or a person has alternate/stage names, confirm whether the match should span those. Current scope assumes one whole-name substring match.
+## Resolved decisions (settled with the author)
+- **Whole-name substring match.** The name term matches the person's **single stored name** as a case-insensitive substring [BR-5]. Names are **not** split into given/family parts, and there is **no** alternate/stage-name matching. If the catalog later models name parts or alternate names, extending the match to span them is an additive change; it is out of scope now.
+
+## Open questions
+- None outstanding.

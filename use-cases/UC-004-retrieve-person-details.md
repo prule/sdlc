@@ -5,7 +5,7 @@
 **Goal:** Obtain the core details of a single known person — an individual who worked on movies — and the means to navigate onward to the movies they are credited in, so the consumer can present a person's page in their own app.
 **Scope:** The movie catalog (the public read API).
 **Level:** User-goal
-**Status:** Draft
+**Status:** Ready (open questions resolved by the author; see Resolved decisions)
 
 ## Preconditions
 - The catalog contains person data curated out-of-band (this use case only reads it). People exist in the catalog by virtue of being credited on movies.
@@ -39,5 +39,8 @@
 - Presenting a movie's credits from the *movie* side (UC-003).
 - Any create, update, or delete of catalog data.
 
-## Open questions (need a human decision before/at Gate 1)
-- **Person identity beyond a name:** the catalog currently models a person as identifier + name only [BR-3]. If two different real people share a name, only the identifier distinguishes them; there is no disambiguating field. Confirm this is acceptable for consumers, or whether a minimal disambiguator is ever needed.
+## Resolved decisions (settled with the author)
+- **No disambiguator beyond the identifier.** The catalog models a person as **identifier + name only** [BR-3]; when two different real people share a name, the **stable identifier is the sole distinguisher** and that is acceptable. No additional disambiguating field (birth year, "known for", etc.) is introduced now. If a real need to disambiguate by display later emerges, it is an additive change to the person representation, not a change to identity.
+
+## Open questions
+- None outstanding.
