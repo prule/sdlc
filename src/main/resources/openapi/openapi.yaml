@@ -25,6 +25,8 @@ paths:
     $ref: 'paths/movies-collection.yaml'
   /movies/{id}:
     $ref: 'paths/movies.yaml'
+  /movies/{id}/credits:
+    $ref: 'paths/movies-credits.yaml'
 components:
   securitySchemes:
     bearerAuth:
@@ -52,6 +54,8 @@ components:
       $ref: 'components/schemas/common.yaml#/MovieLinks'
     MovieCollectionLinks:
       $ref: 'components/schemas/common.yaml#/MovieCollectionLinks'
+    CreditsLinks:
+      $ref: 'components/schemas/common.yaml#/CreditsLinks'
     PingData:
       $ref: 'components/schemas/health.yaml#/PingData'
     PingEnvelope:
@@ -76,6 +80,16 @@ components:
       $ref: 'components/schemas/movie.yaml#/MovieSummaryCollectionData'
     MovieSummaryCollectionEnvelope:
       $ref: 'components/schemas/movie.yaml#/MovieSummaryCollectionEnvelope'
+    CreditPerson:
+      $ref: 'components/schemas/movie.yaml#/CreditPerson'
+    CastCredit:
+      $ref: 'components/schemas/movie.yaml#/CastCredit'
+    CrewCredit:
+      $ref: 'components/schemas/movie.yaml#/CrewCredit'
+    MovieCreditsData:
+      $ref: 'components/schemas/movie.yaml#/MovieCreditsData'
+    MovieCreditsEnvelope:
+      $ref: 'components/schemas/movie.yaml#/MovieCreditsEnvelope'
   responses:
     BadRequest:
       $ref: 'components/responses/common.yaml#/BadRequest'

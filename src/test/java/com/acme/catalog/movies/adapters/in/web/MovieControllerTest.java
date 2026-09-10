@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.acme.catalog.movies.application.port.in.GetMovieCreditsUseCase;
 import com.acme.catalog.movies.application.port.in.GetMovieDetailUseCase;
 import com.acme.catalog.movies.application.port.in.SearchMoviesUseCase;
 import com.acme.catalog.movies.domain.model.Genre;
@@ -52,6 +53,8 @@ class MovieControllerTest {
 
   @MockitoBean private SearchMoviesUseCase searchMoviesUseCase;
 
+  @MockitoBean private GetMovieCreditsUseCase getMovieCreditsUseCase;
+
   @Test
   void getMovieById_existingMovieWithAllOptionalFields_returns200WithAllFieldsAndSelfLink()
       throws Exception {
@@ -80,6 +83,10 @@ class MovieControllerTest {
         .andExpect(jsonPath("$.data.rating").value(4.5))
         .andExpect(
             jsonPath("$.data._links.self.href", org.hamcrest.Matchers.endsWith("/movies/" + id)))
+        .andExpect(
+            jsonPath(
+                "$.data._links.credits.href",
+                org.hamcrest.Matchers.endsWith("/movies/" + id + "/credits")))
         .andExpect(jsonPath("$.meta.correlationId").exists())
         .andExpect(jsonPath("$.meta.timestamp").exists());
   }

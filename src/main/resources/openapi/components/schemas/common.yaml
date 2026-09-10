@@ -83,6 +83,15 @@ MovieLinks:
   properties:
     self:
       $ref: '#/Link'
+    credits:
+      $ref: '#/Link'
+
+CreditsLinks:
+  type: object
+  required: [self]
+  properties:
+    self:
+      $ref: '#/Link'
 
 MovieCollectionLinks:
   type: object
