@@ -31,6 +31,8 @@ paths:
     $ref: 'paths/movies-credits.yaml'
   /people/{id}:
     $ref: 'paths/people.yaml'
+  /people/{id}/credits:
+    $ref: 'paths/people-filmography.yaml'
 components:
   securitySchemes:
     bearerAuth:
@@ -62,6 +64,8 @@ components:
       $ref: 'components/schemas/common.yaml#/CreditsLinks'
     PersonLinks:
       $ref: 'components/schemas/common.yaml#/PersonLinks'
+    PersonFilmographyLinks:
+      $ref: 'components/schemas/common.yaml#/PersonFilmographyLinks'
     PingData:
       $ref: 'components/schemas/health.yaml#/PingData'
     PingEnvelope:
@@ -100,6 +104,16 @@ components:
       $ref: 'components/schemas/person.yaml#/PersonDetail'
     PersonDetailEnvelope:
       $ref: 'components/schemas/person.yaml#/PersonDetailEnvelope'
+    CapacityType:
+      $ref: 'components/schemas/person.yaml#/CapacityType'
+    Capacity:
+      $ref: 'components/schemas/person.yaml#/Capacity'
+    FilmographyEntry:
+      $ref: 'components/schemas/person.yaml#/FilmographyEntry'
+    PersonFilmographyData:
+      $ref: 'components/schemas/person.yaml#/PersonFilmographyData'
+    PersonFilmographyEnvelope:
+      $ref: 'components/schemas/person.yaml#/PersonFilmographyEnvelope'
   responses:
     BadRequest:
       $ref: 'components/responses/common.yaml#/BadRequest'
