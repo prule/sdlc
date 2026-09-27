@@ -89,9 +89,15 @@ read / are helping or hindering:
   return an instant "launched" stub; their real duration and output arrive later
   in a `<task-notification>`. The script correlates the two by tool-use-id, so
   async agents are timed correctly — don't "fix" the near-instant stub yourself.
+- **Resumes & hand-backs:** a `SendMessage` to an already-spawned agent, such as
+  an architect revision or a spec re-review, counts as another run of that
+  subagent. A run's result is its `[Subagent hand-back]` peer message when there
+  is one, because the notification then holds only a pointer. So correction
+  loops appear in the run counts and in the gate verdicts.
 - **Verdict detection is heuristic** — it keys off formal tokens
-  (`REQUEST CHANGES`, uppercase `CRITICAL`/`FAIL`, ❌) with a "no/0 critical"
-  guard. It's good, not perfect; the on-screen snippet lets the reader verify.
+  (`REQUEST CHANGES`, `NOT READY`, uppercase `CRITICAL`/`FAIL`, ❌) with a
+  "no/0 critical" guard. An approving gate that fixed or logged something
+  shows as `FIXED IN PLACE` or `DEFECT LOGGED`, and counts as a catch. It's good, not perfect; the on-screen snippet lets the reader verify.
   A couple of runs may show verdict `—` when unclassifiable.
 - Standard library only (Python 3.8+); no dependencies, no network.
 - Full documentation and the report anatomy: see the README beside this file.

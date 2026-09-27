@@ -118,6 +118,19 @@ def parse_notification(text):
     }
 
 
+def parse_handback(ev):
+    """A subagent's final report delivered as a peer message (the SubagentHandback
+    path). Its task-notification then carries only a pointer ("delivered to you as
+    a message"), so the verdict text lives here. Returns (agent_id, report) or None."""
+    origin = ev.get("origin") or {}
+    body = origin.get("body") or ""
+    if origin.get("kind") != "peer" or "[Subagent hand-back]" not in body:
+        return None
+    report = body.split("The report follows:", 1)[-1]
+    report = "\n".join(l[2:] if l.startswith("  ") else l for l in report.splitlines())
+    return origin.get("from") or origin.get("senderTaskId"), report.strip()
+
+
 # --------------------------------------------------------------------------- #
 # Review-verdict classification
 # --------------------------------------------------------------------------- #
@@ -133,8 +146,9 @@ def classify_review(text):
     tl = t.lower()
 
     def issue_count():
+        # allow one qualifier word: "3 blocking findings", "2 real bugs"
         nums = [int(m) for m in re.findall(
-            r"\b(\d{1,3})\s+(?:issue|finding|defect|bug|blocker|problem|violation)s?\b", tl)]
+            r"(?<![§.#\w])(\d{1,2})\s+(?:[a-z-]+\s+)?(?:issue|finding|defect|bug|blocker|problem|violation)s?\b", tl)]
         explicit = max(nums) if nums else 0
         sev = t.count("❌") + len(re.findall(r"\bCRITICAL\b", t))
         return min(99, max(explicit, sev))
@@ -149,6 +163,18 @@ def classify_review(text):
     # 1) formal "REQUEST CHANGES" gate verdict — unambiguous
     if re.search(r"request[ _-]?changes", tl):
         return "REQUEST CHANGES", True, issue_count(), snippet_near("request change")
+    if re.search(r"\bNOT READY\b", t):
+        return "NOT READY", True, issue_count(), snippet_near("NOT READY")
+
+    # 1b) approved, but the gate found/fixed something on the way (QA logging a
+    #     defect, senior-dev fixing in place) — still a catch, not a rubber stamp
+    fixed = re.search(r"\b(?:i fixed|fixes (?:to|applied)|fixed the|fixes i applied)\b"
+                      r"(?![^a-z]*(?:none|nothing|n/a)\b)", tl)   # not "Fixes applied: none"
+    found = re.search(r"^#+\s*defects? found|(?<!no )\bdefect found\b|\bstandards? violation\b", tl, re.M)
+    if fixed or found:
+        label = "FIXED IN PLACE" if fixed else "DEFECT LOGGED"
+        return label, True, max(1, issue_count()), snippet_near(
+            "fixed", "fixes", "defect found", "violation")
 
     # 2) hard catch signals: uppercase severity labels, ❌, or "critical <noun>".
     #    Guarded so "no/0/zero critical" isn't counted as a catch.
@@ -156,7 +182,7 @@ def classify_review(text):
         and not re.search(r"\b[1-9]\d*\s+critical", tl)
     has_critical = bool(re.search(r"\bCRITICAL\b", t)) and not only_clean_critical
     if (has_critical or "❌" in t or re.search(r"\bFAIL(?:ED)?\b", t)
-            or re.search(r"critical (?:defect|issue|bug|finding|blocker)", tl)):
+            or re.search(r"(?<!no )(?<!0 )(?<!zero )critical (?:defect|issue|bug|finding|blocker)", tl)):
         return "ISSUES FOUND", True, issue_count(), snippet_near("CRITICAL", "❌", "FAIL", "defect")
 
     # 3) explicit approval / pass
@@ -429,6 +455,13 @@ def link_subagents(data, subs):
         s = by_prompt.get(_norm_prompt(a["input"].get("prompt")))
         a["sub"] = s
         a["model"] = s.get("model") if s else None
+    # a resumed run appends to its first run's transcript: inherit the model, but
+    # leave sub=None so its inner workload isn't counted twice
+    by_id = {a["id"]: a for a in data["agents"]}
+    for a in data["agents"]:
+        if a.get("resume"):
+            a["sub"] = None
+            a["model"] = (by_id.get(a.get("parent_id")) or {}).get("model")
     data["files_all"] = merge_file_ops(
         [data["files"]] + [s["file_ops"] for s in subs.values()])
     data["tool_stats_all"] = merge_tool_stats(
@@ -445,6 +478,7 @@ def analyze(events):
     tool_uses = {}
     tool_results = {}
     notifications = defaultdict(list)     # tool_use_id -> [notification, ...]
+    handbacks = defaultdict(list)         # agent_id -> [{"ts", "text"}, ...]
     tool_counter = Counter()
     models = Counter()
     tokens = defaultdict(int)
@@ -468,6 +502,10 @@ def analyze(events):
         msg = ev.get("message")
 
         if etype == "user" and isinstance(msg, dict):
+            hb = parse_handback(ev)
+            if hb:
+                handbacks[hb[0]].append({"ts": ts, "text": hb[1]})
+                continue
             raw = msg_text(msg)
             note = parse_notification(raw)
             if note:
@@ -557,17 +595,58 @@ def analyze(events):
         if use["name"] == "Agent":
             inp = use["input"]
             sub = inp.get("subagent_type", "agent")
-            gate = sub in GATE_AGENTS
-            verdict = caught = issues = snippet = None
-            if gate and result_text:
-                verdict, caught, issues, snippet = classify_review(result_text)
+            m = re.search(r"agentId:\s*([\w-]+)", (res or {}).get("text") or "")
             agents.append({
-                **rec, "subagent": sub, "gate": gate,
+                **rec, "subagent": sub, "gate": sub in GATE_AGENTS,
                 "description": inp.get("description", ""),
                 "background": bool(inp.get("run_in_background")),
-                "verdict": verdict, "caught": caught,
-                "issues": issues, "snippet": snippet,
+                "agent_id": m.group(1) if m else None, "resume": False,
             })
+
+    # ---- SendMessage to a spawned agent = another run of that agent ------ #
+    # (orchestrator correction loops: architect revisions, reviewer re-reviews)
+    spawned = {a["agent_id"]: a for a in agents if a["agent_id"]}
+    for t in tools:
+        if t["name"] != "SendMessage":
+            continue
+        inp = t["input"] if isinstance(t["input"], dict) else {}
+        m = re.search(r'"resumedAgentId"\s*:\s*"([\w-]+)"',
+                      (tool_results.get(t["id"]) or {}).get("text") or "")
+        target = m.group(1) if m else inp.get("to")
+        parent = spawned.get(target)
+        if not parent:
+            continue          # a message to a peer session, not a subagent run
+        desc = inp.get("summary") or truncate(inp.get("message", ""), 80)
+        agents.append({
+            **t, "input": {"subagent_type": parent["subagent"], "description": desc,
+                           "prompt": inp.get("message", "")},
+            "subagent": parent["subagent"], "gate": parent["gate"],
+            "description": desc, "background": True,
+            "agent_id": target, "resume": True, "parent_id": parent["id"],
+        })
+
+    # ---- attach each run's hand-back report (the real output) ------------ #
+    runs_by_agent = defaultdict(list)
+    for a in agents:
+        if a["agent_id"]:
+            runs_by_agent[a["agent_id"]].append(a)
+    for aid, runs in runs_by_agent.items():
+        runs.sort(key=lambda r: r["start"] or datetime.max.replace(tzinfo=timezone.utc))
+        for i, r in enumerate(runs):
+            nxt = runs[i + 1]["start"] if i + 1 < len(runs) else None
+            hb = next((h for h in handbacks.get(aid, [])
+                       if h["ts"] and r["start"] and h["ts"] >= r["start"]
+                       and (nxt is None or h["ts"] < nxt)), None)
+            if hb:
+                r.update({"result": hb["text"], "end": hb["ts"], "pending": False,
+                          "status": "completed", "error": False,
+                          "duration": (hb["ts"] - r["start"]).total_seconds()})
+
+    for a in agents:
+        a.update({"verdict": None, "caught": None, "issues": None, "snippet": None})
+        if a["gate"] and a["result"]:
+            v, c, n, s = classify_review(a["result"])
+            a.update({"verdict": v, "caught": c, "issues": n, "snippet": s})
 
     by_id = {t["id"]: t for t in tools}
     agent_by_id = {a["id"]: a for a in agents}
@@ -580,7 +659,10 @@ def analyze(events):
                 a = agent_by_id.get(item["id"])
                 if a:
                     item.update({"verdict": a["verdict"], "caught": a["caught"],
-                                 "gate": a["gate"]})
+                                 "gate": a["gate"], "duration": a["duration"],
+                                 "result": a["result"], "error": a["error"],
+                                 "agent_view": True, "resume": a["resume"],
+                                 "input": a["input"]})
 
     files = file_ops_from_tools(tools)
     tool_stats = tool_stats_from_tools(tools)
@@ -1116,7 +1198,7 @@ def render_tool_feed(ts, it, colours):
     tool = it["tool"]
     inp = it.get("input") or {}
     dur = fmt_dur(it.get("duration"))
-    if tool == "Agent":
+    if tool == "Agent" or it.get("agent_view"):
         sub = inp.get("subagent_type", "agent")
         colour = colours.get(sub, "#6366f1")
         badge = f'<span class="agent-badge" style="background:{colour}">{esc(sub)}</span>'
@@ -1130,7 +1212,7 @@ def render_tool_feed(ts, it, colours):
         stat = " ⚠ failed/rejected" if it.get("error") else ""
         return f'''<div class="feed tool agent"><div class="feed-time">{esc(ts)}</div>
           <div class="feed-body">
-          <div class="feed-who">{badge} ran <span class="dur">{esc(dur)}</span>{vhtml}{esc(stat)}</div>
+          <div class="feed-who">{badge} {"re-ran (resumed)" if it.get("resume") else "ran"} <span class="dur">{esc(dur)}</span>{vhtml}{esc(stat)}</div>
           <div class="feed-text">{esc(truncate(inp.get("description",""), 200))}</div>{res}</div></div>'''
     stat = ' <span class="err">⚠</span>' if it.get("error") else ""
     return f'''<div class="feed tool"><div class="feed-time">{esc(ts)}</div>
