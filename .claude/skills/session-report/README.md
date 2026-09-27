@@ -156,7 +156,7 @@ depends on your hypothesis. Because this repo is an experiment harness
 The parser reads the JSONL event stream and correlates each `tool_use` with its
 matching `tool_result` (by `tool_use_id`) to compute durations and success.
 
-Two details that matter for accuracy:
+Four details that matter for accuracy:
 
 1. **Background agents.** Agents launched with `run_in_background: true` (e.g.
    `qa`, `senior-dev`) return an instant *"launched"* stub; their real duration
@@ -166,11 +166,28 @@ Two details that matter for accuracy:
 2. **Injected messages.** `<task-notification>`, `<system-reminder>` and other
    harness-injected user messages are filtered out of the "prompts" feed so they
    don't masquerade as things you typed.
+3. **Resumed agents.** When the orchestrator sends a correction back to an agent
+   it already spawned (`SendMessage` to that agent's id: an architect revision or
+   a spec re-review), that counts as **another run** of the same subagent. The
+   agent id is read from the spawn's result (`agentId: …`), or from `resumedAgentId`
+   in the `SendMessage` result. A resumed run inherits the subagent type and model.
+   Its inner workload stays on the first run, because the resume appends to the
+   same transcript and would otherwise be counted twice.
+4. **Hand-back reports.** A subagent can deliver its final report as a peer
+   message (a user event with `origin.kind == "peer"` and a `[Subagent hand-back]`
+   body). Its `<task-notification>` then carries only a pointer ("delivered to you
+   as a message"). Each run is matched to the first hand-back from its agent id
+   that arrives before that agent's next run. That report becomes the run's result
+   (the text verdicts are read from), and the hand-back time becomes the run's end.
 
 **Verdict detection is heuristic.** Whether a review "caught something" is
-inferred from the result text — formal tokens (`REQUEST CHANGES`), uppercase
-severity labels (`CRITICAL`, `FAIL`, ❌), guarded against phrases like
-"no CRITICAL issues" and adjectival "critically". It's accurate on the reviewers'
+inferred from the result text — formal tokens (`REQUEST CHANGES`, `NOT READY`),
+uppercase severity labels (`CRITICAL`, `FAIL`, ❌), guarded against phrases like
+"no CRITICAL issues" and adjectival "critically". An approving gate that still
+found or fixed something also counts as a catch. **FIXED IN PLACE** means the
+senior dev reported fixes ("I fixed", "Fixes applied", but not "Fixes applied:
+none"). **DEFECT LOGGED** means QA passed the change but logged a defect. Issue
+counts ignore HTTP status codes and section numbers ("404 problem", "§3 violation"). It's accurate on the reviewers'
 structured output but can misread unusually-worded results; the on-screen snippet
 lets you verify, and unclassifiable runs show a verdict of `—`.
 
