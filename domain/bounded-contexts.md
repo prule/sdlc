@@ -8,9 +8,17 @@ capabilities become `openspec/specs/<context>/<capability>`.
 > is not yet built its notes describe the **target** design, marked *(planned)*.
 
 ## `platform`
-Cross-cutting technical foundation every other context builds on (not a business domain).
-- **health-check** — liveness/ping endpoint. (`openspec/specs/platform/health-check`)
-- **api-codegen** — contract-first OpenAPI bundle→generate pipeline. (`openspec/specs/platform/api-codegen`)
+Cross-cutting foundation every other context builds on (not a business domain). Built from
+[UC-000](../use-cases/UC-000-get-started-with-the-catalog-service.md) as four capabilities under
+`openspec/specs/platform/`:
+- **availability-check**: consumers can confirm the service is available (public, harmless, works on
+  an empty catalog).
+- **interface-description**: a published description of every capability, both browsable (with
+  try-it-out) and tool-readable. It always agrees with behaviour, and shared concepts are defined once.
+- **uniform-responses**: the uniform success/failure form, correlation id, self-identifying
+  navigable links, and the read-only refusal of writes that every `catalog` capability inherits.
+- **runtime-modes**: standalone mode (no external infrastructure, data not retained) and persistent
+  mode (`postgres` profile) behave identically for every UC-000 behaviour.
 
 ## `catalog` (the product)
 The movie database and its public read API. All consumer-facing capabilities live here.

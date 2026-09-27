@@ -1,0 +1,7 @@
+X-Correlation-Id:
+  description: >
+    The correlation id for this request, echoed from the inbound header when
+    well-formed, otherwise newly generated.
+  schema:
+    type: string
+    format: uuid

@@ -68,9 +68,17 @@ class GlobalExceptionHandler {
 | Missing/invalid credentials | (Spring Security) | 401 | `UNAUTHENTICATED` |
 | Authenticated but not allowed | `AccessDeniedException` | 403 | `FORBIDDEN` |
 | Resource does not exist | `ResourceNotFoundException` | 404 | `NOT_FOUND` |
+| Method not allowed on an offered path | `HttpRequestMethodNotSupportedException` (framework-detected) | 405 | `METHOD_NOT_ALLOWED` |
+| Unsatisfiable `Accept` | `HttpMediaTypeNotAcceptableException` (framework-detected) | 406 | `NOT_ACCEPTABLE` |
 | State/uniqueness conflict | `*AlreadyInUseException`, optimistic lock | 409 | domain code |
 | Field validation failed | `MethodArgumentNotValidException`, `ValidationException` | 422 | `VALIDATION_FAILED` |
+| Unsupported request body media type | `HttpMediaTypeNotSupportedException` (framework-detected) | 415 | `UNSUPPORTED_MEDIA_TYPE` |
 | Anything unexpected | catch-all | 500 | `INTERNAL_ERROR` |
+
+Any other framework-detected 4xx not listed above (a malformed request, a missing or ill-typed
+parameter, or any other client fault Spring resolves to a 4xx status) collapses to `400`
+`BAD_REQUEST`, keeping the code set closed. No framework-detected client fault is ever reported as
+`500` — see `platform`'s `GlobalExceptionHandler`/`ProblemFactory` (`openspec/specs/platform/uniform-responses`) for the full classification.
 
 ## 4. Rules
 
