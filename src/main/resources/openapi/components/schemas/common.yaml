@@ -1,0 +1,47 @@
+Meta:
+  type: object
+  required: [timestamp, correlationId]
+  additionalProperties: false
+  properties:
+    timestamp:
+      type: string
+      format: date-time
+    correlationId:
+      type: string
+      format: uuid
+
+Link:
+  type: object
+  required: [href]
+  additionalProperties: false
+  properties:
+    href:
+      type: string
+      format: uri
+    templated:
+      type: boolean
+    title:
+      type: string
+
+Problem:
+  type: object
+  required: [type, title, status, code, correlationId]
+  additionalProperties: false
+  properties:
+    type:
+      type: string
+      format: uri
+    title:
+      type: string
+    status:
+      type: integer
+    detail:
+      type: string
+    instance:
+      type: string
+      format: uri
+    code:
+      type: string
+    correlationId:
+      type: string
+      format: uuid

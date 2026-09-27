@@ -1,0 +1,28 @@
+PingEnvelope:
+  type: object
+  required: [data, meta]
+  additionalProperties: false
+  properties:
+    data:
+      $ref: '#/PingData'
+    meta:
+      $ref: './common.yaml#/Meta'
+
+PingData:
+  type: object
+  required: [status, _links]
+  additionalProperties: false
+  properties:
+    status:
+      type: string
+      enum: [UP]
+    _links:
+      $ref: '#/PingLinks'
+
+PingLinks:
+  type: object
+  required: [self]
+  additionalProperties: false
+  properties:
+    self:
+      $ref: './common.yaml#/Link'

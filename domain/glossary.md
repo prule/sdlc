@@ -21,6 +21,9 @@ whenever a new term appears.
 | Search | Finding movies by a query (title match) optionally narrowed by **filters** (genre, year, rating) with pagination and sorting. | — |
 | Filter | A constraint that narrows a search (e.g. genre=Drama, year 1990–1999, minRating=4 on the 0–5 scale). Multiple genres are AND (a movie must carry all); year is a range; minRating is inclusive and excludes unrated movies. | — |
 | Catalog | The whole curated body of movie data the API serves. | The `catalog` bounded context (see bounded-contexts.md). |
+| Availability check | A public, harmless question to the catalog service, "are you available?". Anyone can ask it without credentials, it never changes anything, and it is answered even when the catalog is empty. | See UC-000. Say **availability check**, not "ping", "health" or "heartbeat" in business text. |
+| Interface description | The service's own published description of every capability it offers. It comes in a browsable form (a person can read it and try capabilities against the running service) and a form tools can read. It must always agree with actual behaviour, and shared concepts (result form, failure form, paging) are described once and reused. | See UC-000. Not "docs" or "spec" in business text. |
+| Standalone mode | Running the catalog service with no external infrastructure provisioned, for evaluation. Catalog data is **not** retained across restarts. Behaviour is otherwise identical to **persistent mode**, the mode for real operation. | See UC-000. |
 | Correlation id | A UUID on every request/response and log line to trace one request end-to-end. | Technical, appears in NFRs. |
 
 > Keep definitions business-facing. The **Rating** scale (0–5 stars, score only, no vote count) is
