@@ -1,0 +1,17 @@
+openapi: 3.1.0
+info:
+  title: Movie Catalog API
+  version: 1.0.0
+  description: >
+    The public, read-only catalog API. Every response carries an
+    `X-Correlation-Id` header. Callers may send their own `X-Correlation-Id`
+    request header (an optional, well-formed UUID) to correlate a request
+    with server logs; if absent or malformed, the service generates one.
+servers:
+  - url: /api/v1
+tags:
+  - name: Health
+    description: Availability check
+paths:
+  /ping:
+    $ref: './paths/health.yaml#/ping'

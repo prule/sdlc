@@ -31,3 +31,23 @@ server:
   port: ${SERVER_PORT:8080}
   servlet:
     context-path: /api/v1
+  # Trust X-Forwarded-* from the gateway: HSTS and self-link scheme/host follow the externally
+  # visible request (see standards/security.md §3 and platform SecurityConfig).
+  forward-headers-strategy: framework
+  error:
+    # ProblemErrorController renders every failure as problem+json; the default whitelabel HTML
+    # error page is never used.
+    whitelabel:
+      enabled: false
+
+# Actuator's HTTP surface (including its discovery root) is disabled entirely: there are no
+# undocumented HTTP endpoints. The dependency stays on the classpath for future non-HTTP use.
+management:
+  server:
+    port: -1
+
+# Every log line includes the request's correlation id so a client-reported failure maps to
+# server logs (platform CorrelationIdFilter).
+logging:
+  pattern:
+    level: "%5p [%X{correlationId}]"

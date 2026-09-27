@@ -1,0 +1,19 @@
+NotAcceptable:
+  description: The requested representation cannot be produced.
+  headers:
+    X-Correlation-Id:
+      $ref: '../headers/common.yaml#/X-Correlation-Id'
+  content:
+    application/problem+json:
+      schema:
+        $ref: '../schemas/common.yaml#/Problem'
+
+InternalError:
+  description: An unexpected internal error occurred.
+  headers:
+    X-Correlation-Id:
+      $ref: '../headers/common.yaml#/X-Correlation-Id'
+  content:
+    application/problem+json:
+      schema:
+        $ref: '../schemas/common.yaml#/Problem'
