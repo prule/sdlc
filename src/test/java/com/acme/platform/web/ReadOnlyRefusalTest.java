@@ -17,10 +17,11 @@ import org.springframework.test.web.servlet.MvcResult;
 
 /**
  * No write method succeeds anywhere, with no credentials and no CSRF token: {@code 405} on {@code
- * /ping} (Allow includes GET) and on the interface-description assets (Allow exactly {@code GET,
- * HEAD}); {@code 404} on a path the service does not offer. Always problem+json, never {@code 2xx},
- * {@code 401}, {@code 403} or {@code 5xx} (design D3/D4, uniform-responses "Service is read-only
- * and public").
+ * /ping}, on {@code /movies/{id}} (Allow includes GET) and on the interface-description assets
+ * (Allow exactly {@code GET, HEAD}); {@code 404} on a path the service does not offer. Always
+ * problem+json, never {@code 2xx}, {@code 401}, {@code 403} or {@code 5xx} (design D3/D4/D6,
+ * uniform-responses "Service is read-only and public", catalog/movies "Movie details are public and
+ * read-only").
  */
 @AutoConfigureMockMvc
 class ReadOnlyRefusalTest extends PostgresIntegrationTest {
@@ -65,10 +66,26 @@ class ReadOnlyRefusalTest extends PostgresIntegrationTest {
   void writeOnAnUnknownPathIsNotFound(HttpMethod method) throws Exception {
     MvcResult result =
         mockMvc
-            .perform(request(method, "/movies/123").contentType("application/json").content("{}"))
+            .perform(
+                request(method, "/no-such-thing/123").contentType("application/json").content("{}"))
             .andReturn();
 
     assertRefusal(result, 404, "NOT_FOUND");
+  }
+
+  @ParameterizedTest
+  @MethodSource("writeMethods")
+  void writeOnAMovieIsMethodNotAllowedAndAllowsGet(HttpMethod method) throws Exception {
+    MvcResult result =
+        mockMvc
+            .perform(
+                request(method, "/movies/6f1c2a3b-4d5e-4f60-8a7b-9c0d1e2f3a4b")
+                    .contentType("application/json")
+                    .content("{}"))
+            .andReturn();
+
+    assertRefusal(result, 405, "METHOD_NOT_ALLOWED");
+    assertThat(result.getResponse().getHeader("Allow")).contains("GET");
   }
 
   private void assertRefusal(MvcResult result, int status, String code) throws Exception {

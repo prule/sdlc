@@ -1,0 +1,5 @@
+/write-use-case Walking skeleton, shared OpenAPI components, HAL hypermedia convention, H2 default runtime, Swagger UI
+/build-ticket use-cases/UC-000-get-started-with-the-catalog-service.md
+
+/write-use-case retrieve a movie's details
+/build-ticket use-cases/UC-001-retrieve-a-movies-details.md

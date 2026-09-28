@@ -1,0 +1,31 @@
+movie:
+  get:
+    operationId: getMovie
+    summary: Retrieve a movie's details
+    description: >
+      Returns the curated details of one movie. `id` must be a canonical UUID
+      (8-4-4-4-12 hex digits, any case); any other value is 400. Runtime,
+      synopsis and rating are omitted when not recorded. In standalone mode
+      (no profile), two sample movies are always available:
+      `11111111-1111-4111-8111-111111111111` (every optional detail recorded)
+      and `22222222-2222-4222-8222-222222222222` (no optional details and no
+      genres). Persistent mode does not contain these samples.
+    tags: [Movies]
+    security: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: string, format: uuid }
+    responses:
+      '200':
+        description: The movie's details.
+        headers:
+          X-Correlation-Id: { $ref: '../components/headers/common.yaml#/X-Correlation-Id' }
+        content:
+          application/json:
+            schema: { $ref: '../components/schemas/movie.yaml#/MovieEnvelope' }
+      '400': { $ref: '../components/responses/common.yaml#/BadRequest' }
+      '404': { $ref: '../components/responses/common.yaml#/NotFound' }
+      '406': { $ref: '../components/responses/common.yaml#/NotAcceptable' }
+      '500': { $ref: '../components/responses/common.yaml#/InternalError' }

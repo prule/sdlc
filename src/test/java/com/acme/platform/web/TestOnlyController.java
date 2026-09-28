@@ -1,5 +1,6 @@
 package com.acme.platform.web;
 
+import com.acme.shared.domain.ResourceNotFoundException;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -14,10 +15,10 @@ import org.springframework.web.server.ResponseStatusException;
 /**
  * Test-only endpoints that exercise failure kinds no real UC-000 operation triggers: an unexpected
  * exception (500), a required parameter of a type that can be missing or malformed (400), a request
- * body media type the operation does not accept (415), and framework-resolved statuses outside the
- * closed kind set (409, 503) that must collapse to 400/500. Exists solely so {@code platform}
- * web-slice tests can assert the uniform failure form without inventing a real capability (design
- * D3, task 6.0).
+ * body media type the operation does not accept (415), framework-resolved statuses outside the
+ * closed kind set (409, 503) that must collapse to 400/500, and a domain-level {@link
+ * ResourceNotFoundException} (404). Exists solely so {@code platform} web-slice tests can assert
+ * the uniform failure form without inventing a real capability (design D3, task 6.0).
  */
 @RestController
 @RequestMapping("/test-only")
@@ -46,5 +47,10 @@ public class TestOnlyController {
   @GetMapping("/unavailable")
   public String unavailable() {
     throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "pool exhausted");
+  }
+
+  @GetMapping("/not-found")
+  public String notFound() {
+    throw new ResourceNotFoundException("no resource with id secret-internal-id-42");
   }
 }

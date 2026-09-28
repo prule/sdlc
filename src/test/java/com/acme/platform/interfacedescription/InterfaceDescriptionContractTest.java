@@ -14,6 +14,7 @@ import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.SpecVersion;
 import com.networknt.schema.ValidationMessage;
+import java.math.BigDecimal;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -22,12 +23,15 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -52,6 +56,8 @@ class InterfaceDescriptionContractTest extends PostgresIntegrationTest {
   @Qualifier("requestMappingHandlerMapping")
   private RequestMappingHandlerMapping handlerMapping;
 
+  @Autowired private JdbcTemplate jdbcTemplate;
+
   private final ObjectMapper jsonMapper = new ObjectMapper();
   private final ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
   private final JsonSchemaFactory schemaFactory =
@@ -64,6 +70,13 @@ class InterfaceDescriptionContractTest extends PostgresIntegrationTest {
     MvcResult result = mockMvc.perform(get("/openapi/openapi.bundled.yaml")).andReturn();
     assertThat(result.getResponse().getStatus()).isEqualTo(200);
     document = yamlMapper.readTree(result.getResponse().getContentAsString());
+  }
+
+  @AfterEach
+  void cleanUpMovies() {
+    jdbcTemplate.update("DELETE FROM movie_genre");
+    jdbcTemplate.update("DELETE FROM movie");
+    jdbcTemplate.update("DELETE FROM genre");
   }
 
   @Test
@@ -189,6 +202,38 @@ class InterfaceDescriptionContractTest extends PostgresIntegrationTest {
             performJson(get("/ping").accept(MediaType.APPLICATION_XML)))) {
       assertThat(jsonMapper.readTree(body).has("instance")).isFalse();
     }
+  }
+
+  @Test
+  void getMovieSuccessBodyConformsToItsDeclaredSchema() throws Exception {
+    UUID movieId = UUID.randomUUID();
+    jdbcTemplate.update(
+        "INSERT INTO movie (id, title, release_year, runtime_minutes, synopsis, rating) "
+            + "VALUES (?, ?, ?, ?, ?, ?)",
+        movieId,
+        "Arrival",
+        2016,
+        116,
+        "A linguist is recruited.",
+        new BigDecimal("4.5"));
+
+    String body = performJson(get("/movies/" + movieId));
+    assertNoErrors(validate(body, "MovieEnvelope"));
+  }
+
+  @Test
+  void getMovieBadRequestBodyConformsToTheSharedProblemSchema() throws Exception {
+    assertNoErrors(validate(performJson(get("/movies/not-a-movie-id")), "Problem"));
+  }
+
+  @Test
+  void getMovieNotFoundBodyConformsToTheSharedProblemSchema() throws Exception {
+    assertNoErrors(validate(performJson(get("/movies/" + UUID.randomUUID())), "Problem"));
+  }
+
+  @Test
+  void getMovieMethodNotAllowedBodyConformsToTheSharedProblemSchema() throws Exception {
+    assertNoErrors(validate(performJson(put("/movies/" + UUID.randomUUID())), "Problem"));
   }
 
   private String performJson(
