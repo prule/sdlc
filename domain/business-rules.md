@@ -57,17 +57,27 @@ live in the ticket; durable policies live here.
   and crew: each entry is a movie summary plus one **capacity** (acting or non-acting). A Person
   credited in several capacities on one Movie appears once per capacity. An existing Person with no
   credits is a normal success with an empty list, not "no such person" (decided CAT-005).
-- *(planned — UC-002)* **Search** results are **paged** (**20 per page by default, at most 100**) and can be **ordered** by
+- **Search** results are **paged** (**20 per page by default, at most 100**) and can be **ordered** by
   title, release year or rating, ascending or descending. The **default order is release year newest
-  first**, then title A–Z. No matches is a normal success with an empty list, not a failure. (Decided
-  in CAT-002.)
-- *(planned — UC-002)* **Search matching** (decided CAT-002 / UC-002): the **title** term matches any part of the title,
-  ignoring letter case. Several **genres** combine as "must carry all". The **release-year** filter
+  first**, then title A–Z, and every order ends with a final tiebreak so it is complete and stable
+  across pages. When ordering by rating, **movies with no recorded rating always come last**, whether
+  the order is ascending or descending. No matches is a normal success with an empty list, not a
+  failure, and so is a **page after the last** (an empty page that still gives the total and points
+  to the first and last pages). (Decided in CAT-002; confirmed and extended in UC-002.)
+- **Search matching** (decided CAT-002 / UC-002): the **title** term matches any part of the title,
+  ignoring letter case; a blank title term counts as no title criterion. Several **genres** combine as
+  "must carry all", and a genre is recognised ignoring letter case. The **release-year** filter
   is a **range** with an optional lower and/or upper bound (a single year means just that year). The
   **minimum-rating** filter is inclusive on the **0–5** scale and **leaves out movies with no recorded
-  rating**. All criteria combine to narrow the results. An invalid search (an unsupported order, a
-  page before the first, a page size below 1 or above 100) is refused as asked in a way that isn't
-  allowed, which is different from a valid search that matches nothing.
+  rating**. All criteria combine to narrow the results; with no criteria, every movie matches
+  (browsing). An invalid search is refused as asked in a way that isn't allowed, which is different
+  from a valid search that matches nothing. Invalid means any of: an unsupported order, a page before
+  the first, a page size below 1 or above 100, a **genre not in the curated vocabulary**, a
+  **release-year range whose lower bound is after its upper bound**, or a **minimum rating outside
+  0–5** (UC-002).
+- **Paged results are navigable with their criteria.** Every page of a paged list points to the first,
+  previous, next and last pages, and each pointer keeps the same criteria, order and page size.
+  Established by movie Search (UC-002) and reused by every later paged list.
 - *(planned — UC-006)* **People search/list** follows the same paging convention as movie Search (20 per page by default,
   at most 100). It is filtered by **name** only (matching any part of the name, ignoring letter case —
   there is no role, department, known-for or has-credits filter for a Person) and can be ordered only

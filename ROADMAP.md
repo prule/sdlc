@@ -21,7 +21,7 @@ case?"; keep it in step with `use-cases/`, `tickets/`, `domain/bounded-contexts.
 ## Next 🔜
 | Ref | Capability | Use case | Depends on | Notes |
 |-----|------------|----------|------------|-------|
-| UC-002 / CAT-002 | **Search & browse movies** — `GET /api/v1/movies`: title match, genre / release-year range / minimum-rating filters, ordering, pagination | 📝 to write | UC-001 (Movie) | The main way a consumer *finds* a movie id; UC-001 assumes they already hold one. Introduces the paging convention (and nav links that preserve filter & sort params) that every later list reuses. |
+| UC-002 / CAT-002 | **Search & browse movies** — `GET /api/v1/movies`: title match, genre / release-year range / minimum-rating filters, ordering, pagination | [`UC-002`](use-cases/UC-002-search-and-browse-movies.md) (draft) | UC-001 (Movie) | The main way a consumer *finds* a movie id; UC-001 assumes they already hold one. Introduces the paging convention (and nav links that preserve filter & sort params) that every later list reuses. |
 
 ## Planned 📝 (use case not yet written)
 Ordered by dependency. The **people track** (UC-003 → UC-004 → UC-005 / UC-006) is sequential. The
