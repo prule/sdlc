@@ -8,6 +8,10 @@ spring:
   # not affect them; only genuinely-absent optional fields are dropped.
   jackson:
     default-property-inclusion: non_null
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
   # Default (no-profile) runtime: zero-dependency in-memory database, reset on each restart.
   # Activate the `postgres` profile (see application-postgres.yml) for the tested,
   # production-capable PostgreSQL target.
@@ -17,7 +21,7 @@ spring:
     password:
   flyway:
     enabled: true
-    locations: classpath:db/migration
+    locations: classpath:db/migration,classpath:db/demo
 
 # Custom namespace (not spring.security.oauth2.resourceserver.jwt.*) so Spring Boot's
 # resource-server auto-configuration never activates; the JwtDecoder bean in SecurityConfig

@@ -1,0 +1,48 @@
+MovieEnvelope:
+  type: object
+  required: [data, meta]
+  additionalProperties: false
+  properties:
+    data:
+      $ref: '#/MovieDetail'
+    meta:
+      $ref: './common.yaml#/Meta'
+
+MovieDetail:
+  type: object
+  required: [id, title, releaseYear, genres, _links]
+  additionalProperties: false
+  properties:
+    id:
+      type: string
+      format: uuid
+    title:
+      type: string
+      minLength: 1
+    releaseYear:
+      type: integer
+    genres:
+      type: array
+      items:
+        type: string
+        minLength: 1
+    runtimeMinutes:
+      type: integer
+      minimum: 1
+    synopsis:
+      type: string
+      minLength: 1
+    rating:
+      type: number
+      minimum: 0
+      maximum: 5
+    _links:
+      $ref: '#/MovieLinks'
+
+MovieLinks:
+  type: object
+  required: [self]
+  additionalProperties: false
+  properties:
+    self:
+      $ref: './common.yaml#/Link'

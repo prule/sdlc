@@ -3,13 +3,17 @@ package com.acme.platform;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.acme.generated.api.HealthApi;
+import com.acme.generated.api.MoviesApi;
+import com.acme.generated.model.MovieDetail;
 import com.acme.generated.model.PingEnvelope;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.UUID;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
@@ -34,6 +38,25 @@ class GeneratedApiCodegenTest {
     assertThat(ping.getReturnType()).isEqualTo(ResponseEntity.class);
     ParameterizedType genericReturnType = (ParameterizedType) ping.getGenericReturnType();
     assertThat(genericReturnType.getActualTypeArguments()).containsExactly(PingEnvelope.class);
+  }
+
+  @Test
+  void moviesApiGetMovieReturnsTheSharedMovieEnvelope() throws NoSuchMethodException {
+    Method getMovie = MoviesApi.class.getMethod("getMovie", UUID.class);
+
+    assertThat(getMovie.getReturnType()).isEqualTo(ResponseEntity.class);
+    ParameterizedType genericReturnType = (ParameterizedType) getMovie.getGenericReturnType();
+    assertThat(genericReturnType.getActualTypeArguments())
+        .containsExactly(com.acme.generated.model.MovieEnvelope.class);
+  }
+
+  @Test
+  void movieDetailGenresIsAListAndRatingIsABigDecimal() throws NoSuchMethodException {
+    Method getGenres = MovieDetail.class.getMethod("getGenres");
+    Method getRating = MovieDetail.class.getMethod("getRating");
+
+    assertThat(List.class).isAssignableFrom(getGenres.getReturnType());
+    assertThat(getRating.getReturnType()).isEqualTo(BigDecimal.class);
   }
 
   @Test

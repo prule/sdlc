@@ -1,3 +1,23 @@
+BadRequest:
+  description: The request could not be understood.
+  headers:
+    X-Correlation-Id:
+      $ref: '../headers/common.yaml#/X-Correlation-Id'
+  content:
+    application/problem+json:
+      schema:
+        $ref: '../schemas/common.yaml#/Problem'
+
+NotFound:
+  description: No resource exists at the requested identifier.
+  headers:
+    X-Correlation-Id:
+      $ref: '../headers/common.yaml#/X-Correlation-Id'
+  content:
+    application/problem+json:
+      schema:
+        $ref: '../schemas/common.yaml#/Problem'
+
 NotAcceptable:
   description: The requested representation cannot be produced.
   headers:

@@ -4,76 +4,81 @@ Cross-cutting rules and invariants that hold across features. Feature-specific a
 live in the ticket; durable policies live here.
 
 ## Access & security posture
-- The read API is **public** — no authentication, no user accounts. Endpoints are `security: []`.
-  > **Deliberate divergence from `standards/security.md`** (which assumes stateless JWT bearer auth):
-  > that standard applies to any *future authenticated* surface (e.g. an admin/curation API). For the
-  > public read API, the primary abuse control is **rate limiting**, not auth.
-- **Rate limiting** applies to the public endpoints (per client IP / API gateway). TODO: confirm
-  limits (e.g. requests/min) and where they're enforced (gateway vs app).
-- No secrets are needed to call the API; none are ever returned.
+- The catalog is **public**: no authentication, no user accounts, no credentials needed to read it.
+  > **Deliberate divergence from `standards/security.md`** (which assumes authenticated access): that
+  > standard applies to any *future authenticated* surface (e.g. an admin/curation surface). For the
+  > public catalog, the primary abuse control is **rate limiting**, not authentication.
+- **Rate limiting** applies to public access (per client). TODO: confirm the limits (e.g. requests
+  per minute) and where they are enforced.
+- No secrets are needed to use the catalog, and none are ever revealed.
 
 ## Read-only
-- The API **never mutates catalog data** — no create/update/delete via HTTP. All data changes happen
-  through the out-of-band curation process, which is not part of this product.
+- The service **never changes catalog data**. Any attempt to create, change or remove anything is
+  refused. All data changes happen through the out-of-band curation process, which is not part of
+  this product.
 
 ## Catalog data integrity
-- A **Movie** is uniquely identified by a stable opaque id (UUID in URLs; never expose internal DB ids).
+- A **Movie** is uniquely identified by a stable, opaque identifier. It never changes and reveals
+  nothing about how the catalog is stored.
 - **Genre** is a controlled vocabulary; **Keyword** is free-form — a Movie may have many of each.
+- A Movie's **genres** are always presented in **alphabetical order by genre name**, so the same Movie
+  always lists its genres the same way (not the curator's entry order). (Decided UC-001.)
 - A **Rating** is an aggregate **score-only** on a **0–5 star** scale, curated, not user-submitted
-  here. No vote count is exposed. (Decided in CAT-001.)
-- **Reviews** are curated and served read-only; they are not submitted by API consumers.
-- Movies with missing optional fields (no synopsis, no rating yet) are still valid and returned.
+  here. No vote count is shown. (Decided in CAT-001.)
+- **Reviews** are curated and read-only; they are not submitted by API consumers.
+- Movies with missing optional details (no synopsis, no rating yet) are still valid and presented.
+  A missing detail is shown as absent, never as an invented or default value.
 
-## API behaviour (product-level)
-- All responses use the standard success **Envelope**; errors use RFC 7807 problem+json
-  (`standards/openapi.md`, `standards/error-handling.md`).
-- Resource and collection responses carry **navigational hypermedia links** (HAL `_links` /
-  `_embedded`, inside the Envelope's `data`) — `self`, and for collections pagination `next`/
-  `prev`/`first`/`last`. These are read-only navigation aids; they are never action or
-  write/state-transition affordances (`standards/openapi.md` §2a).
-- **Movie detail** carries `_links.self` and `_links.credits` (the latter pointing at
-  `GET /movies/{id}/credits`); cast/crew are reachable only via that link, never inlined into movie
-  detail (decided CAT-003). A Person is independently addressable at `GET /people/{id}` (id + name +
-  `self`/`credits` links — no biographical fields) since CAT-004/CAT-005; the inline Person on a
-  Credit also carries a resolvable `person._links.self` pointing at that detail.
-- A movie's **credits** collection (`GET /movies/{id}/credits`) is returned **whole, unpaginated** —
-  cast and crew are typically small per movie, unlike the movie catalog itself. An existing movie
-  with no cast/crew recorded is a normal 200 with empty arrays, not a 404 (decided CAT-003).
-  This "returned whole" rule does **not** extend to a Person's **filmography**: unlike a Movie's
-  credits, a Person may work on many movies over a career, so their filmography
-  (`GET /people/{id}/credits`) is **paginated** like Search, not returned whole (decided CAT-005).
-- A Person's **filmography** (`GET /people/{id}/credits`) is **paginated** (zero-based `page`;
-  `size` **default 20, max 100**, same convention as Search) and ordered by `releaseYear`
-  **descending**, then `title` **ascending**, then a unique terminal key — total and stable across
-  page boundaries. It is carried as a single embedded relation (`_embedded.filmography`, not split
-  cast/crew): each item is a movie summary plus one typed **capacity** (acting or non-acting). A
-  Person credited in several capacities on one Movie yields one item per capacity. An existing
-  Person with no credits is a normal 200 with an empty array, not a 404 (decided CAT-005).
-- **Search** results are **paginated** (zero-based `page`; `size` **default 20, max 100**) and
-  **sortable** by `title`, `releaseYear`, or `rating` (asc/desc); **default sort is `releaseYear`
-  descending**, `title` ascending as tiebreak. An empty result set is a normal 200, not an error.
-  (Decided in CAT-002.)
-- **Search matching semantics** (decided CAT-002 / UC-002): the **title** term is a **case-insensitive
-  substring** match; **genre** filtering with multiple values is **conjunctive** (a movie must carry
-  **all** supplied genres); the **release-year** filter is a **range** with an optional lower and/or
-  upper bound (a single year = that year to itself); the **minimum-rating** filter is inclusive (`>=`)
-  on the **0–5** scale and **excludes movies with no recorded rating**. All supplied criteria combine
-  conjunctively (narrow only). Invalid search parameters (unsupported sort field, negative page, size
-  <1 or >100) are a **bad request**, distinct from a valid request that matches nothing.
-- The **people search/list** collection (`GET /people`) follows the same pagination convention as
-  movie Search (zero-based `page`; `size` default 20, max 100), filtered by `name` (case-insensitive
-  substring — the only filter; no role/department/known-for/has-credits filter exists at the Person
-  level) and sortable only by `name` (asc/desc); **default sort is `name` ascending** — deliberately
-  unlike movie Search's `releaseYear`-descending default, since a Person has no date-like field to
-  default-sort by. An empty result set is a normal 200, not an error. (Decided in CAT-006.)
-- A request for a non-existent movie/person id returns **404** (problem+json), not an empty 200.
+## Catalog behaviour (product-level)
+- **Uniform results.** Every answer follows one uniform form: a success carries the requested
+  information plus when it was produced and the correlation id; a failure says what kind of problem it
+  was, gives a short explanation and the correlation id, and reveals no internal detail. (UC-000.)
+- **Navigable results.** Every result says where it can be requested again, points to related
+  information where there is some, and, when it is one page of a longer list, points to the first,
+  previous, next and last pages. These pointers are for navigation only; they never offer an action
+  that changes anything. (UC-000.)
+- **Movie detail** will point to where the Movie's credits can be found once the credits capability
+  exists; cast and crew are never included inside movie detail (decided CAT-003). A Person can be
+  looked up on their own by identifier (Person detail: identifier and name, pointing to their
+  filmography — no biographical details) since CAT-004/CAT-005, and every Person shown on a Credit
+  points to that Person's detail.
+- A Movie's **credits** are presented **whole, not a page at a time**, because cast and crew are
+  typically small for one movie. An existing Movie with no cast or crew recorded is a normal success
+  with empty lists, not "no such movie" (decided CAT-003).
+  This "presented whole" rule does **not** extend to a Person's **filmography**: a Person may work on
+  many movies over a career, so their filmography is paged like Search (decided CAT-005).
+- A Person's **filmography** is **paged** (the same convention as Search: **20 per page by default,
+  at most 100**) and ordered by release year **newest first**, then title **A–Z**, then a final
+  tiebreak, so the order is complete and stable across pages. It is **one list**, not split into cast
+  and crew: each entry is a movie summary plus one **capacity** (acting or non-acting). A Person
+  credited in several capacities on one Movie appears once per capacity. An existing Person with no
+  credits is a normal success with an empty list, not "no such person" (decided CAT-005).
+- **Search** results are **paged** (**20 per page by default, at most 100**) and can be **ordered** by
+  title, release year or rating, ascending or descending. The **default order is release year newest
+  first**, then title A–Z. No matches is a normal success with an empty list, not a failure. (Decided
+  in CAT-002.)
+- **Search matching** (decided CAT-002 / UC-002): the **title** term matches any part of the title,
+  ignoring letter case. Several **genres** combine as "must carry all". The **release-year** filter
+  is a **range** with an optional lower and/or upper bound (a single year means just that year). The
+  **minimum-rating** filter is inclusive on the **0–5** scale and **leaves out movies with no recorded
+  rating**. All criteria combine to narrow the results. An invalid search (an unsupported order, a
+  page before the first, a page size below 1 or above 100) is refused as asked in a way that isn't
+  allowed, which is different from a valid search that matches nothing.
+- **People search/list** follows the same paging convention as movie Search (20 per page by default,
+  at most 100). It is filtered by **name** only (matching any part of the name, ignoring letter case —
+  there is no role, department, known-for or has-credits filter for a Person) and can be ordered only
+  by name, A–Z or Z–A. The **default order is name A–Z**, unlike movie Search's newest-first default,
+  since a Person has no date to order by. No matches is a normal success with an empty list, not a
+  failure. (Decided in CAT-006.)
+- Asking for a Movie or Person that does not exist is reported as **"no such movie/person"**, a
+  failure, never an empty success.
 - A **malformed identifier** (a value that is not a well-formed catalog identifier at all) is a
-  distinct outcome from **not-found**: it is rejected as a **bad request** before any lookup, whereas a
-  well-formed identifier that matches nothing is a not-found. The two are reported as different
-  failures. (Recorded UC-001.)
+  distinct outcome from **not found**: it is refused as asked in a way that isn't allowed, before any
+  lookup, whereas a well-formed identifier that matches nothing is "not found". The two are reported as
+  different failures. (Recorded UC-001.)
 
 ## Privacy / compliance
 - The catalog is not personal data of API users (no accounts, minimal PII). Data about **people**
   (cast/crew) is public professional/biographical info. Data-source licensing/attribution: N/A for
   now — internally curated; revisit if an external data source with attribution obligations is
-  adopted. No attribution field is carried on any resource (decided in CAT-001).
+  adopted. No attribution is shown on anything the catalog presents (decided in CAT-001).

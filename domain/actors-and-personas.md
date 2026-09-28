@@ -5,7 +5,7 @@ Who and what the system serves. User stories ("As a &lt;persona&gt; …") must u
 ## Human / consumer personas
 | Persona | Description | Primary goals / what they can do |
 |---------|-------------|----------------------------------|
-| API consumer (developer) | A third-party developer integrating our catalog into their own app/site. **The main customer.** | Search movies, retrieve movie/person detail, browse genres/keywords, read ratings/reviews — all read-only, over HTTP. |
+| API consumer (developer) | A third-party developer integrating our catalog into their own app/site. **The main customer.** | Search movies, retrieve movie/person detail, browse genres/keywords, read ratings/reviews — all read-only. |
 | End user (indirect) | A person using the consumer's app. Never calls our API directly. | Shapes what consumers need (fast search, rich detail), but is not our direct actor. |
 | Curator (internal, out-of-band) | Internal editorial staff who create/maintain the catalog **outside this API**. | Not an actor *of this API* — listed so we remember the data has an owner. Their tooling is out of scope. |
 

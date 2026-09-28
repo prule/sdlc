@@ -130,6 +130,13 @@ class FailureKindsTest {
   }
 
   @Test
+  void resourceNotFoundExceptionIsNotFoundWithoutLeakingItsMessage() throws Exception {
+    MvcResult result = mockMvc.perform(get("/test-only/not-found")).andReturn();
+    assertProblem(result, 404, "NOT_FOUND", "urn:problem-type:not-found");
+    assertThat(result.getResponse().getContentAsString()).doesNotContain("secret-internal-id-42");
+  }
+
+  @Test
   void anOtherClientStatusCollapsesToBadRequestOnTheWireAndInTheBody() throws Exception {
     MvcResult result = mockMvc.perform(get("/test-only/conflict")).andReturn();
     assertProblem(result, 400, "BAD_REQUEST", "urn:problem-type:bad-request");

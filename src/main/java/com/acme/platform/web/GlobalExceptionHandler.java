@@ -1,5 +1,6 @@
 package com.acme.platform.web;
 
+import com.acme.shared.domain.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +45,17 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     // Delegating to super keeps its committed-response guard.
     return super.handleExceptionInternal(
         ex, problem, headers, HttpStatusCode.valueOf(problem.getStatus()), request);
+  }
+
+  /**
+   * A lookup found nothing (design D2/D3). Mapped to the platform's fixed {@code NOT_FOUND}
+   * problem; the exception's message is never echoed to the client.
+   */
+  @ExceptionHandler(ResourceNotFoundException.class)
+  public ResponseEntity<Object> handleResourceNotFound(ResourceNotFoundException ex) {
+    log.debug("Resource not found [correlationId={}]", CorrelationId.current().orElse(null), ex);
+    ProblemDetail problem = problemFactory.create(404);
+    return ResponseEntity.status(problem.getStatus()).body(problem);
   }
 
   /** Catches anything the base class does not already resolve. Always 500. */

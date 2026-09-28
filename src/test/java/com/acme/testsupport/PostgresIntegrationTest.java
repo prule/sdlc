@@ -29,5 +29,8 @@ public abstract class PostgresIntegrationTest {
     registry.add("spring.datasource.url", POSTGRES::getJdbcUrl);
     registry.add("spring.datasource.username", POSTGRES::getUsername);
     registry.add("spring.datasource.password", POSTGRES::getPassword);
+    // The base class always pins this, whatever profile a subclass activates, so no
+    // Testcontainers-backed test ever picks up the standalone-only demo seed (design D7).
+    registry.add("spring.flyway.locations", () -> "classpath:db/migration");
   }
 }
