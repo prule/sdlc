@@ -4,3 +4,5 @@
 /write-use-case retrieve a movie's details
 /build-ticket use-cases/UC-001-retrieve-a-movies-details.md
 
+/write-use-case Search & browse movies
+/build-ticket use-cases/UC-002-search-and-browse-movies.md
