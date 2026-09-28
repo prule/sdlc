@@ -22,9 +22,9 @@ Cross-cutting foundation every other context builds on (not a business domain). 
 
 ## `catalog` (the product)
 The movie database and its public read API. All consumer-facing capabilities live here.
-- **movies** *(detail built — UC-001 / CAT-001; search planned — next, UC-002 / CAT-002)* — the Movie
+- **movies** *(detail and search built — UC-001 / CAT-001, UC-002 / CAT-002)* — the Movie
   aggregate: retrieve movie detail by id (CAT-001, delivered) and search/browse movies by title with
-  filters (genre, year, rating), pagination and sorting (CAT-002, *planned*).
+  filters (genre, year, rating), pagination and sorting (CAT-002, delivered).
 - **credits** *(planned — UC-003 / CAT-003)* — a Movie's cast and crew, reached from the
   Movie, introducing Person/Credit modelling. Split from **people** below: this capability serves
   credits *from the Movie side* (a movie's cast and crew, each Person shown alongside by identifier

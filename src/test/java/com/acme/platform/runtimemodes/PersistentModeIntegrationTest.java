@@ -37,6 +37,11 @@ class PersistentModeIntegrationTest extends PostgresIntegrationTest {
     MovieRuntimeModeAssertions.runAll(mockMvc);
   }
 
+  @Test
+  void persistentModeServesEveryMovieSearchBehaviour() throws Exception {
+    MovieSearchRuntimeModeAssertions.runAll(mockMvc);
+  }
+
   /**
    * Secondary check only: the primary proof that persistent mode excludes the demo seed is {@code
    * FlywayLocationsConfigTest} (design D7), since this base class always pins {@code

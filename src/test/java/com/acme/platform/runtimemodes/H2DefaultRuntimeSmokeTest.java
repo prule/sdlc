@@ -38,6 +38,32 @@ class H2DefaultRuntimeSmokeTest {
   }
 
   @Test
+  void standaloneModeServesEveryMovieSearchBehaviour() throws Exception {
+    MovieSearchRuntimeModeAssertions.runAll(mockMvc);
+  }
+
+  @Test
+  void standaloneBrowseIncludesTheSampleMovies() throws Exception {
+    MvcResult result =
+        mockMvc
+            .perform(MockMvcRequestBuilders.get(CONTEXT_PATH + "/movies").contextPath(CONTEXT_PATH))
+            .andReturn();
+    assertThat(result.getResponse().getStatus()).isEqualTo(200);
+
+    JsonNode movies =
+        objectMapper
+            .readTree(result.getResponse().getContentAsString())
+            .get("data")
+            .get("_embedded")
+            .get("movies");
+    java.util.List<String> ids = new java.util.ArrayList<>();
+    movies.forEach(movie -> ids.add(movie.get("id").asText()));
+
+    assertThat(ids)
+        .contains("11111111-1111-4111-8111-111111111111", "22222222-2222-4222-8222-222222222222");
+  }
+
+  @Test
   void fullyCuratedSampleMovieIsServed() throws Exception {
     JsonNode data = getMovie("11111111-1111-4111-8111-111111111111");
 

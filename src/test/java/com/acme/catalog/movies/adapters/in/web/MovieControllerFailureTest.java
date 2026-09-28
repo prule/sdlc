@@ -5,7 +5,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import com.acme.catalog.movies.application.port.in.GetMovieUseCase;
+import com.acme.catalog.movies.application.port.in.SearchMoviesUseCase;
 import com.acme.catalog.movies.domain.model.MovieId;
+import com.acme.platform.web.CollectionLinksFactory;
 import com.acme.platform.web.GlobalExceptionHandler;
 import com.acme.platform.web.PlatformWebTest;
 import com.acme.shared.domain.ResourceNotFoundException;
@@ -29,6 +31,7 @@ import org.springframework.test.web.servlet.MvcResult;
  * fault is reported generically").
  */
 @PlatformWebTest(controllers = MovieController.class)
+@org.springframework.context.annotation.Import(CollectionLinksFactory.class)
 class MovieControllerFailureTest {
 
   private static final String WELL_FORMED_ID = "6f1c2a3b-4d5e-4f60-8a7b-9c0d1e2f3a4b";
@@ -37,6 +40,7 @@ class MovieControllerFailureTest {
   @Autowired private ObjectMapper objectMapper;
 
   @MockitoBean private GetMovieUseCase getMovieUseCase;
+  @MockitoBean private SearchMoviesUseCase searchMoviesUseCase;
 
   @ParameterizedTest
   @ValueSource(

@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>b33c9813-6cee-4d6a-9e81-22aadc5ee322.jsonl — session report</title>
+<style>
+:root { --bg:#0f1117; --panel:#171a23; --panel2:#1e222d; --line:#2a2f3c;
+  --fg:#e6e8ee; --muted:#9aa2b4; --accent:#6366f1;
+  --good:#10b981; --warn:#f59e0b; --bad:#ef4444; }
+@media (prefers-color-scheme: light) { :root { --bg:#f6f7f9; --panel:#fff;
+  --panel2:#f0f2f6; --line:#e2e5ec; --fg:#1c2027; --muted:#5c6472; } }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--fg);
+  font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; }
+.wrap { max-width:1120px; margin:0 auto; padding:32px 20px 90px; }
+h1 { font-size:24px; margin:0 0 4px; }
+.sub { color:var(--muted); font-size:13px; }
+.meta { color:var(--muted); font-size:12px; margin-top:4px; word-break:break-all; }
+h2 { font-size:14px; text-transform:uppercase; letter-spacing:.06em;
+  color:var(--muted); margin:36px 0 12px; }
+.cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(135px,1fr));
+  gap:12px; margin-top:22px; }
+.card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:15px; }
+.card-val { font-size:21px; font-weight:650; }
+.card-lbl { color:var(--muted); font-size:12px; margin-top:2px; }
+.panel { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:18px; }
+.insights { list-style:none; padding:0; margin:18px 0 0; display:grid; gap:8px; }
+.ins { padding:10px 14px; border-radius:10px; border-left:3px solid var(--muted);
+  background:var(--panel); font-size:13px; }
+.ins.good { border-color:var(--good); } .ins.warn { border-color:var(--warn); }
+.ins.bad { border-color:var(--bad); } .ins.info { border-color:var(--accent); }
+.legend { display:inline-flex; align-items:center; gap:6px; margin:0 12px 8px 0;
+  font-size:12px; color:var(--muted); }
+.legend i { width:11px; height:11px; border-radius:3px; display:inline-block; }
+.note { color:var(--muted); font-size:12px; margin:-4px 0 10px; font-style:italic; }
+.gantt-row { display:flex; align-items:center; gap:12px; margin:6px 0; }
+.gantt-label { width:220px; flex:none; font-size:12px; color:var(--muted);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:right; }
+.gantt-track { position:relative; flex:1; height:24px; background:var(--panel2);
+  border-radius:6px; overflow:hidden; }
+.gantt-bar { position:absolute; top:0; height:100%; border-radius:6px; min-width:3px;
+  display:flex; align-items:center; opacity:.92; }
+.gantt-bar:hover { opacity:1; }
+.gantt-bar span { font-size:11px; color:#fff; padding:0 7px; white-space:nowrap;
+  overflow:hidden; text-shadow:0 1px 1px rgba(0,0,0,.4); }
+.gantt-bar.caught { outline:2px solid var(--good); outline-offset:-2px; }
+.gantt-bar.error { outline:2px solid var(--bad); outline-offset:-2px; }
+.gantt-bar.pending { background-image:repeating-linear-gradient(45deg,
+  rgba(255,255,255,.15) 0 6px, transparent 6px 12px)!important; }
+.vtable { width:100%; border-collapse:collapse; font-size:13px; }
+.vtable th { text-align:left; color:var(--muted); font-weight:600; font-size:12px;
+  padding:8px 10px; border-bottom:1px solid var(--line); }
+.vtable td { padding:9px 10px; border-bottom:1px solid var(--line); }
+.dot { width:10px; height:10px; border-radius:3px; display:inline-block; margin-right:7px; }
+.gate-tag { font-size:10px; background:var(--accent); color:#fff; padding:1px 6px;
+  border-radius:5px; margin-left:6px; }
+.pill { font-size:11px; padding:2px 9px; border-radius:20px; font-weight:600; }
+.pill.good { background:rgba(16,185,129,.16); color:var(--good); }
+.pill.warn { background:rgba(245,158,11,.16); color:var(--warn); }
+.pill.bad { background:rgba(239,68,68,.16); color:var(--bad); }
+.muted { color:var(--muted); }
+.gate-item { border:1px solid var(--line); border-left:3px solid var(--muted);
+  border-radius:10px; padding:12px 14px; margin:8px 0; background:var(--panel); }
+.gate-item.caught { border-left-color:var(--good); }
+.gate-item.clean { border-left-color:var(--muted); opacity:.85; }
+.gate-head { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.gate-desc { margin-top:5px; font-size:13px; }
+.gate-snip { margin-top:7px; padding:8px 10px; background:var(--panel2);
+  border-radius:8px; font-size:12px; color:var(--muted); }
+.verdict { font-size:11px; font-weight:700; padding:2px 9px; border-radius:6px; }
+.verdict.caught { background:rgba(16,185,129,.18); color:var(--good); }
+.verdict.clean { background:var(--panel2); color:var(--muted); }
+.err-item { display:flex; gap:12px; padding:11px 0; border-top:1px solid var(--line); }
+.err-item .err-time { width:66px; flex:none; color:var(--muted); font-size:12px; }
+.err-body { flex:1; min-width:0; }
+.err-msg { margin-top:5px; font-size:12px; color:var(--bad); white-space:pre-wrap; }
+.err-item.rejected .err-msg { color:var(--warn); }
+.tool-bar-wrap { background:var(--panel2); border-radius:5px; height:14px; min-width:60px; }
+.tool-bar { height:100%; background:var(--accent); border-radius:5px; }
+.vtable td.num { text-align:right; font-variant-numeric:tabular-nums; }
+.vtable th.num { text-align:right; }
+.fpath { font-family:ui-monospace,Menlo,monospace; font-size:12px; word-break:break-all; }
+.fop { display:inline-block; font-size:10px; font-weight:600; padding:1px 7px;
+  border-radius:20px; margin-right:5px; }
+.fop.write { background:rgba(99,102,241,.16); color:var(--accent); }
+.fop.edit { background:rgba(245,158,11,.16); color:var(--warn); }
+.fop.read { background:var(--panel2); color:var(--muted); }
+.rdr { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:3px; }
+.vtable code { font-size:12px; }
+.feed { display:flex; gap:14px; padding:12px 0; border-top:1px solid var(--line); }
+.feed-time { width:66px; flex:none; color:var(--muted); font-size:12px;
+  font-variant-numeric:tabular-nums; }
+.feed-body { flex:1; min-width:0; }
+.feed-who { font-size:12px; font-weight:600; margin-bottom:3px; }
+.feed-text { white-space:pre-wrap; word-wrap:break-word; }
+.feed-text.mono { font-family:ui-monospace,Menlo,monospace; font-size:12px; color:var(--muted); }
+.feed-result { margin-top:6px; padding:8px 10px; background:var(--panel2);
+  border-radius:8px; font-size:12px; color:var(--muted); white-space:pre-wrap; }
+.feed.user .feed-who { color:var(--good); }
+.feed.assistant .feed-who { color:var(--accent); }
+.feed.thinking { opacity:.7; } .feed.thinking .feed-who { color:#a855f7; }
+.feed.thinking .feed-text { font-style:italic; }
+.agent-badge, .tool-tag { display:inline-block; padding:1px 8px; border-radius:6px;
+  color:#fff; font-size:11px; font-weight:600; }
+.tool-tag { background:var(--panel2); color:var(--muted); }
+.dur { color:var(--muted); font-weight:400; font-size:11px; }
+.err { color:var(--bad); } .empty { color:var(--muted); font-style:italic; }
+.filters { margin:10px 0 4px; display:flex; gap:8px; flex-wrap:wrap; }
+.filters button { background:var(--panel2); color:var(--fg); border:1px solid var(--line);
+  border-radius:20px; padding:4px 13px; font-size:12px; cursor:pointer; }
+.filters button.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+</style></head>
+<body><div class="wrap">
+  <h1>b33c9813-6cee-4d6a-9e81-22aadc5ee322.jsonl</h1>
+  <div class="sub">b33c9813-6cee-4d6a-9e81-22aadc5ee322.jsonl · 08:33:59 → 08:39:27 · generated 2026-09-28 18:39</div>
+  <div class="meta">develop · /Users/paulrule/projects/current/sdlc · v2.1.283</div>
+  <div class="cards"><div class="card"><div class="card-val">5m 27s</div><div class="card-lbl">Duration</div></div>
+<div class="card"><div class="card-val">0</div><div class="card-lbl">Agent runs</div></div>
+<div class="card"><div class="card-val">16</div><div class="card-lbl">Tool calls</div></div>
+<div class="card"><div class="card-val">1</div><div class="card-lbl">Files touched</div></div>
+<div class="card"><div class="card-val">0</div><div class="card-lbl">Errors</div></div>
+<div class="card"><div class="card-val">0</div><div class="card-lbl">Rejections</div></div>
+<div class="card"><div class="card-val">0</div><div class="card-lbl">Issues caught by gates</div></div>
+<div class="card"><div class="card-val">18,993</div><div class="card-lbl">Output tokens</div></div></div>
+
+  <h2>Insights</h2>
+
+  <h2>Agent timeline</h2>
+  <div class="note"></div>
+  <div style="margin-bottom:10px"></div>
+  <div class="panel"><p class="empty">No agent runs recorded.</p></div>
+
+  <h2>Subagent value &amp; efficiency</h2>
+  <div class="panel"><p class="empty">No agents.</p></div>
+
+  <h2>Review-gate value — what the reviewers caught</h2>
+  <div class="panel"><p class="empty">No review/gate agents ran.</p></div>
+
+  <h2>Errors &amp; friction</h2>
+  <div class="panel"><p class="empty">No errors or rejected tool calls. 🎉</p></div>
+
+  <h2>Tool usage</h2>
+  <div class="panel"><table class="vtable">
+      <thead><tr><th>Tool</th><th style="width:38%"></th><th class="num">Calls</th>
+      <th class="num">Total time</th><th class="num">Errors</th></tr></thead>
+      <tbody><tr>
+          <td>Bash</td>
+          <td><div class="tool-bar-wrap"><div class="tool-bar" style="width:100.0%"></div></div></td>
+          <td class="num">14</td>
+          <td class="num muted">32.2s</td>
+          <td class="num">—</td></tr><tr>
+          <td>Write</td>
+          <td><div class="tool-bar-wrap"><div class="tool-bar" style="width:7.1%"></div></div></td>
+          <td class="num">1</td>
+          <td class="num muted">442ms</td>
+          <td class="num">—</td></tr><tr>
+          <td>AskUserQuestion</td>
+          <td><div class="tool-bar-wrap"><div class="tool-bar" style="width:7.1%"></div></div></td>
+          <td class="num">1</td>
+          <td class="num muted">5.9s</td>
+          <td class="num">—</td></tr></tbody></table></div>
+
+  <h2>Files touched</h2>
+  <div class="panel"><p class="note">1 files touched · 1 written fresh (no prior read).</p><table class="vtable">
+      <thead><tr><th>File</th><th>Operations</th><th class="num">Total</th></tr></thead>
+      <tbody><tr>
+          <td class="fpath" title="/Users/paulrule/projects/current/sdlc/ROADMAP.md">projects/current/sdlc/ROADMAP.md</td>
+          <td><span class="fop write">write ×1</span></td>
+          <td class="num muted">1</td></tr></tbody></table></div>
+
+  <h2>Context ingestion — domain &amp; standards</h2>
+  <div class="panel"><p class="note"><b>Reading is not proof of benefit.</b> This shows the docs reach the agents and are used (Influence = reads + citations; Informed = read before the agent started writing). To prove they <em>help vs hinder</em>, compare two runs with <code>--compare</code> (full vs stripped context). Note CLAUDE.md is always in-context and is not counted here.</p><table class="vtable">
+      <thead><tr><th>Doc</th><th class="num" title="approx tokens (chars/4)">Size</th>
+      <th class="num">Reads</th>
+      <th class="num" title="share of reads before the agent's first write">Informed</th>
+      <th class="num">Cited</th><th class="num">Influence</th>
+      <th class="num" title="influence per 1K tokens of the doc — value per word">Value/1K</th>
+      <th class="num" title="reads × size = context tokens spent re-reading it">Read cost</th>
+      <th>Readers</th><th></th></tr></thead>
+      <tbody><tr>
+          <td class="fpath">domain/business-rules.md</td>
+          <td class="num muted">1,716</td>
+          <td class="num">0</td>
+          <td class="num muted">0%</td>
+          <td class="num">3</td>
+          <td class="num"><b>3</b></td>
+          <td class="num muted">1.7</td>
+          <td class="num muted">—</td>
+          <td></td>
+          <td></td></tr><tr>
+          <td class="fpath">domain/bounded-contexts.md</td>
+          <td class="num muted">1,227</td>
+          <td class="num">0</td>
+          <td class="num muted">0%</td>
+          <td class="num">2</td>
+          <td class="num"><b>2</b></td>
+          <td class="num muted">1.6</td>
+          <td class="num muted">—</td>
+          <td></td>
+          <td></td></tr><tr>
+          <td class="fpath">domain/glossary.md</td>
+          <td class="num muted">1,707</td>
+          <td class="num">0</td>
+          <td class="num muted">0%</td>
+          <td class="num">1</td>
+          <td class="num"><b>1</b></td>
+          <td class="num muted">0.6</td>
+          <td class="num muted">—</td>
+          <td></td>
+          <td><span class="pill warn">wordy / low-signal?</span></td></tr></tbody></table>
+      <p class="note">~0 tokens were spent re-reading
+      context docs across the run. <b>Value/1K</b> (influence per 1000 tokens of the
+      doc) is the signal-density proxy: a large doc with low Value/1K is a
+      bloat/trim candidate; confirm by trimming it and re-running with
+      <code>--compare</code>.</p><p class="note">No reviewer catch explicitly cited a domain/standards doc by filename.</p><ul class="insights"><li class="ins warn">Never read by any agent: domain/README.md, domain/actors-and-personas.md, domain/overview.md, standards/clean-architecture.md, standards/clean-code.md, standards/error-handling.md, standards/formatting.md, standards/openapi.md, standards/security.md, standards/testing.md — dead weight, or context you assume is absorbed via CLAUDE.md.</li></ul></div>
+
+  <h2>Activity feed</h2>
+  <div class="filters">
+    <button data-f="all" class="active">All</button>
+    <button data-f="user">Prompts</button>
+    <button data-f="assistant">Decisions</button>
+    <button data-f="agent">Agents</button>
+    <button data-f="tool">Tools</button>
+    <button data-f="thinking">Thinking</button>
+  </div>
+  <div id="feed"><div class="feed user"><div class="feed-time">08:34:34</div>
+      <div class="feed-body"><div class="feed-who">You</div>
+      <div class="feed-text">which use case is next</div></div></div>
+<div class="feed tool"><div class="feed-time">08:34:37</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">Bash</span>
+      <span class="dur">2.2s</span></div>
+      <div class="feed-text mono">cd /Users/paulrule/projects/current/sdlc; ls use-cases/ tickets/ 2&gt;/dev/null; ls openspec/changes openspec/changes/archive 2&gt;/dev/null; git log --oneline -15</div></div></div>
+<div class="feed tool"><div class="feed-time">08:34:42</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">Bash</span>
+      <span class="dur">1.6s</span></div>
+      <div class="feed-text mono">cd /Users/paulrule/projects/current/sdlc; git ls-files | grep -iE &#x27;roadmap|use-case&#x27; ; grep -rilE &#x27;UC-00[2-9]&#x27; --include=*.md . 2&gt;/dev/null | grep -v node_modules | grep -v archive | head</div></div></div>
+<div class="feed tool"><div class="feed-time">08:34:45</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">Bash</span>
+      <span class="dur">1.9s</span></div>
+      <div class="feed-text mono">cd /Users/paulrule/projects/current/sdlc; cat ROADMAP.md</div></div></div>
+<div class="feed tool"><div class="feed-time">08:34:51</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">Bash</span>
+      <span class="dur">2.7s</span></div>
+      <div class="feed-text mono">cd /Users/paulrule/projects/current/sdlc; grep -nE &#x27;UC-00[2-9]|search|browse&#x27; use-cases/UC-001*.md use-cases/UC-000*.md | head -20; git diff --stat Command-log.txt | tail -1</div></div></div>
+<div class="feed assistant"><div class="feed-time">08:34:59</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">The next one is **UC-002: search and browse movies** (`GET /api/v1/movies`, with filters, sort and pagination). It hasn&#x27;t been written yet.
+
+On `develop` after the reset, only two use cases are done, both merged and archived:
+- **UC-000:** platform foundation (#35)
+- **UC-001:** retrieve a movie&#x27;s details (#36)
+
+Only those two exist in `use-cases/`, so UC-002 has to be authored before the pipeline can run. UC-001 already points to it: &quot;movie search is a separate use case&quot; (`use-cases/UC-001-retrieve-a-movies-details.md:72`).
+
+`ROADMAP.md` is out of date. It still reflects the history from bef…</div></div></div>
+<div class="feed user"><div class="feed-time">08:35:32</div>
+      <div class="feed-body"><div class="feed-who">You</div>
+      <div class="feed-text">update the roadmap with an approriate sequence of use cases</div></div></div>
+<div class="feed tool"><div class="feed-time">08:35:36</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">Bash</span>
+      <span class="dur">2.9s</span></div>
+      <div class="feed-text mono">cd /Users/paulrule/projects/current/sdlc; ls domain/; sed -n 1,40p use-cases/UC-000*.md; echo ----; sed -n 1,20p use-cases/UC-001*.md; sed -n 70,100p use-cases/UC-001*.md; echo ----; grep -nE &#x27;Status…</div></div></div>
+<div class="feed tool"><div class="feed-time">08:35:41</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">Bash</span>
+      <span class="dur">3.4s</span></div>
+      <div class="feed-text mono">cd /Users/paulrule/projects/current/sdlc; cat domain/bounded-contexts.md; grep -nE &#x27;^#|TODO&#x27; domain/business-rules.md domain/overview.md | head -40</div></div></div>
+<div class="feed tool"><div class="feed-time">08:35:47</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">Bash</span>
+      <span class="dur">3.2s</span></div>
+      <div class="feed-text mono">cd /Users/paulrule/projects/current/sdlc; find openspec/specs -name spec.md; sed -n 32,80p domain/business-rules.md</div></div></div>
+<div class="feed tool"><div class="feed-time">08:36:10</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">Write</span>
+      <span class="dur">442ms</span></div>
+      <div class="feed-text mono">/Users/paulrule/projects/current/sdlc/ROADMAP.md</div></div></div>
+<div class="feed assistant"><div class="feed-time">08:36:18</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">I&#x27;ve rewritten `ROADMAP.md` to match `develop` as it is now. I haven&#x27;t committed it; it&#x27;s sitting on `develop` next to your `Command-log.txt` change.
+
+**Done:** UC-000 (platform foundation, #35) and UC-001 (movie details, #36).
+
+**Next:** UC-002, search and browse movies (`GET /api/v1/movies`). It&#x27;s the main way a consumer finds a movie id, and it sets up the paging rules every later list reuses.
+
+**Planned (use cases not yet written):**
+
+| # | Use case | Depends on |
+|---|---|---|
+| 3 | Movie cast &amp; crew (`/movies/{id}/credits`, returned whole) | UC-001 |
+| 4 | Person details (`/people/{id}`…</div></div></div>
+<div class="feed user"><div class="feed-time">08:37:33</div>
+      <div class="feed-body"><div class="feed-who">You</div>
+      <div class="feed-text">yes, mark them as planned</div></div></div>
+<div class="feed tool"><div class="feed-time">08:37:39</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">Bash</span>
+      <span class="dur">2.0s</span></div>
+      <div class="feed-text mono">cd /Users/paulrule/projects/current/sdlc; sed -n 1,31p domain/business-rules.md; sed -n 80,200p domain/business-rules.md; grep -nE &#x27;CAT-00[2-8]|UC-00[2-8]&#x27; domain/*.md | grep -v business-rules</div></div></div>
+<div class="feed tool"><div class="feed-time">08:37:44</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">Bash</span>
+      <span class="dur">2.8s</span></div>
+      <div class="feed-text mono">cd /Users/paulrule/projects/current/sdlc; sed -n 1,9p domain/glossary.md; sed -n 17,50p domain/glossary.md</div></div></div>
+<div class="feed tool"><div class="feed-time">08:38:06</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">Bash</span>
+      <span class="dur">2.4s</span></div>
+      <div class="feed-text mono">cd /Users/paulrule/projects/current/sdlc; python3 - &lt;&lt;&#x27;EOF&#x27; import re,sys def sub(path, pairs):     s=open(path).read()     for a,b in pairs:         if s.count(a)!=1: sys.exit(f&quot;{path}: {s.count(a)}…</div></div></div>
+<div class="feed tool"><div class="feed-time">08:38:11</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">Bash</span>
+      <span class="dur">2.6s</span></div>
+      <div class="feed-text mono">cd /Users/paulrule/projects/current/sdlc; git diff -U0 domain/ | grep &#x27;^[+-]&#x27; | grep -v &#x27;^+++\|^---&#x27; | cut -c1-160</div></div></div>
+<div class="feed assistant"><div class="feed-time">08:38:20</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">I&#x27;ve marked everything that isn&#x27;t built yet as planned, across three domain docs. Nothing is committed; the changes are on `develop` along with the `ROADMAP.md` rewrite.
+
+- **`domain/bounded-contexts.md`:** the `movies` entry now says only movie detail (UC-001) is built, and search (UC-002) is planned and next. `credits` is no longer marked &quot;next&quot;.
+- **`domain/business-rules.md`:**
+  - I added a note at the top of &quot;Catalog behaviour&quot;. It says rules tagged *(planned — UC-n)* are decisions kept from before the reset, and should be confirmed or revised when that use case is written.
+  - The rule…</div></div></div>
+<div class="feed tool"><div class="feed-time">08:39:08</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">Bash</span>
+      <span class="dur">1.9s</span></div>
+      <div class="feed-text mono">ls -lt ~/.claude/projects/-Users-paulrule-projects-current-sdlc/*.jsonl | head -6</div></div></div>
+<div class="feed tool"><div class="feed-time">08:39:14</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">Bash</span>
+      <span class="dur">2.4s</span></div>
+      <div class="feed-text mono">cd ~/.claude/projects/-Users-paulrule-projects-current-sdlc; for f in 30996574-b04c-4b16-8ad2-62d8396771a0 858e5f6a-bcd5-46aa-814e-00f2984ef60d b16c0a76-a052-4ccf-b33f-abee00006816; do echo &quot;== $f  s…</div></div></div>
+<div class="feed tool"><div class="feed-time">08:39:19</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">AskUserQuestion</span>
+      <span class="dur">5.9s</span></div>
+      <div class="feed-text mono">{&quot;questions&quot;: [{&quot;question&quot;: &quot;Which session should I report on?&quot;, &quot;header&quot;: &quot;Session&quot;, &quot;multiSelect&quot;: false, &quot;options&quot;: [{&quot;label&quot;: &quot;UC-001 pipeline run (Recommended)&quot;, &quot;description&quot;: &quot;30996574\u2026 \u</div></div></div>
+<div class="feed tool"><div class="feed-time">08:39:27</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">Bash</span>
+      <span class="dur">—</span></div>
+      <div class="feed-text mono">cd /Users/paulrule/projects/current/sdlc; python3 .claude/skills/session-report/session_report.py ~/.claude/projects/-Users-paulrule-projects-current-sdlc/b33c9813-6cee-4d6a-9e81-22aadc5ee322.jsonl -…</div></div></div></div>
+</div>
+<script>
+const btns=[...document.querySelectorAll('.filters button')];
+const items=[...document.querySelectorAll('#feed .feed')];
+btns.forEach(b=>b.onclick=()=>{
+  btns.forEach(x=>x.classList.remove('active')); b.classList.add('active');
+  const f=b.dataset.f;
+  items.forEach(it=>{
+    let show = f==='all' || it.classList.contains(f)
+      || (f==='tool' && it.classList.contains('tool') && !it.classList.contains('agent'));
+    it.style.display = show ? '' : 'none';
+  });
+});
+</script>
+</body></html>

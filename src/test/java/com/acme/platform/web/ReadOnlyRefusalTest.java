@@ -88,6 +88,18 @@ class ReadOnlyRefusalTest extends PostgresIntegrationTest {
     assertThat(result.getResponse().getHeader("Allow")).contains("GET");
   }
 
+  @ParameterizedTest
+  @MethodSource("writeMethods")
+  void writeOnMoviesIsMethodNotAllowedAndAllowsGet(HttpMethod method) throws Exception {
+    MvcResult result =
+        mockMvc
+            .perform(request(method, "/movies").contentType("application/json").content("{}"))
+            .andReturn();
+
+    assertRefusal(result, 405, "METHOD_NOT_ALLOWED");
+    assertThat(result.getResponse().getHeader("Allow")).contains("GET");
+  }
+
   private void assertRefusal(MvcResult result, int status, String code) throws Exception {
     assertThat(result.getResponse().getStatus()).isEqualTo(status);
     assertThat(result.getResponse().getContentType()).startsWith("application/problem+json");

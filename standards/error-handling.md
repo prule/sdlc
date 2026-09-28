@@ -65,6 +65,8 @@ class GlobalExceptionHandler {
 | Situation | Exception | HTTP | code |
 |-----------|-----------|------|------|
 | Malformed request / bad param | `IllegalArgumentException`, parse errors | 400 | `BAD_REQUEST` |
+| Constrained handler-method parameter violates its bound (e.g. `@Min`/`@Max` on `page`/`size`) | `ConstraintViolationException` (from a handler method, via a `@Validated` proxy) | 400 | `BAD_REQUEST`, `detail` names the query parameter |
+| Query parameter cannot convert to its declared type (non-numeric, overflow) | `MethodArgumentTypeMismatchException` | 400 | `BAD_REQUEST`, `detail` names the query parameter |
 | Missing/invalid credentials | (Spring Security) | 401 | `UNAUTHENTICATED` |
 | Authenticated but not allowed | `AccessDeniedException` | 403 | `FORBIDDEN` |
 | Resource does not exist | `ResourceNotFoundException` | 404 | `NOT_FOUND` |

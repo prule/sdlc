@@ -147,4 +147,18 @@ class MoviePersistenceAdapterTest extends PostgresIntegrationTest {
 
     assertThat(result).isEmpty();
   }
+
+  @Test
+  void loadGenreNamesReturnsTheCuratedVocabulary() {
+    insertGenre(UUID.randomUUID(), "Drama");
+    insertGenre(UUID.randomUUID(), "Sci-Fi");
+    insertGenre(UUID.randomUUID(), "Comedy");
+
+    assertThat(adapter.loadGenreNames()).containsExactlyInAnyOrder("Drama", "Sci-Fi", "Comedy");
+  }
+
+  @Test
+  void loadGenreNamesIsEmptyWhenNoGenresAreCurated() {
+    assertThat(adapter.loadGenreNames()).isEmpty();
+  }
 }
