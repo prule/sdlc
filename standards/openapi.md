@@ -93,15 +93,24 @@ FooLinks:
   with its own `_links.self`); `data._links` carries `self`, `first`, `last`, and `next`/`prev`
   when applicable. Pagination **counts** (`page`, `size`, `totalElements`, `totalPages`) stay in
   `meta.pagination`; pagination **link URLs** live in `data._links` — no duplication between them.
+- **Pages are zero-based**: `page` is the zero-based index of the requested page — the first page
+  is `page=0`.
 - **Boundary rules**: `prev` is absent on the first page, `next` is absent on the last page. A
-  syntactically valid page **beyond** the last page (`page` index > `totalPages`) is a normal `200`
-  with an empty `data._embedded.<rel>` — it is **not** an error. Only **invalid** `page`/`size`
-  (outside the documented bounds — `page < 0`, `size < 1`, or `size` above the documented maximum)
-  is rejected `400` `application/problem+json`. Every collection endpoint's query parameters
-  (`page`/`size` from `components/parameters/common.yaml`) carry `@Min`/`@Max`; the implementing
-  controller **must** be class-annotated `@Validated` for those constraints to be enforced —
-  without it, invalid input silently reaches the handler and falls through to a generic `500`
-  instead of `400` (see `standards/error-handling.md`).
+  syntactically valid page **beyond** the last page (`page > lastPage`, where
+  `lastPage = totalPages − 1`, or `0` when `totalPages` is `0`) is a normal `200` with an empty
+  `data._embedded.<rel>` — it is **not** an error. Only **invalid** `page`/`size` (outside the
+  documented bounds — `page < 0`, `size < 1`, or `size` above the documented maximum) is rejected
+  `400` `application/problem+json`. Every collection endpoint's query parameters (`page`/`size`
+  from `components/parameters/common.yaml`) carry `@Min`/`@Max`; the implementing controller
+  **must** be class-annotated `@Validated` for those constraints to be enforced — without it,
+  invalid input silently reaches the handler and falls through to a generic `500` instead of `400`
+  (see `standards/error-handling.md`).
+- **`page` is appended last**: a navigation link's query carries every recognised parameter present
+  on the request, unchanged, with any `page` value removed and `page=<target>` appended last.
+- **Invalid query parameters are named**: a `400` caused by an invalid query parameter (bounds,
+  type, or an operation-specific business rule) has a `detail` that names the offending parameter,
+  in the form `Query parameter '<name>' is invalid.` — never the supplied value or an internal type
+  name (see `standards/error-handling.md`).
 - **Preserving filter/sort params**: pagination navigation links (`self`, `first`, `last`,
   `prev`, `next`) MUST preserve every filter and sort query parameter that was present on the
   originating request, unchanged — each link differs from `self` only in its `page` value

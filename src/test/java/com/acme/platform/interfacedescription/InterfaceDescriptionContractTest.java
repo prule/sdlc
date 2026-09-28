@@ -236,6 +236,58 @@ class InterfaceDescriptionContractTest extends PostgresIntegrationTest {
     assertNoErrors(validate(performJson(put("/movies/" + UUID.randomUUID())), "Problem"));
   }
 
+  @Test
+  void searchMoviesPopulatedSuccessBodyConformsToItsDeclaredSchema() throws Exception {
+    jdbcTemplate.update(
+        "INSERT INTO movie (id, title, release_year, runtime_minutes, synopsis, rating) "
+            + "VALUES (?, ?, ?, ?, ?, ?)",
+        UUID.randomUUID(),
+        "Arrival",
+        2016,
+        116,
+        "A linguist is recruited.",
+        new BigDecimal("4.5"));
+
+    String body = performJson(get("/movies"));
+    assertNoErrors(validate(body, "MovieCollectionEnvelope"));
+  }
+
+  @Test
+  void searchMoviesEmptySuccessBodyConformsToItsDeclaredSchema() throws Exception {
+    String body = performJson(get("/movies"));
+    assertNoErrors(validate(body, "MovieCollectionEnvelope"));
+  }
+
+  @Test
+  void searchMoviesBadRequestBodyConformsToTheSharedProblemSchema() throws Exception {
+    assertNoErrors(validate(performJson(get("/movies?size=0")), "Problem"));
+  }
+
+  @Test
+  void searchMoviesMethodNotAllowedBodyConformsToTheSharedProblemSchema() throws Exception {
+    assertNoErrors(validate(performJson(put("/movies")), "Problem"));
+  }
+
+  @Test
+  void pingAndGetMovieBodiesHaveNoPagination() throws Exception {
+    UUID movieId = UUID.randomUUID();
+    jdbcTemplate.update(
+        "INSERT INTO movie (id, title, release_year, runtime_minutes, synopsis, rating) "
+            + "VALUES (?, ?, ?, ?, ?, ?)",
+        movieId,
+        "Arrival",
+        2016,
+        116,
+        "A linguist is recruited.",
+        new BigDecimal("4.5"));
+
+    JsonNode pingMeta = jsonMapper.readTree(performJson(get("/ping"))).get("meta");
+    JsonNode movieMeta = jsonMapper.readTree(performJson(get("/movies/" + movieId))).get("meta");
+
+    assertThat(pingMeta.has("pagination")).isFalse();
+    assertThat(movieMeta.has("pagination")).isFalse();
+  }
+
   private String performJson(
       org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder request)
       throws Exception {

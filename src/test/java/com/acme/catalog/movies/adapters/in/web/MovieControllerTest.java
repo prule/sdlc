@@ -6,10 +6,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.acme.catalog.movies.application.port.in.GetMovieUseCase;
+import com.acme.catalog.movies.application.port.in.SearchMoviesUseCase;
 import com.acme.catalog.movies.domain.model.Movie;
 import com.acme.catalog.movies.domain.model.MovieId;
 import com.acme.catalog.movies.domain.model.Rating;
 import com.acme.catalog.movies.domain.model.RuntimeMinutes;
+import com.acme.platform.web.CollectionLinksFactory;
 import com.acme.platform.web.PlatformWebTest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,6 +37,7 @@ import org.springframework.test.web.servlet.MvcResult;
  * {@link GetMovieUseCase} is mocked; persistence and runtime-mode behaviour are covered elsewhere.
  */
 @PlatformWebTest(controllers = MovieController.class)
+@org.springframework.context.annotation.Import(CollectionLinksFactory.class)
 class MovieControllerTest {
 
   private static final UUID MOVIE_ID = UUID.fromString("6f1c2a3b-4d5e-4f60-8a7b-9c0d1e2f3a4b");
@@ -43,6 +46,7 @@ class MovieControllerTest {
   @Autowired private ObjectMapper objectMapper;
 
   @MockitoBean private GetMovieUseCase getMovieUseCase;
+  @MockitoBean private SearchMoviesUseCase searchMoviesUseCase;
 
   private static Movie fullyPopulatedMovie() {
     return new Movie(

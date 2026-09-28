@@ -1,8 +1,6 @@
 package com.acme.catalog.movies.domain.model;
 
-import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -31,15 +29,6 @@ public record Movie(
     Objects.requireNonNull(runtime, "runtime must not be null");
     Objects.requireNonNull(synopsis, "synopsis must not be null");
     Objects.requireNonNull(rating, "rating must not be null");
-    genres = normalizeGenres(genres);
-  }
-
-  private static List<String> normalizeGenres(List<String> genres) {
-    return genres.stream()
-        .distinct()
-        .sorted(
-            Comparator.comparing((String name) -> name.toLowerCase(Locale.ROOT))
-                .thenComparing(Comparator.naturalOrder()))
-        .toList();
+    genres = GenreNames.normalize(genres);
   }
 }

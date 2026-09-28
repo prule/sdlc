@@ -23,6 +23,16 @@ public class ProblemFactory {
     return create(ProblemKind.classify(resolvedStatus));
   }
 
+  /**
+   * A {@code BAD_REQUEST} problem whose {@code detail} names the offending query parameter (design
+   * D2). The detail never includes the supplied value or the constraint message.
+   */
+  public ProblemDetail invalidQueryParameter(String parameterName) {
+    ProblemDetail problem = create(ProblemKind.BAD_REQUEST);
+    problem.setDetail("Query parameter '" + parameterName + "' is invalid.");
+    return problem;
+  }
+
   private ProblemDetail create(ProblemKind kind) {
     ProblemDetail problem = ProblemDetail.forStatus(kind.emittedStatus());
     problem.setType(URI.create(kind.type()));
