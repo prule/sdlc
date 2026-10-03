@@ -109,7 +109,7 @@ question:
 | **Summary cards** | Scale & cost of the run | — |
 | **Insights** | Auto-generated callouts | Read these first; they flag the obvious wins and smells |
 | **Agent timeline** (Gantt) | *When* each agent ran, how long, overlaps | Work is progressing, not stalled; parallel where possible |
-| **Subagent value & efficiency** | Q1 — who does the work, who catches issues, at what cost, and **which model each agent ran** | Producers do most tool calls/files; gates are cheaper but catch things; model matches the job (e.g. reasoning/review on the stronger model, high-volume implementation on the faster one) |
+| **Subagent value & efficiency** | Q1 — who does the work, who catches issues, at what cost, and **which model each agent ran** | Producers do most tool calls/files; gates are cheaper but catch things; every agent on the configured model (opus) — a cheaper model on a long-running producer can cost more, not less, by needing more turns |
 | **Review-gate value** | Q2 — what each reviewer actually caught | Gates with real, specific findings (not rubber-stamps) |
 | **Errors & friction** | Where the run stumbled | Few command errors; few rejected tool calls |
 | **Tool usage** | Where time/effort went per tool | No single tool dominating unexpectedly |
@@ -253,7 +253,7 @@ tell you *where* to look, the reports tell you *why*.
 | **Value/1K** (per doc) | influence per 1000 tokens of the doc | Higher = denser signal; low + large = bloat candidate |
 | **Read cost** (per doc) | reads × size (tokens) | Lower for equal value = cheaper context |
 | **Catches citing a doc** | Gate findings that name the doc | Higher = doc demonstrably useful |
-| **Model** (per agent) | model that produced the agent's messages | Should match the job (stronger for reasoning/review, faster for volume) |
+| **Model** (per agent) | model that produced the agent's messages | Should be the configured model (opus); judge a cheaper one by cost per finished change, not per token |
 
 ---
 
@@ -273,8 +273,8 @@ Skim these on any run:
 - [ ] **Errors clustered in one tool** → an environment or instruction problem.
 - [ ] A **large doc with low Value/1K** (`wordy / low-signal?`) → trim it and
       `--compare` to confirm nothing regresses.
-- [ ] An **agent on an unexpected model** (e.g. a review gate on the faster model)
-      → check the agent's config; model should match the job.
+- [ ] An **agent on an unexpected model** (anything other than the configured opus)
+      → check the agent's config.
 
 ---
 

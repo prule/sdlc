@@ -102,9 +102,12 @@ FooLinks:
   documented bounds — `page < 0`, `size < 1`, or `size` above the documented maximum) is rejected
   `400` `application/problem+json`. Every collection endpoint's query parameters (`page`/`size`
   from `components/parameters/common.yaml`) carry `@Min`/`@Max`; the implementing controller
-  **must** be class-annotated `@Validated` for those constraints to be enforced — without it,
-  invalid input silently reaches the handler and falls through to a generic `500` instead of `400`
-  (see `standards/error-handling.md`).
+  **must** be `@Validated` for those constraints to be enforced — without it, invalid input
+  silently reaches the handler and falls through to a generic `500` instead of `400` (see
+  `standards/error-handling.md`). Either annotate the controller class itself, or rely on the
+  generated API interface carrying `@Validated` (Spring's method-validation pointcut honours an
+  inherited annotation) — but then a codegen test (`GeneratedApiCodegenTest`) MUST pin that the
+  generated interface is `@Validated`, so a generator change can't silently drop it.
 - **`page` is appended last**: a navigation link's query carries every recognised parameter present
   on the request, unchanged, with any `page` value removed and `page=<target>` appended last.
 - **Invalid query parameters are named**: a `400` caused by an invalid query parameter (bounds,
@@ -125,9 +128,18 @@ FooLinks:
   `_links`/`_embedded`.
 - **Contract-first**: describe `Link` and every per-resource `_links` object as shared, `$ref`ed
   named components — never inline, never `additionalProperties`. `Link`/`_links` shapes are
-  authored in the OpenAPI spec; the web adapter builds concrete hrefs with Spring HATEOAS's
-  `WebMvcLinkBuilder` and populates the generated `_links` DTO fields (responses still serialize as
-  the generated contract DTOs, not a Spring HATEOAS `RepresentationModel`).
+  authored in the OpenAPI spec; the web adapter populates the generated `_links` DTO fields
+  (responses still serialize as the generated contract DTOs, not a Spring HATEOAS
+  `RepresentationModel`). How hrefs are built depends on the link:
+  - **Resource links** (an item's `self`, links to related resources) are built with Spring
+    HATEOAS's `WebMvcLinkBuilder` (`linkTo(methodOn(...))`), so they follow the controller mappings.
+  - **Collection navigation links** (`self`/`first`/`last`/`prev`/`next` on a paged collection) are
+    built from the **current request URI** (`ServletUriComponentsBuilder.fromCurrentRequestUri()`
+    or equivalent), copying the recognised query parameters exactly as sent and setting only
+    `page`. Do NOT use `methodOn` for these: it re-serializes every bound argument, including
+    defaulted ones, which breaks the "only parameters actually present are echoed" rule above.
+  - Both kinds honour forwarded headers (`X-Forwarded-*`), and each kind is built in one
+    web-adapter link factory, not ad hoc in controllers.
 - **Layering**: link assembly is a **web-adapter-only** concern (`adapters/in/web`). The domain and
   application layers never import Spring HATEOAS or reference `_links`/`_embedded` — they return
   domain results plus page metadata (page/size/totalElements/totalPages), nothing more.

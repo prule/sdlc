@@ -46,7 +46,11 @@ are fewer and reserved for the seams that unit tests can't honestly cover (real 
   H2 **runtime configuration** works (Flyway applies, the demo seed populates, the documented endpoints
   respond) — an assertion that is meaningless against Postgres, because it is asserting on the H2 default
   wiring itself, not on persistence logic. It MUST NOT be used to assert on query correctness, mapping, or
-  any behavior that a Testcontainers-Postgres test could instead cover — that work stays on Postgres. This
+  any behavior that a Testcontainers-Postgres test could instead cover — that work stays on Postgres.
+  Concretely, per documented endpoint it MAY assert: the status, the content type, the envelope shape,
+  and that a known seeded record is present (or reachable by id). It MUST NOT assert result **order**,
+  filter or match semantics, exact result sets, paging arithmetic, or field mapping — even when a spec
+  delta's runtime-mode scenario asks for it (such a scenario is a plan defect: assert it on Postgres). This
   is not general permission to add more H2 tests: a second H2-booting test is a standards violation unless
   this document is explicitly amended to add it.
 - Provide **one reusable base class** that starts the container and points Spring at it; integration
@@ -78,7 +82,14 @@ public abstract class PostgresIntegrationTest {
 ## 4. Structure & style
 
 - **Arrange–Act–Assert**, one behavior per test. No logic (loops/conditionals) in tests — use
-  `@ParameterizedTest` for variations.
+  `@ParameterizedTest` for variations. Two narrow exceptions:
+  - **Arrange**: a loop that only builds fixtures (e.g. insert 25 movies) is fine — prefer a
+    builder/object-mother method that hides it.
+  - **Iteration is the behavior**: when the requirement is about traversal itself (follow `next`
+    until it is absent, walk every page and see each item exactly once), a loop in the Act phase is
+    allowed. It MUST have a hard upper bound that fails the test when exceeded (no `while (true)`),
+    put no assertions or conditionals inside the loop body, and assert on the collected result after
+    the loop. Never loop over cases to assert each one — that is a `@ParameterizedTest`.
 - Descriptive names stating the behavior: `redeem_rejects_expired_token`, not `test3`.
 - Deterministic: inject `Clock`, seed randomness, no `Thread.sleep`, no dependence on wall-clock or test
   ordering. Fix flaky tests immediately — a flaky test is a failing test.
