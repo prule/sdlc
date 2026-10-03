@@ -10,6 +10,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.TypeMismatchException;
@@ -84,43 +85,42 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
   }
 
   /**
-   * A bean-validation constraint declared on a {@code @Validated} handler method's own parameter
-   * (for example the generated {@code @Min}/{@code @Max} on {@code page}/{@code size}), classified
-   * in the fixed order design D2 specifies. The first rule that applies decides the outcome.
+   * A bean-validation constraint failure, classified by ownership (design D2, {@code
+   * standards/error-handling.md} §3). Only when every violation is on the handling method's own
+   * parameters is it a client fault ({@code 400}); anything else (a result constraint, a called
+   * component's constraint, or a mix) is a server-side fault ({@code 500}).
    */
   @ExceptionHandler(ConstraintViolationException.class)
   public ResponseEntity<Object> handleConstraintViolation(
       ConstraintViolationException ex, @Nullable HandlerMethod handlerMethod) {
-    // Rule 1: no HandlerMethod -- the violation did not come from a request handler.
+    // No HandlerMethod: the violation did not come from a request handler.
     if (handlerMethod == null) {
       return internalError(ex);
     }
 
-    List<ConstraintViolation<?>> belonging =
-        ex.getConstraintViolations().stream()
-            .filter(violation -> belongsToHandler(violation, handlerMethod))
-            .toList();
-
-    // Rule 2: no violation belongs to this handler.
-    if (belonging.isEmpty()) {
+    // No violations at all names no client input, so it cannot be a client fault (allMatch would
+    // be vacuously true on an empty set).
+    Set<ConstraintViolation<?>> violations = ex.getConstraintViolations();
+    if (violations == null
+        || violations.isEmpty()
+        || !violations.stream().allMatch(v -> isHandlerParameterViolation(v, handlerMethod))) {
       return internalError(ex);
     }
 
     log.debug("Invalid query parameter [correlationId={}]", CorrelationId.current().orElse(null));
 
-    // Rule 3: the lowest-index belonging violation whose @RequestParam name resolves.
+    // The lowest-index violated parameter whose @RequestParam name resolves.
     Optional<String> parameterName =
-        belonging.stream()
+        violations.stream()
             .map(violation -> requestParamName(violation, handlerMethod))
-            .filter(Optional::isPresent)
-            .map(Optional::get)
+            .flatMap(Optional::stream)
             .min(Comparator.comparingInt(NamedParameter::index))
             .map(NamedParameter::name);
 
     ProblemDetail problem =
         parameterName
             .map(problemFactory::invalidQueryParameter)
-            // Rule 4: belongs, but no @RequestParam name resolves (e.g. a path variable).
+            // No @RequestParam name resolves (e.g. a path variable): the generic 400.
             .orElseGet(() -> problemFactory.create(400));
     return ResponseEntity.status(problem.getStatus()).body(problem);
   }
@@ -162,11 +162,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
   }
 
   /**
-   * A violation belongs to {@code handlerMethod} only if both hold (design D2): the violation's
-   * root bean class is assignable to the handler's bean type, and the property path's first node is
-   * a {@code METHOD} node whose name and parameter types match the handler's method.
+   * A violation is on one of {@code handlerMethod}'s own parameters only if all hold (design D2):
+   * the violation's root bean class is assignable to the handler's bean type; the property path's
+   * first node is a {@code METHOD} node whose name and parameter types match the handler's method;
+   * and the second node is a {@code PARAMETER} node. Deeper nodes (for example a container element
+   * of a {@code List} parameter) are still on that parameter.
    */
-  private boolean belongsToHandler(ConstraintViolation<?> violation, HandlerMethod handlerMethod) {
+  private static boolean isHandlerParameterViolation(
+      ConstraintViolation<?> violation, HandlerMethod handlerMethod) {
     if (!handlerMethod.getBeanType().isAssignableFrom(violation.getRootBeanClass())) {
       return false;
     }
@@ -179,30 +182,23 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
       return false;
     }
     Path.MethodNode methodNode = first.as(Path.MethodNode.class);
-    if (!methodNode.getName().equals(handlerMethod.getMethod().getName())) {
-      return false;
-    }
-    return methodNode
-        .getParameterTypes()
-        .equals(List.of(handlerMethod.getMethod().getParameterTypes()));
+    boolean sameMethod =
+        methodNode.getName().equals(handlerMethod.getMethod().getName())
+            && methodNode
+                .getParameterTypes()
+                .equals(List.of(handlerMethod.getMethod().getParameterTypes()));
+    return sameMethod && nodes.hasNext() && nodes.next().getKind() == ElementKind.PARAMETER;
   }
 
   /**
-   * The {@code @RequestParam} name for a belonging violation's {@code PARAMETER} node, if the
-   * following node names one (design D2). The Java argument name is never used.
+   * The {@code @RequestParam} name of a handler-parameter violation's {@code PARAMETER} node, if it
+   * declares one (design D2). The Java argument name is never used.
    */
-  private Optional<NamedParameter> requestParamName(
+  private static Optional<NamedParameter> requestParamName(
       ConstraintViolation<?> violation, HandlerMethod handlerMethod) {
     Iterator<Path.Node> nodes = violation.getPropertyPath().iterator();
-    nodes.next(); // the METHOD node, already matched by belongsToHandler
-    if (!nodes.hasNext()) {
-      return Optional.empty();
-    }
-    Path.Node parameterNode = nodes.next();
-    if (parameterNode.getKind() != ElementKind.PARAMETER) {
-      return Optional.empty();
-    }
-    int index = parameterNode.as(Path.ParameterNode.class).getParameterIndex();
+    nodes.next(); // the METHOD node, already matched by isHandlerParameterViolation
+    int index = nodes.next().as(Path.ParameterNode.class).getParameterIndex();
     MethodParameter[] methodParameters = handlerMethod.getMethodParameters();
     if (index < 0 || index >= methodParameters.length) {
       return Optional.empty();

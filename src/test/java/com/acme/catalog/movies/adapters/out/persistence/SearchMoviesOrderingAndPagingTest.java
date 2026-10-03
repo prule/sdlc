@@ -14,10 +14,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
@@ -30,6 +32,8 @@ class SearchMoviesOrderingAndPagingTest extends PostgresIntegrationTest {
 
   @Autowired private MoviePersistenceAdapter adapter;
   @Autowired private JdbcTemplate jdbcTemplate;
+
+  private static final int MAX_PAGES = 10;
 
   private static final MovieSearchCriteria NO_CRITERIA =
       MovieSearchCriteria.of(
@@ -71,20 +75,33 @@ class SearchMoviesOrderingAndPagingTest extends PostgresIntegrationTest {
         .containsExactly("alpha", "Arrival", "Zebra", "Laugh Track");
   }
 
+  /**
+   * The fixture gives six pairwise-distinct expected orders (design D4), so mapping any sort to the
+   * wrong comparator fails.
+   */
+  static Stream<Arguments> everySupportedSort() {
+    return Stream.of(
+        Arguments.of(MovieSortOrder.TITLE_ASC, List.of("A", "B", "C", "D")),
+        Arguments.of(MovieSortOrder.TITLE_DESC, List.of("D", "C", "B", "A")),
+        Arguments.of(MovieSortOrder.RELEASE_YEAR_ASC, List.of("B", "D", "A", "C")),
+        Arguments.of(MovieSortOrder.RELEASE_YEAR_DESC, List.of("C", "A", "D", "B")),
+        Arguments.of(MovieSortOrder.RATING_ASC, List.of("A", "D", "C", "B")),
+        Arguments.of(MovieSortOrder.RATING_DESC, List.of("C", "D", "A", "B")));
+  }
+
   @ParameterizedTest
-  @EnumSource(
-      value = MovieSortOrder.class,
-      names = {"DEFAULT"},
-      mode = EnumSource.Mode.EXCLUDE)
-  void everySupportedSortProducesAStableCompleteOrder(MovieSortOrder order) {
-    insertMovie("Beta", 2000, new BigDecimal("3.0"));
-    insertMovie("Alpha", 2010, new BigDecimal("4.0"));
-    insertMovie("Gamma", 2005, null);
+  @MethodSource("everySupportedSort")
+  void everySupportedSortProducesItsExactOrder(MovieSortOrder order, List<String> expectedTitles) {
+    insertMovie("A", 2003, new BigDecimal("2.0"));
+    insertMovie("B", 2001, null);
+    insertMovie("C", 2004, new BigDecimal("4.0"));
+    insertMovie("D", 2002, new BigDecimal("3.0"));
 
     Page<MovieSummary> result = search(order, new PageRequest(0, 20));
 
-    assertThat(result.items()).hasSize(3);
-    assertThat(result.totalElements()).isEqualTo(3);
+    assertThat(result.items())
+        .extracting(MovieSummary::title)
+        .containsExactlyElementsOf(expectedTitles);
   }
 
   @Test
@@ -175,16 +192,18 @@ class SearchMoviesOrderingAndPagingTest extends PostgresIntegrationTest {
     assertThat(secondWalk).isEqualTo(firstWalk);
   }
 
+  /**
+   * Walks every page (iteration is the behaviour under test, {@code standards/testing.md} §4): the
+   * page count is read from page 0 and bounded by {@link #MAX_PAGES}, and the loop body only
+   * collects.
+   */
   private List<UUID> walkAllIds(MovieSortOrder order, int size) {
+    int totalPages = search(order, new PageRequest(0, size)).totalPages();
+    assertThat(totalPages).isLessThanOrEqualTo(MAX_PAGES);
+
     List<UUID> ids = new ArrayList<>();
-    int page = 0;
-    while (true) {
-      Page<MovieSummary> result = search(order, new PageRequest(page, size));
-      if (result.items().isEmpty()) {
-        break;
-      }
-      result.items().forEach(summary -> ids.add(summary.id().value()));
-      page++;
+    for (int page = 0; page < totalPages; page++) {
+      search(order, new PageRequest(page, size)).items().forEach(s -> ids.add(s.id().value()));
     }
     return ids;
   }

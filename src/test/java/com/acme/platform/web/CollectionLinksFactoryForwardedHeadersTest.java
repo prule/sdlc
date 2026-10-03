@@ -5,6 +5,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
@@ -33,9 +35,15 @@ class CollectionLinksFactoryForwardedHeadersTest {
             .andReturn();
 
     JsonNode body = objectMapper.readTree(result.getResponse().getContentAsString());
-    for (String relation : new String[] {"self", "first", "last"}) {
-      assertThat(body.get(relation).get("href").asText())
-          .startsWith("https://api.example.test/test-only/collection-links/movies");
-    }
+    List<String> hrefs =
+        Stream.of("self", "first", "last")
+            .map(relation -> body.get(relation).get("href").asText())
+            .toList();
+
+    assertThat(hrefs)
+        .allSatisfy(
+            href ->
+                assertThat(href)
+                    .startsWith("https://api.example.test/test-only/collection-links/movies"));
   }
 }

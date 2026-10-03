@@ -3,6 +3,8 @@ package com.acme.platform.web;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
+import ch.qos.logback.classic.Level;
+import com.acme.testsupport.LogCaptor;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.ConstraintViolation;
@@ -10,12 +12,17 @@ import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.executable.ExecutableValidator;
+import java.lang.reflect.Method;
+import java.util.HashSet;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.ProblemDetail;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.web.method.HandlerMethod;
 
 /**
  * Web-slice coverage for {@link GlobalExceptionHandler}'s {@code ConstraintViolationException} and
@@ -141,6 +148,61 @@ class ConstraintViolationHandlingTest {
   }
 
   @Test
+  void aResultConstraintViolationIsInternalErrorWithoutLeakingTheMessage() throws Exception {
+    try (LogCaptor logCaptor = LogCaptor.forClass(GlobalExceptionHandler.class)) {
+      MvcResult result = mockMvc.perform(get("/test-only/validated/result-constraint")).andReturn();
+
+      assertThat(result.getResponse().getStatus()).isEqualTo(500);
+      String content = result.getResponse().getContentAsString();
+      JsonNode body = objectMapper.readTree(content);
+      assertThat(body.get("code").asText()).isEqualTo("INTERNAL_ERROR");
+      assertThat(body.get("detail").asText()).isEqualTo("An unexpected error occurred.");
+      assertThat(content).doesNotContain("secret-detail");
+      String correlationId = body.get("correlationId").asText();
+      assertThat(logCaptor.events())
+          .anySatisfy(
+              event -> {
+                assertThat(event.getLevel()).isEqualTo(Level.ERROR);
+                assertThat(event.getFormattedMessage()).contains(correlationId);
+              });
+    }
+  }
+
+  @Test
+  void mixedParameterAndResultViolationsOfTheSameHandlerAreInternalError() throws Exception {
+    TestOnlyValidatedController controller =
+        new TestOnlyValidatedController(new TestOnlyConstrainedService());
+    Method mixed = TestOnlyValidatedController.class.getMethod("mixed", Integer.class);
+    ExecutableValidator validator =
+        Validation.buildDefaultValidatorFactory().getValidator().forExecutables();
+    Set<ConstraintViolation<TestOnlyValidatedController>> violations = new HashSet<>();
+    violations.addAll(validator.validateParameters(controller, mixed, new Object[] {-1}));
+    violations.addAll(validator.validateReturnValue(controller, mixed, null));
+    GlobalExceptionHandler handler = new GlobalExceptionHandler(problemFactory);
+
+    var response =
+        handler.handleConstraintViolation(
+            new ConstraintViolationException(violations), new HandlerMethod(controller, mixed));
+
+    assertThat(violations).hasSize(2);
+    assertThat(response.getStatusCode().value()).isEqualTo(500);
+    ProblemDetail problem = (ProblemDetail) response.getBody();
+    assertThat(problem.getProperties()).containsEntry("code", "INTERNAL_ERROR");
+    assertThat(problem.getDetail()).doesNotContain("'page'");
+  }
+
+  @Test
+  void aViolationOnOneValueOfARepeatedParameterIsBadRequestNamingIt() throws Exception {
+    MvcResult result =
+        mockMvc
+            .perform(get("/test-only/validated/elements").param("ids", "1").param("ids", "-1"))
+            .andReturn();
+
+    JsonNode body = assertBadRequest(result);
+    assertThat(body.get("detail").asText()).isEqualTo("Query parameter 'ids' is invalid.");
+  }
+
+  @Test
   void invalidQueryParameterExceptionMapsTheSameWay() {
     var problem = problemFactory.invalidQueryParameter("x");
 
@@ -154,6 +216,21 @@ class ConstraintViolationHandlingTest {
     ConstraintViolationException ex = realConstraintViolationException();
 
     var response = handler.handleConstraintViolation(ex, null);
+
+    assertThat(response.getStatusCode().value()).isEqualTo(500);
+  }
+
+  @Test
+  void aConstraintViolationExceptionWithNoViolationsOnAHandlerIsInternalError() throws Exception {
+    TestOnlyValidatedController controller =
+        new TestOnlyValidatedController(new TestOnlyConstrainedService());
+    Method mixed = TestOnlyValidatedController.class.getMethod("mixed", Integer.class);
+    GlobalExceptionHandler handler = new GlobalExceptionHandler(problemFactory);
+
+    var response =
+        handler.handleConstraintViolation(
+            new ConstraintViolationException("no violations", Set.of()),
+            new HandlerMethod(controller, mixed));
 
     assertThat(response.getStatusCode().value()).isEqualTo(500);
   }

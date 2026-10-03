@@ -1,5 +1,6 @@
 package com.acme.platform.web;
 
+import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -38,6 +39,22 @@ public class TestOnlyValidatedController implements TestOnlyValidatedApi {
     // method's first @RequestParam, to prove that coincidence alone does not make it "belong"
     // to this handler (design D2).
     constrainedService.validate(-1);
+    return ResponseEntity.ok("ok");
+  }
+
+  @Override
+  public ResponseEntity<String> resultConstraint() {
+    // Deliberately violates the declared result constraint (design D3).
+    return null;
+  }
+
+  @Override
+  public ResponseEntity<String> elements(List<Integer> ids) {
+    return ResponseEntity.ok("ok");
+  }
+
+  @Override
+  public ResponseEntity<String> mixed(Integer p) {
     return ResponseEntity.ok("ok");
   }
 }
