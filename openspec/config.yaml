@@ -46,6 +46,7 @@ rules:
     - "Include the DB migration plan (Flyway) and rollback consideration."
   specs:
     - "Each requirement must be independently testable; state the acceptance check."
+    - "Runtime-mode (H2 default) scenarios assert only that the endpoint responds with seeded data in the documented shape; never order, filtering, exact result sets or paging on H2 — put those acceptance checks on Testcontainers Postgres (standards/testing.md §3)."
   tasks:
     - "Order tasks: (1) OpenAPI spec, (2) generate stubs, (3) domain, (4) application/ports, (5) outbound adapters + migration, (6) inbound controller, (7) tests at each layer."
     - "Each task should be completable in under ~2 hours."

@@ -46,13 +46,13 @@ live in **[tickets/](tickets/)** ([template](tickets/TEMPLATE.md)); they capture
 | **ticket-writer** | opus | yes (tickets) | Rough idea → a well-formed ticket (from `domain/` + `standards/`) | — (pre-pipeline) |
 | **architect** | opus | yes | Ticket → plan (proposal, design, spec delta, tasks) | `opsx:propose` |
 | **spec-reviewer** | opus | no (read-only) | Plan gate: standards conformance + design/feasibility | — |
-| **junior-dev** | sonnet | yes | Implement the tasks | `opsx:apply` |
-| **qa** | sonnet | yes | Verify every requirement is tested; run the suite | `opsx:verify` |
+| **junior-dev** | opus | yes | Implement the tasks | `opsx:apply` |
+| **qa** | opus | yes | Verify every requirement is tested; run the suite | `opsx:verify` |
 | **senior-dev** | opus | yes (fixes directly) | Final code review of the diff; fixes what it finds, hands back design/scope calls | — |
 
 Principle: **OpenSpec owns the workflow mechanics; agents own judgment + standards.** The
 **spec-reviewer** is read-only by design (plan gate — it reports, the architect revises). The
-**senior-dev** (the strongest model) fixes what it finds in the code review directly, and hands back
+**senior-dev** fixes what it finds in the code review directly, and hands back
 only design/plan/scope calls. Agents never format code — the pre-commit hook does (they build with
 `-x spotlessCheck`).
 
@@ -239,7 +239,10 @@ the session report answers "did each agent and each piece of context earn its pl
 
 ## Cost / runaway controls
 
-- **Model tiering** — opus only for architect + reviewers; sonnet for implement/QA.
+- **One model: opus for every agent.** A cheaper implementer is a false economy here: on UC-002 a
+  Sonnet junior-dev made ~4× the tool calls of an Opus one and doubled the run's cost (~$19 vs
+  ~$9.50) and tripled its time, for the same blind-review quality. Evidence: branches
+  `experiment/pipeline-opus-uc-002` and `experiment/baseline-uc-002`.
 - **No agent can spawn agents** — only the orchestrator (you) spawns; no fan-out.
 - **`.claude/settings.json`** caps output/thinking tokens and Bash timeouts, and denies `gradle publish`.
 - **`/build-ticket`** caps fix-loops at 2 rounds and pauses at ~10 total agent runs.

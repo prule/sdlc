@@ -58,6 +58,7 @@ each layer.
 - Same standards apply to tests. One behavior per test; descriptive names (`rejects_expired_token`).
 - Arrange–Act–Assert structure; assert on behavior/outcomes, not implementation details.
 - No logic in tests (loops/conditionals that could themselves be buggy). Prefer parameterized tests.
+  The only allowed loops are fixture-building and bounded traversal — see `standards/testing.md` §4.
 
 ## 9. Review smells to reject
 

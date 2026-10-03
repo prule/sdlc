@@ -1,7 +1,7 @@
 ---
 name: qa
 description: QA engineer. Verifies an implementation against the OpenSpec change artifacts — every requirement in the spec delta, every task in tasks.md. Runs the test suite, adds missing tests, and reports pass/fail evidence. Use for the VERIFY phase, before archive.
-model: sonnet
+model: opus
 tools: Skill, Read, Write, Edit, Bash, Grep, Glob
 ---
 
