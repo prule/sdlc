@@ -33,6 +33,14 @@ first-class code — the [clean-code.md](clean-code.md) rules apply to them too.
 Most tests are unit tests at the domain/application layers (fast, run constantly). Integration tests
 are fewer and reserved for the seams that unit tests can't honestly cover (real SQL, mapping, wiring).
 
+**Tests run the production framework wiring.** A slice or integration test uses the same framework
+beans production uses (validation, message conversion, exception handling, security filters). Do not
+replace a framework bean with a hand-built test double "because the slice doesn't load it" — check
+first: a claim about what a Spring/Boot slice does or doesn't auto-configure must cite the framework
+source or docs for the version in use (e.g. Boot's `AutoConfigureWebMvc.imports`), in a comment next
+to the override. An unexplained replacement of framework wiring in test config is a defect: the tests
+would prove the double, not the application.
+
 ## 3. Database tests use Testcontainers — never H2
 
 - All tests that touch the database — every domain/persistence-logic test, every test asserting on

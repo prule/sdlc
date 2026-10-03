@@ -46,6 +46,8 @@ rules:
     - "Include the DB migration plan (Flyway) and rollback consideration."
   specs:
     - "Each requirement must be independently testable; state the acceptance check."
+    - "Every query parameter gets malformed-input scenarios with their expected outcome: wrong type, empty value, out-of-range value, malformed percent-encoding (e.g. ?title=%zz), and repeated; for list parameters also comma-separated and mixed repeated + comma-separated. None may end in a 5xx."
+    - "Every risk or edge case named in design.md gets a scenario with an acceptance check, or is explicitly marked 'accepted, not tested' with the reason."
     - "Runtime-mode (H2 default) scenarios assert only that the endpoint responds with seeded data in the documented shape; never order, filtering, exact result sets or paging on H2 — put those acceptance checks on Testcontainers Postgres (standards/testing.md §3)."
   tasks:
     - "Order tasks: (1) OpenAPI spec, (2) generate stubs, (3) domain, (4) application/ports, (5) outbound adapters + migration, (6) inbound controller, (7) tests at each layer."
