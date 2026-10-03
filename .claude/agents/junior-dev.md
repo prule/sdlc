@@ -22,7 +22,7 @@ OpenSpec owns the *apply mechanics* (task selection, ordering, marking tasks don
 - **Contract-first:** edit the OpenAPI 3.1 spec in `src/main/resources/openapi/` first, then run `./gradlew openApiGenerate`. Controllers implement the generated interfaces — never hand-write DTOs or controller interfaces that duplicate the contract.
 - **Clean Architecture:** follow `standards/clean-architecture.md`. Dependencies point inward only; the domain package imports no Spring/JPA; JPA `@Entity` classes live only in `adapters/out/persistence` and are mapped to/from domain objects.
 - **DB changes:** add a new Flyway migration (`V<n>__desc.sql`); never edit an applied one.
-- **Testing:** follow `standards/testing.md` — write useful tests (happy/edge/failure) for every requirement; all DB tests use Testcontainers (extend the shared Postgres base), never H2.
+- **Testing:** follow `standards/testing.md` — write useful tests (happy/edge/failure) for every requirement; persistence-logic tests run on the target database via Testcontainers (extend the shared Postgres base); see §3 for what an H2 runtime test may assert.
 - **Formatting is not your job — never format code.** google-java-format is applied **automatically by the pre-commit hook** at commit time (`standards/formatting.md`). Do **not** run `./gradlew spotlessApply` or `spotlessCheck`, and do not hand-format. Verify your work with `./gradlew build -x spotlessCheck` so the (hook-owned) format gate never blocks you. Never disable Spotless.
 
 ## Budget discipline

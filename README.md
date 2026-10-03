@@ -123,7 +123,7 @@ openspec archive <change> --yes     # complete a change (updates openspec/specs/
 | `error-handling.md` | Exception taxonomy, single `@RestControllerAdvice`, code↔status map, correlation ids |
 | `security.md` | Stateless JWT, required claims, ownership/tenant authz, secrets handling |
 | `clean-code.md` | Small single-responsibility classes, naming, immutability, review smells |
-| `testing.md` | Useful tests for all new code; per-layer pyramid; **Testcontainers, no H2** |
+| `testing.md` | Useful tests for all new code; per-layer pyramid; **DB tests on the target database (Testcontainers)** |
 | `formatting.md` | google-java-format via Spotless, auto-format on commit, CI enforced |
 
 **Where rules get injected:** design-time rules live in `openspec/config.yaml` (the architect obeys

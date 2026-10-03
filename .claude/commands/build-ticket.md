@@ -1,6 +1,6 @@
 ---
 name: "Build Ticket"
-description: "Run a Jira ticket through the full SDLC agent pipeline (architect → senior review → implement → QA → code review → archive) with approval gates."
+description: "Run a Jira ticket through the full SDLC agent pipeline (architect → spec review → implement → QA → code review → archive) with approval gates."
 argument-hint: "<paste the Jira ticket description>"
 ---
 

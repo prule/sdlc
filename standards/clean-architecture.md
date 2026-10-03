@@ -119,8 +119,8 @@ HTTP POST /users
 - **application**: unit tests with the outbound ports mocked; assert orchestration + domain rules.
 - **adapters/in/web**: `@WebMvcTest` / MockMvc against the generated API, use-case port mocked;
   assert request validation, status codes, DTO mapping, and problem-detail responses.
-- **adapters/out/persistence**: `@DataJpaTest` or full slice with **Testcontainers** Postgres; assert
-  mapping and queries against a real database — no H2.
+- **adapters/out/persistence**: `@DataJpaTest` or full slice with **Testcontainers** Postgres (the project's
+  target database); assert mapping and queries against it.
 - **contract**: validate the OpenAPI spec in CI; optionally verify controllers against it.
 - Each requirement in a spec delta gets a test covering happy path, an edge case, and a failure path.
 

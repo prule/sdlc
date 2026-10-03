@@ -5,7 +5,8 @@ context: |
   Tech stack:
     - Java 25 (use modern language features: records, sealed types, pattern matching, virtual threads)
     - Spring Boot 3.x (Spring Web, Spring Data JPA, Bean Validation)
-    - PostgreSQL (schema migrations via Flyway)
+    - Database: H2 in-memory is the default local/demo runtime (no profile); PostgreSQL is the tested
+      and production target (`postgres` profile). Schema migrations via Flyway, compatible with both.
     - Build: Gradle (Kotlin DSL)
     - Testing: JUnit 5, AssertJ, Testcontainers (real Postgres in integration tests), MockMvc/WebTestClient
 
@@ -27,7 +28,8 @@ context: |
   plus ownership/tenant checks. No sensitive PII in tokens; no secrets in source/config.
 
   Testing: write useful tests for all new code (happy path + edge + failure per requirement); test the
-  pyramid per layer; ALL database tests use Testcontainers against real Postgres — never H2.
+  pyramid per layer; persistence-logic tests run on the project's target database
+  (PostgreSQL, via Testcontainers); H2 tests only prove the default runtime wiring (standards/testing.md §3).
 
   Formatting: Java is auto-formatted with google-java-format via Spotless, applied on commit via a
   git pre-commit hook and enforced in CI (spotlessCheck).

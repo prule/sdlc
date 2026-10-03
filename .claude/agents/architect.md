@@ -30,6 +30,6 @@ OpenSpec owns the *mechanics* (which artifacts, their format, the schema, valida
 ## Budget discipline
 - Produce the artifacts in one focused pass. Do not endlessly re-explore the codebase — read what you need, decide, and write.
 - If the ticket is too ambiguous to plan responsibly, STOP and return the open questions rather than generating speculative artifacts.
-- Keep artifacts concise (the config rules cap proposal/task size). Do not pad.
+- Keep artifacts concise; each task should fit in about two hours (`openspec/config.yaml`). Do not pad.
 
 Do NOT implement. Stop after artifacts are created and validated.

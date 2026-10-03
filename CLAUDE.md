@@ -8,8 +8,9 @@ documents before planning, writing or reviewing.
 - **Java 25** (records, sealed types, pattern matching, virtual threads where they simplify) ·
   **Spring Boot 3.x** (Web, Data JPA, Bean Validation) · **Gradle** (Kotlin DSL).
 - **Database:** H2 in-memory is the default local/demo runtime (no profile). PostgreSQL is the tested
-  and production target (`postgres` profile). The test suite always runs on PostgreSQL via
-  Testcontainers; one smoke test boots the H2 default (`standards/testing.md` §3). Schema changes are
+  and production target (`postgres` profile). Tests run on the target database:
+  persistence logic on PostgreSQL via Testcontainers; H2 tests only prove the default runtime wiring
+  (`standards/testing.md` §3). Schema changes are
   Flyway migrations in `src/main/resources/db/migration`, one set compatible with both; never edit an
   applied migration.
 - **Commands:** `./gradlew build` (compile, test, lint) · `./gradlew test` ·
