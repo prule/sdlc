@@ -104,6 +104,14 @@ public abstract class PostgresIntegrationTest {
 - Use AssertJ fluent assertions (`assertThat(x).isEqualTo(...)`); assert exceptions with
   `assertThatThrownBy(...)`.
 - Keep fixtures close and readable (builders/object mothers over sprawling setup).
+- **Send query strings exactly.** A MockMvc request whose query is already percent-encoded uses
+  `get(URI.create(...))` or `.param(...)`, never a string URL template: the template is encoded again,
+  so `%20` silently becomes `%2520` and the test exercises the wrong input.
+- **Proving a value is bound** (`standards/clean-architecture.md` §5): capture the SQL (a test-scoped
+  Hibernate `StatementInspector`) and assert the statement carries a bind placeholder and contains
+  neither the raw value nor its SQL-escaped form (`n's e` / `n''s e`), and that SQL was captured at
+  all. A behaviour check with a quote is not enough — Hibernate escapes quotes when it inlines a
+  literal, so the search still works on the buggy code.
 
 ## 5. Definition of done (tests)
 

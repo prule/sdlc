@@ -80,10 +80,13 @@ class GlobalExceptionHandler {
 
 `ConstraintViolationException` is a `ValidationException`, but it is never mapped by the 422 row: it
 is classified by the two `ConstraintViolationException` rows above. Decide ownership first — 400 only
-when every violation's root bean is a web controller (proxy unwrapped) and its path ends in a
-method-parameter node of the handler that ran; anything else is 500. When several parameters fail,
-name the lowest parameter index, and take the name from `@RequestParam`/`@PathVariable`, never the
-Java argument name.
+when the set is non-empty and every violation's root bean is a web controller (proxy unwrapped) and
+the node after the handler's METHOD node is a PARAMETER node of the handler that ran (deeper element
+or property nodes are allowed: one bad value of a repeated parameter is a violation on that
+parameter); anything else, including an empty or null set, is 500. When several parameters fail,
+name the lowest parameter index. The named `detail` applies to **query parameters** only, taking the
+name from `@RequestParam`, never the Java argument name; a violation only on path variables gets the
+generic 400 detail.
 
 Any other framework-detected 4xx not listed above (a malformed request, a missing or ill-typed
 parameter, or any other client fault Spring resolves to a 4xx status) collapses to `400`
