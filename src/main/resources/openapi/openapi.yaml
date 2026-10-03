@@ -13,9 +13,11 @@ tags:
   - name: Health
     description: Availability check
   - name: Movies
-    description: Retrieve curated movie details
+    description: Search, browse and retrieve curated movies
 paths:
   /ping:
     $ref: './paths/health.yaml#/ping'
+  /movies:
+    $ref: './paths/movies.yaml#/movies'
   /movies/{id}:
     $ref: './paths/movies.yaml#/movie'

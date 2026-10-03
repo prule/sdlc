@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import com.acme.catalog.movies.application.port.in.GetMovieUseCase;
+import com.acme.catalog.movies.application.port.in.SearchMoviesUseCase;
 import com.acme.catalog.movies.domain.model.MovieId;
 import com.acme.platform.web.GlobalExceptionHandler;
 import com.acme.platform.web.PlatformWebTest;
@@ -37,6 +38,7 @@ class MovieControllerFailureTest {
   @Autowired private ObjectMapper objectMapper;
 
   @MockitoBean private GetMovieUseCase getMovieUseCase;
+  @MockitoBean private SearchMoviesUseCase searchMoviesUseCase;
 
   @ParameterizedTest
   @ValueSource(

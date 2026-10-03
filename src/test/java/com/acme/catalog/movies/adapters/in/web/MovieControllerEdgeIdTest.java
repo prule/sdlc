@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 import com.acme.catalog.movies.application.port.in.GetMovieUseCase;
+import com.acme.catalog.movies.application.port.in.SearchMoviesUseCase;
 import com.acme.platform.web.PlatformWebTest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,6 +31,7 @@ class MovieControllerEdgeIdTest {
   @Autowired private ObjectMapper objectMapper;
 
   @MockitoBean private GetMovieUseCase getMovieUseCase;
+  @MockitoBean private SearchMoviesUseCase searchMoviesUseCase;
 
   @Test
   void percentEncodedSpaceIsBadRequestAndNeverInvokesTheUseCase() throws Exception {

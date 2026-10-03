@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.acme.catalog.movies.application.port.in.GetMovieUseCase;
+import com.acme.catalog.movies.application.port.in.SearchMoviesUseCase;
 import com.acme.catalog.movies.domain.model.Movie;
 import com.acme.catalog.movies.domain.model.MovieId;
 import com.acme.catalog.movies.domain.model.Rating;
@@ -43,6 +44,7 @@ class MovieControllerTest {
   @Autowired private ObjectMapper objectMapper;
 
   @MockitoBean private GetMovieUseCase getMovieUseCase;
+  @MockitoBean private SearchMoviesUseCase searchMoviesUseCase;
 
   private static Movie fullyPopulatedMovie() {
     return new Movie(

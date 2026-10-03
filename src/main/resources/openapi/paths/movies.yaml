@@ -1,3 +1,84 @@
+movies:
+  get:
+    operationId: searchMovies
+    summary: Search and browse movies
+    description: >
+      Finds the movies that meet every given criterion, one page at a time.
+      With no criteria, browses the whole catalog. `title` matches any part of
+      the title, ignoring case; a blank term is no criterion. Repeat `genre` to
+      require several genres: a movie must carry all of them. Genres are
+      recognised ignoring case and must be in the curated genre vocabulary.
+      `releaseYearFrom` and `releaseYearTo` are inclusive; give the same year
+      for both to mean only that year. `minRating` is inclusive and leaves out
+      movies with no recorded rating. `sort` defaults to `-releaseYear` (newest
+      first, then title A-Z); a leading `-` means descending, and movies with
+      no recorded rating always come last when sorting by rating. A page after
+      the last is an empty 200, not an error. A search asked in a way that
+      isn't allowed is 400, with the offending parameter named in `errors`.
+      In standalone mode (no profile), browsing lists the sample movies.
+    tags: [Movies]
+    security: []
+    parameters:
+      - name: title
+        in: query
+        required: false
+        description: Matches any part of the title, ignoring case.
+        schema:
+          type: string
+          maxLength: 200
+      - name: genre
+        in: query
+        required: false
+        description: A genre the movie must carry. Repeat for several (all must match).
+        style: form
+        explode: true
+        schema:
+          type: array
+          items:
+            type: string
+      - name: releaseYearFrom
+        in: query
+        required: false
+        description: Earliest release year, inclusive.
+        schema:
+          type: integer
+          format: int32
+      - name: releaseYearTo
+        in: query
+        required: false
+        description: Latest release year, inclusive.
+        schema:
+          type: integer
+          format: int32
+      - name: minRating
+        in: query
+        required: false
+        description: Minimum aggregate rating, inclusive. Unrated movies are left out.
+        schema:
+          type: number
+          minimum: 0
+          maximum: 5
+      - name: sort
+        in: query
+        required: false
+        description: Result order; a leading `-` means descending. Defaults to `-releaseYear`.
+        schema:
+          type: string
+          enum: [title, -title, releaseYear, -releaseYear, rating, -rating]
+      - $ref: '../components/parameters/common.yaml#/Page'
+      - $ref: '../components/parameters/common.yaml#/Size'
+    responses:
+      '200':
+        description: One page of matching movie summaries.
+        headers:
+          X-Correlation-Id: { $ref: '../components/headers/common.yaml#/X-Correlation-Id' }
+        content:
+          application/json:
+            schema: { $ref: '../components/schemas/movie.yaml#/MovieSearchEnvelope' }
+      '400': { $ref: '../components/responses/common.yaml#/BadRequest' }
+      '406': { $ref: '../components/responses/common.yaml#/NotAcceptable' }
+      '500': { $ref: '../components/responses/common.yaml#/InternalError' }
+
 movie:
   get:
     operationId: getMovie

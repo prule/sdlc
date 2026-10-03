@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
+import com.acme.testsupport.MovieCatalogFixture;
 import com.acme.testsupport.PostgresIntegrationTest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -234,6 +235,47 @@ class InterfaceDescriptionContractTest extends PostgresIntegrationTest {
   @Test
   void getMovieMethodNotAllowedBodyConformsToTheSharedProblemSchema() throws Exception {
     assertNoErrors(validate(performJson(put("/movies/" + UUID.randomUUID())), "Problem"));
+  }
+
+  @Test
+  void searchMoviesSuccessBodiesConformToTheirDeclaredSchema() throws Exception {
+    MovieCatalogFixture catalog = new MovieCatalogFixture(jdbcTemplate);
+    catalog.movieWithDetails("Arrival", 2016, 116, "A linguist is recruited.", "4.5", "Drama");
+    catalog.movie("Untitled Reel", 1974, null);
+    catalog.movie("Laugh Track", 1998, "3.0", "Comedy");
+
+    for (String query :
+        List.of("", "?size=1&page=1", "?title=zzzz-no-such-title", "?page=9", "?sort=-rating")) {
+      String body = performJson(get("/movies" + query));
+      assertThat(jsonMapper.readTree(body).at("/meta/pagination").isObject()).isTrue();
+      assertNoErrors(validate(body, "MovieSearchEnvelope"));
+    }
+  }
+
+  @Test
+  void searchMoviesBadRequestBodyWithErrorsConformsToTheSharedProblemSchema() throws Exception {
+    String body = performJson(get("/movies?sort=popularity&size=101"));
+
+    assertThat(jsonMapper.readTree(body).get("errors").isArray()).isTrue();
+    assertNoErrors(validate(body, "Problem"));
+    assertNoErrors(validate(performJson(get("/movies?genre=no-such-genre")), "Problem"));
+  }
+
+  @Test
+  void searchMoviesMethodNotAllowedBodyConformsToTheSharedProblemSchema() throws Exception {
+    assertNoErrors(validate(performJson(post("/movies")), "Problem"));
+  }
+
+  @Test
+  void pagingConceptsAreSharedComponentsDefinedOnce() {
+    assertThat(collectFieldNames(document.at("/components/schemas")))
+        .contains("Pagination", "InvalidParam");
+    assertThat(collectFieldNames(document.at("/components/parameters")))
+        .containsExactlyInAnyOrder("Page", "Size");
+    assertThat(document.at("/components/schemas/Meta/properties/pagination/$ref").asText())
+        .isEqualTo("#/components/schemas/Pagination");
+    assertThat(document.at("/components/schemas/Problem/properties/errors/items/$ref").asText())
+        .isEqualTo("#/components/schemas/InvalidParam");
   }
 
   private String performJson(

@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.acme.generated.api.HealthApi;
 import com.acme.generated.api.MoviesApi;
 import com.acme.generated.model.MovieDetail;
+import com.acme.generated.model.MovieSearchEnvelope;
+import com.acme.generated.model.MovieSummary;
 import com.acme.generated.model.PingEnvelope;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -51,6 +53,34 @@ class GeneratedApiCodegenTest {
   }
 
   @Test
+  void moviesApiSearchMoviesReturnsTheSharedSearchEnvelopeAndTakesSortAsAString() {
+    Method searchMovies = searchMoviesMethod();
+
+    ParameterizedType genericReturnType = (ParameterizedType) searchMovies.getGenericReturnType();
+    assertThat(genericReturnType.getActualTypeArguments())
+        .containsExactly(MovieSearchEnvelope.class);
+    // Spring binds enum-typed params by constant name, which cannot be "-title" (design D1).
+    assertThat(searchMovies.getParameterTypes())
+        .containsExactly(
+            String.class,
+            List.class,
+            Integer.class,
+            Integer.class,
+            BigDecimal.class,
+            String.class,
+            Integer.class,
+            Integer.class);
+  }
+
+  @Test
+  void movieSummaryGenresIsAListAndRatingIsABigDecimal() throws NoSuchMethodException {
+    assertThat(List.class)
+        .isAssignableFrom(MovieSummary.class.getMethod("getGenres").getReturnType());
+    assertThat(MovieSummary.class.getMethod("getRating").getReturnType())
+        .isEqualTo(BigDecimal.class);
+  }
+
+  @Test
   void movieDetailGenresIsAListAndRatingIsABigDecimal() throws NoSuchMethodException {
     Method getGenres = MovieDetail.class.getMethod("getGenres");
     Method getRating = MovieDetail.class.getMethod("getRating");
@@ -78,6 +108,13 @@ class GeneratedApiCodegenTest {
       Files.deleteIfExists(tempDir.resolve("Ping200Response.java"));
       Files.deleteIfExists(tempDir);
     }
+  }
+
+  private static Method searchMoviesMethod() {
+    return Stream.of(MoviesApi.class.getMethods())
+        .filter(method -> method.getName().equals("searchMovies"))
+        .findFirst()
+        .orElseThrow();
   }
 
   private static Path generatedModelDirectory() {

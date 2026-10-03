@@ -1,8 +1,10 @@
 package com.acme.platform.web;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.request;
 
+import com.acme.testsupport.MovieCatalogFixture;
 import com.acme.testsupport.PostgresIntegrationTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.stream.Stream;
@@ -12,16 +14,17 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.http.HttpMethod;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 /**
  * No write method succeeds anywhere, with no credentials and no CSRF token: {@code 405} on {@code
- * /ping}, on {@code /movies/{id}} (Allow includes GET) and on the interface-description assets
- * (Allow exactly {@code GET, HEAD}); {@code 404} on a path the service does not offer. Always
- * problem+json, never {@code 2xx}, {@code 401}, {@code 403} or {@code 5xx} (design D3/D4/D6,
- * uniform-responses "Service is read-only and public", catalog/movies "Movie details are public and
- * read-only").
+ * /ping}, on {@code /movies/{id}} and {@code /movies} (Allow includes GET) and on the
+ * interface-description assets (Allow exactly {@code GET, HEAD}); {@code 404} on a path the service
+ * does not offer. Always problem+json, never {@code 2xx}, {@code 401}, {@code 403} or {@code 5xx}
+ * (design D3/D4/D6, uniform-responses "Service is read-only and public", catalog/movies "Movie
+ * details are public and read-only" and "Movie collection is public and read-only").
  */
 @AutoConfigureMockMvc
 class ReadOnlyRefusalTest extends PostgresIntegrationTest {
@@ -32,6 +35,7 @@ class ReadOnlyRefusalTest extends PostgresIntegrationTest {
 
   @Autowired private MockMvc mockMvc;
   @Autowired private ObjectMapper objectMapper;
+  @Autowired private JdbcTemplate jdbcTemplate;
 
   private static Stream<Arguments> writeMethods() {
     return Stream.of(WRITE_METHODS).map(Arguments::of);
@@ -86,6 +90,36 @@ class ReadOnlyRefusalTest extends PostgresIntegrationTest {
 
     assertRefusal(result, 405, "METHOD_NOT_ALLOWED");
     assertThat(result.getResponse().getHeader("Allow")).contains("GET");
+  }
+
+  @ParameterizedTest
+  @MethodSource("writeMethods")
+  void writeOnTheMovieCollectionIsMethodNotAllowedAndChangesNothing(HttpMethod method)
+      throws Exception {
+    MovieCatalogFixture catalog = new MovieCatalogFixture(jdbcTemplate);
+    try {
+      catalog.movie("Arrival", 2016, "4.5", "Drama");
+
+      MvcResult result =
+          mockMvc
+              .perform(
+                  request(method, "/movies")
+                      .contentType("application/json")
+                      .content("{\"title\":\"Injected\",\"releaseYear\":2020}"))
+              .andReturn();
+
+      assertRefusal(result, 405, "METHOD_NOT_ALLOWED");
+      assertThat(result.getResponse().getHeader("Allow")).contains("GET");
+      MvcResult browse = mockMvc.perform(get("/movies")).andReturn();
+      assertThat(
+              objectMapper
+                  .readTree(browse.getResponse().getContentAsString())
+                  .at("/meta/pagination/totalElements")
+                  .asLong())
+          .isEqualTo(1);
+    } finally {
+      catalog.clear();
+    }
   }
 
   private void assertRefusal(MvcResult result, int status, String code) throws Exception {

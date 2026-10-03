@@ -1,5 +1,7 @@
 package com.acme.catalog.movies.adapters.out.persistence;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -11,4 +13,8 @@ public interface MovieJpaRepository extends JpaRepository<MovieJpaEntity, UUID> 
   @Override
   @EntityGraph(attributePaths = "genres")
   Optional<MovieJpaEntity> findById(UUID id);
+
+  /** One page of search results with their genres in a single query (design D5, no N+1). */
+  @EntityGraph(attributePaths = "genres")
+  List<MovieJpaEntity> findAllByIdIn(Collection<UUID> ids);
 }

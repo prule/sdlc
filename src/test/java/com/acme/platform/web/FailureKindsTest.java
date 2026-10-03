@@ -110,6 +110,8 @@ class FailureKindsTest {
     MvcResult result = mockMvc.perform(get("/test-only/uuid-param")).andReturn();
     JsonNode body = assertProblem(result, 400, "BAD_REQUEST", "urn:problem-type:bad-request");
     assertThat(body.get("detail").asText()).doesNotContainIgnoringCase("uuid");
+    assertThat(body.at("/errors/0/field").asText()).isEqualTo("id");
+    assertThat(body.get("errors")).hasSize(1);
   }
 
   @Test
@@ -118,6 +120,39 @@ class FailureKindsTest {
         mockMvc.perform(get("/test-only/uuid-param").param("id", "not-a-uuid")).andReturn();
     JsonNode body = assertProblem(result, 400, "BAD_REQUEST", "urn:problem-type:bad-request");
     assertThat(body.get("detail").asText()).doesNotContainIgnoringCase("uuid");
+    assertThat(body.at("/errors/0/field").asText()).isEqualTo("id");
+    assertThat(body.at("/errors/0/message").asText()).doesNotContainIgnoringCase("uuid");
+    assertThat(result.getResponse().getContentAsString()).doesNotContain("not-a-uuid");
+  }
+
+  @Test
+  void aBadRequestNotCausedByANamedParameterHasNoErrors() throws Exception {
+    MvcResult result = mockMvc.perform(get("/test-only/conflict")).andReturn();
+    JsonNode body = assertProblem(result, 400, "BAD_REQUEST", "urn:problem-type:bad-request");
+    assertThat(body.has("errors")).isFalse();
+  }
+
+  @Test
+  void otherFailureKindsNeverCarryErrors() throws Exception {
+    BDDMockito.given(checkAvailabilityUseCase.checkAvailability())
+        .willReturn(new Availability(AvailabilityStatus.UP));
+    MvcResult[] results = {
+      mockMvc.perform(get("/no-such-thing")).andReturn(),
+      mockMvc.perform(post("/ping")).andReturn(),
+      mockMvc.perform(get("/ping").accept(MediaType.APPLICATION_XML)).andReturn(),
+      mockMvc
+          .perform(
+              post("/test-only/consumes-json")
+                  .contentType(MediaType.APPLICATION_XML)
+                  .content("<a/>"))
+          .andReturn(),
+      mockMvc.perform(get("/test-only/throws")).andReturn(),
+    };
+    for (MvcResult result : results) {
+      assertThat(objectMapper.readTree(result.getResponse().getContentAsString()).has("errors"))
+          .as("status %d", result.getResponse().getStatus())
+          .isFalse();
+    }
   }
 
   @Test

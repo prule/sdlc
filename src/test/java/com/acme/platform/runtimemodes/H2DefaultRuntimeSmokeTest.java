@@ -58,6 +58,21 @@ class H2DefaultRuntimeSmokeTest {
     assertThat(data.has("rating")).isFalse();
   }
 
+  @Test
+  void browsingListsTheSampleMoviesNewestFirst() throws Exception {
+    MvcResult result =
+        mockMvc
+            .perform(MockMvcRequestBuilders.get(CONTEXT_PATH + "/movies").contextPath(CONTEXT_PATH))
+            .andReturn();
+
+    assertThat(result.getResponse().getStatus()).isEqualTo(200);
+    JsonNode body = objectMapper.readTree(result.getResponse().getContentAsString());
+    assertThat(body.at("/data/_embedded/movies"))
+        .map(movie -> movie.get("title").asText())
+        .containsExactly("Arrival", "The Grand Heist", "Laugh Track", "Untitled Reel");
+    assertThat(body.at("/meta/pagination/totalElements").asLong()).isEqualTo(4);
+  }
+
   private JsonNode getMovie(String id) throws Exception {
     MvcResult result =
         mockMvc

@@ -1,6 +1,7 @@
 package com.acme.platform.web;
 
 import com.acme.generated.model.Meta;
+import com.acme.generated.model.Pagination;
 import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -23,5 +24,10 @@ public class ResponseMetaFactory {
     OffsetDateTime timestamp = OffsetDateTime.now(clock);
     UUID correlationId = CorrelationId.current().map(UUID::fromString).orElseGet(UUID::randomUUID);
     return new Meta(timestamp, correlationId);
+  }
+
+  /** The {@code meta} of one page of a paged list: as {@link #create()}, plus its counts. */
+  public Meta create(Pagination pagination) {
+    return create().pagination(pagination);
   }
 }
