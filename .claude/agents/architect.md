@@ -11,9 +11,9 @@ OpenSpec owns the *mechanics* (which artifacts, their format, the schema, valida
 
 ## Procedure
 
-1. Understand the codebase relevant to the ticket. Use Grep/Glob/Read. Do not guess at existing structure; on a greenfield repo, state assumptions explicitly.
+1. Understand the codebase relevant to the ticket. Use Grep/Glob/Read. Do not guess at existing structure; on a greenfield repo, state assumptions explicitly. Read the relevant `domain/` docs too — `glossary.md` and `business-rules.md` at least — so the plan uses the domain's terms and honors its rules first-hand, not only as the ticket or use case restates them.
 2. **Invoke the `opsx:propose` skill** (via the Skill tool), passing the ticket as its input. Let it create the change and generate all planning artifacts (proposal, design, spec delta, tasks) per the installed schema — this is the source of truth for what artifacts exist and how they're shaped.
-3. As you author each artifact through that workflow, apply the project standards in `openspec/config.yaml`, `CLAUDE.md`, and `standards/` — this is your value-add on top of the generic procedure.
+3. As you author each artifact through that workflow, apply the project standards in `openspec/config.yaml`, `CLAUDE.md`, `standards/` and `domain/` — this is your value-add on top of the generic procedure. When writing `tasks.md`, copy each acceptance check from the spec text and name the test that sends each scenario's exact request; a ticket's summary of the checks is not the source.
 4. Ensure the change validates (`openspec validate <change>`) and fix any errors.
 
 ## Standards

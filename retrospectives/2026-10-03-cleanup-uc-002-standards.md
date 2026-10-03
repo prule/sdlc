@@ -73,25 +73,25 @@ The plan needed a second round, because its key test couldn't fail on the buggy 
 
 ## Recommendations
 
-- [ ] **R1** — Tasks must test each spec `#### Scenario` with its exact request and cite the spec
+- [x] **R1** — Tasks must test each spec `#### Scenario` with its exact request and cite the spec
   requirement by name, copying acceptance checks from the spec rather than from a ticket's
   paraphrase → `openspec/config.yaml` (tasks rules), `.claude/agents/architect.md` (from F1, S4, D2)
-  · recurs: `2026-09-28-add-movie-search.md` (S10: spec acceptance checks not tested as specified)
-- [ ] **R2** — MockMvc requests with pre-encoded queries use `get(URI.create(...))` or `.param(...)`,
+  · recurs: `2026-09-28-add-movie-search.md` (S10: spec acceptance checks not tested as specified) · adopted in #42
+- [x] **R2** — MockMvc requests with pre-encoded queries use `get(URI.create(...))` or `.param(...)`,
   never a string URL template (the template is encoded again, so `%20` becomes `%2520` with no
-  error) → `standards/testing.md` §4 (from S5; raised independently by qa and senior-dev)
-- [ ] **R3** — Any "every X satisfies P" rule in a design (classification, validation, ownership)
-  must state the outcome for an empty or null X, with a test → `openspec/config.yaml` (design rules) (from S3)
-- [ ] **R4** — How to prove a value is bound: check the captured SQL for a bind placeholder, and
+  error) → `standards/testing.md` §4 (from S5; raised independently by qa and senior-dev) · adopted in #42
+- [x] **R3** — Any "every X satisfies P" rule in a design (classification, validation, ownership)
+  must state the outcome for an empty or null X, with a test → `openspec/config.yaml` (design rules) (from S3) · adopted in #42
+- [x] **R4** — How to prove a value is bound: check the captured SQL for a bind placeholder, and
   for neither the raw nor the SQL-escaped value. A quote alone proves nothing, because Hibernate
-  escapes inlined quotes → `standards/testing.md` (next to `clean-architecture.md` §5) (from F1, S1)
-- [ ] **R5** — Gate 1 decision: narrow `error-handling.md` §3 so the named `detail` applies to query
-  parameters only, and path variables keep the generic detail → `standards/error-handling.md` (from S2)
-- [ ] **R6** — Gate 1 decision: reword §3 ownership to "the node after the handler's METHOD node is a
+  escapes inlined quotes → `standards/testing.md` (next to `clean-architecture.md` §5) (from F1, S1) · adopted in #42
+- [x] **R5** — Gate 1 decision: narrow `error-handling.md` §3 so the named `detail` applies to query
+  parameters only, and path variables keep the generic detail → `standards/error-handling.md` (from S2) · adopted in #42
+- [x] **R6** — Gate 1 decision: reword §3 ownership to "the node after the handler's METHOD node is a
   PARAMETER node; deeper element or property nodes are allowed", matching the tested behaviour
-  → `standards/error-handling.md` (from D1)
+  → `standards/error-handling.md` (from D1) · adopted in #42
 - [ ] **R7** — Gate 1 decision: follow-up ticket to split `MoviePersistenceAdapter` (now 254 lines,
   three ports) and `GlobalExceptionHandler` (now 233) before UC-003 → code fix (ticket)
   (from `2026-09-28-add-movie-search.md` S9, now deferred)
-- [ ] **R8** — Technical-ticket template: done criteria list the finding IDs they close, and
-  findings left out of scope are marked `deferred` → ticket template / `.claude/agents/ticket-writer.md` (from D3)
+- [x] **R8** — Technical-ticket template: done criteria list the finding IDs they close, and
+  findings left out of scope are marked `deferred` → ticket template / `.claude/agents/ticket-writer.md` (from D3) · adopted in #42

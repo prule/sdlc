@@ -35,6 +35,12 @@ context: |
   Detailed standards live in standards/: clean-architecture.md, openapi.md, error-handling.md,
   security.md, clean-code.md, testing.md, formatting.md. Honor them when designing.
 
+  Domain knowledge lives in domain/: glossary.md (the ubiquitous language), business-rules.md
+  (durable rules every capability must respect), bounded-contexts.md, actors-and-personas.md,
+  overview.md. Read the ones relevant to the change before designing. Use the glossary's terms in
+  requirements, scenarios and component names; honor the business rules; keep the change inside its
+  bounded context. A new term or durable rule the change introduces is recorded in domain/ as a task.
+
 # Per-artifact rules, injected when that artifact is authored.
 rules:
   proposal:
@@ -42,6 +48,7 @@ rules:
     - Call out any breaking API or DB schema change explicitly.
   design:
     - "State which OpenAPI operations are added/changed and show the contract snippet."
+    - "Any rule of the form 'every X satisfies P' (classification, validation, ownership) states the outcome for an empty or null X, and that case gets a test."
     - "Name the domain/application/adapter components touched and confirm dependency direction is inward-only."
     - "Include the DB migration plan (Flyway) and rollback consideration."
   specs:
@@ -52,6 +59,7 @@ rules:
   tasks:
     - "Order tasks: (1) OpenAPI spec, (2) generate stubs, (3) domain, (4) application/ports, (5) outbound adapters + migration, (6) inbound controller, (7) tests at each layer."
     - "Each task should be completable in under ~2 hours."
+    - "Every spec #### Scenario is covered by a test that sends the scenario's exact request or input; the task names that test and cites the spec requirement by name. Copy acceptance checks from the spec text, never from a ticket's paraphrase of them."
 
 operations:
   apply:

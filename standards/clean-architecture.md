@@ -86,7 +86,7 @@ If you want a Spring-free application layer, wire beans in a `config` package wi
   JPQL/SQL, and `cb.parameter(...)` or `cb.value(...)` in the Criteria API. Never `cb.literal(...)`
   for a variable value (Hibernate 6 renders an `SqmLiteral` inline into the SQL text), and never
   string concatenation. Inlined values risk injection and give every distinct value its own query
-  plan. A test with a quote in the value (e.g. `r's l`) pins this.
+  plan. Prove it as `standards/testing.md` §4 describes — a quote in the value alone proves nothing.
 
 ## 6. Web rules (adapters/in/web)
 
