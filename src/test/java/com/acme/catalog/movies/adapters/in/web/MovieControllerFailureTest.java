@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import com.acme.catalog.movies.application.port.in.GetMovieUseCase;
+import com.acme.catalog.movies.application.port.in.SearchMoviesUseCase;
 import com.acme.catalog.movies.domain.model.MovieId;
 import com.acme.platform.web.GlobalExceptionHandler;
 import com.acme.platform.web.PlatformWebTest;
@@ -37,6 +38,7 @@ class MovieControllerFailureTest {
   @Autowired private ObjectMapper objectMapper;
 
   @MockitoBean private GetMovieUseCase getMovieUseCase;
+  @MockitoBean private SearchMoviesUseCase searchMoviesUseCase;
 
   @ParameterizedTest
   @ValueSource(
@@ -55,6 +57,9 @@ class MovieControllerFailureTest {
     assertThat(result.getResponse().getContentType()).startsWith("application/problem+json");
     JsonNode body = objectMapper.readTree(result.getResponse().getContentAsString());
     assertThat(body.get("code").asText()).isEqualTo("BAD_REQUEST");
+    assertThat(body.get("detail").asText())
+        .isEqualTo("The request parameter 'id' is not valid.")
+        .doesNotContain(malformedId);
     Mockito.verifyNoInteractions(getMovieUseCase);
   }
 

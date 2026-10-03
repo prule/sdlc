@@ -4,10 +4,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.acme.generated.api.HealthApi;
 import com.acme.generated.api.MoviesApi;
+import com.acme.generated.model.Meta;
 import com.acme.generated.model.MovieDetail;
+import com.acme.generated.model.MovieSearchEnvelope;
+import com.acme.generated.model.Pagination;
 import com.acme.generated.model.PingEnvelope;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
 import java.math.BigDecimal;
 import java.nio.file.Files;
@@ -18,6 +26,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.RequestParam;
 
 /**
  * Asserts that the OpenAPI generator was fed the redocly-bundled spec (with shared component
@@ -30,6 +40,8 @@ class GeneratedApiCodegenTest {
 
   private static final Pattern PER_OPERATION_STATUS_RESPONSE =
       Pattern.compile(".*\\d{3}Response.*");
+
+  private static final Pattern SEARCH_MOVIES_RESPONSE = Pattern.compile("SearchMovies.*Response.*");
 
   @Test
   void healthApiPingReturnsTheSharedPingEnvelope() throws NoSuchMethodException {
@@ -60,6 +72,67 @@ class GeneratedApiCodegenTest {
   }
 
   @Test
+  void moviesApiSearchMoviesReturnsTheSharedMovieSearchEnvelope() {
+    Method searchMovies = searchMoviesMethod();
+
+    assertThat(searchMovies.getReturnType()).isEqualTo(ResponseEntity.class);
+    ParameterizedType genericReturnType = (ParameterizedType) searchMovies.getGenericReturnType();
+    assertThat(genericReturnType.getActualTypeArguments())
+        .containsExactly(MovieSearchEnvelope.class);
+  }
+
+  @Test
+  void searchMoviesParametersBindToPlainTypes() {
+    Method searchMovies = searchMoviesMethod();
+
+    assertThat(parameter(searchMovies, "genre").getType()).isEqualTo(List.class);
+    ParameterizedType genreType =
+        (ParameterizedType) parameter(searchMovies, "genre").getParameterizedType();
+    assertThat(genreType.getActualTypeArguments()).containsExactly(String.class);
+    assertThat(parameter(searchMovies, "minRating").getType()).isEqualTo(BigDecimal.class);
+    // A plain String (not a generated enum), so the domain parses it strictly (design D1).
+    assertThat(parameter(searchMovies, "sort").getType()).isEqualTo(String.class);
+  }
+
+  @Test
+  void searchMoviesBoundedParametersCarryBeanValidationConstraints() {
+    Method searchMovies = searchMoviesMethod();
+
+    Parameter page = parameter(searchMovies, "page");
+    assertThat(page.getAnnotation(Min.class).value()).isZero();
+
+    Parameter size = parameter(searchMovies, "size");
+    assertThat(size.getAnnotation(Min.class).value()).isEqualTo(1);
+    assertThat(size.getAnnotation(Max.class).value()).isEqualTo(100);
+
+    Parameter minRating = parameter(searchMovies, "minRating");
+    assertThat(minRating.getAnnotation(DecimalMin.class).value()).isEqualTo("0");
+    assertThat(minRating.getAnnotation(DecimalMax.class).value()).isEqualTo("5");
+  }
+
+  /**
+   * Pins the observed fact that the generated {@code MoviesApi} carries {@code @Validated} (the
+   * generator's default {@code useBeanValidation=true}). If a generator upgrade changes this, the
+   * build fails and the change is reviewed against design D3.
+   */
+  @Test
+  void generatedMoviesApiIsAnnotatedValidated() {
+    assertThat(MoviesApi.class.isAnnotationPresent(Validated.class)).isTrue();
+  }
+
+  @Test
+  void metaHasAnOptionalPagination() throws NoSuchMethodException {
+    Method getPagination = Meta.class.getMethod("getPagination");
+
+    assertThat(getPagination.getReturnType()).isEqualTo(Pagination.class);
+  }
+
+  @Test
+  void noPerOperationSearchMoviesResponseModelsAreGenerated() throws IOException {
+    assertThat(findModelsMatching(generatedModelDirectory(), SEARCH_MOVIES_RESPONSE)).isEmpty();
+  }
+
+  @Test
   void noPerOperationStatusResponseModelsAreGenerated() throws IOException {
     Path modelDir = generatedModelDirectory();
 
@@ -78,6 +151,24 @@ class GeneratedApiCodegenTest {
       Files.deleteIfExists(tempDir.resolve("Ping200Response.java"));
       Files.deleteIfExists(tempDir);
     }
+  }
+
+  private static Method searchMoviesMethod() {
+    return Stream.of(MoviesApi.class.getMethods())
+        .filter(m -> m.getName().equals("searchMovies"))
+        .findFirst()
+        .orElseThrow(() -> new AssertionError("MoviesApi.searchMovies is not generated"));
+  }
+
+  private static Parameter parameter(Method method, String requestParamName) {
+    return Stream.of(method.getParameters())
+        .filter(
+            p -> {
+              RequestParam requestParam = p.getAnnotation(RequestParam.class);
+              return requestParam != null && requestParam.value().equals(requestParamName);
+            })
+        .findFirst()
+        .orElseThrow(() -> new AssertionError("no request parameter " + requestParamName));
   }
 
   private static Path generatedModelDirectory() {

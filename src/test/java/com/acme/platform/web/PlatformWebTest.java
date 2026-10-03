@@ -26,7 +26,8 @@ import org.springframework.core.annotation.AliasFor;
   ProblemFactory.class,
   ProblemInstanceStrippingAdvice.class,
   ClockConfig.class,
-  ResponseMetaFactory.class
+  ResponseMetaFactory.class,
+  PageLinkBuilder.class
 })
 public @interface PlatformWebTest {
 

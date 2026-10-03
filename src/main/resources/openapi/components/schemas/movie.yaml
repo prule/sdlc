@@ -46,3 +46,61 @@ MovieLinks:
   properties:
     self:
       $ref: './common.yaml#/Link'
+
+MovieSearchEnvelope:
+  type: object
+  required: [data, meta]
+  additionalProperties: false
+  properties:
+    data:
+      $ref: '#/MovieSearchPage'
+    meta:
+      $ref: './common.yaml#/Meta'
+
+MovieSearchPage:
+  type: object
+  required: [_embedded, _links]
+  additionalProperties: false
+  properties:
+    _embedded:
+      $ref: '#/MovieSearchEmbedded'
+    _links:
+      $ref: './common.yaml#/PageLinks'
+
+MovieSearchEmbedded:
+  type: object
+  required: [movies]
+  additionalProperties: false
+  properties:
+    movies:
+      type: array
+      items:
+        $ref: '#/MovieSummary'
+
+MovieSummary:
+  type: object
+  required: [id, title, releaseYear, genres, _links]
+  additionalProperties: false
+  properties:
+    id:
+      type: string
+      format: uuid
+    title:
+      type: string
+      minLength: 1
+    releaseYear:
+      type: integer
+    genres:
+      type: array
+      items:
+        type: string
+        minLength: 1
+    runtimeMinutes:
+      type: integer
+      minimum: 1
+    rating:
+      type: number
+      minimum: 0
+      maximum: 5
+    _links:
+      $ref: '#/MovieLinks'

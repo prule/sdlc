@@ -1,5 +1,5 @@
 BadRequest:
-  description: The request could not be understood.
+  description: The request could not be understood, or a request parameter is not valid.
   headers:
     X-Correlation-Id:
       $ref: '../headers/common.yaml#/X-Correlation-Id'

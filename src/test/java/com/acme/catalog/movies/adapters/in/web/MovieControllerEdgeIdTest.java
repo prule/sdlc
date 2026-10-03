@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 import com.acme.catalog.movies.application.port.in.GetMovieUseCase;
+import com.acme.catalog.movies.application.port.in.SearchMoviesUseCase;
 import com.acme.platform.web.PlatformWebTest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,10 +27,13 @@ import org.springframework.test.web.servlet.MvcResult;
 @PlatformWebTest(controllers = MovieController.class)
 class MovieControllerEdgeIdTest {
 
+  private static final String NAMED_ID_DETAIL = "The request parameter 'id' is not valid.";
+
   @Autowired private MockMvc mockMvc;
   @Autowired private ObjectMapper objectMapper;
 
   @MockitoBean private GetMovieUseCase getMovieUseCase;
+  @MockitoBean private SearchMoviesUseCase searchMoviesUseCase;
 
   @Test
   void percentEncodedSpaceIsBadRequestAndNeverInvokesTheUseCase() throws Exception {
@@ -39,6 +43,7 @@ class MovieControllerEdgeIdTest {
     assertThat(result.getResponse().getStatus()).isEqualTo(400);
     JsonNode body = objectMapper.readTree(result.getResponse().getContentAsString());
     assertThat(body.get("code").asText()).isEqualTo("BAD_REQUEST");
+    assertThat(body.get("detail").asText()).isEqualTo(NAMED_ID_DETAIL);
     Mockito.verifyNoInteractions(getMovieUseCase);
   }
 
@@ -55,6 +60,9 @@ class MovieControllerEdgeIdTest {
     assertThat(result.getResponse().getStatus()).isEqualTo(400);
     JsonNode body = objectMapper.readTree(result.getResponse().getContentAsString());
     assertThat(body.get("code").asText()).isEqualTo("BAD_REQUEST");
+    assertThat(body.get("detail").asText())
+        .isEqualTo(NAMED_ID_DETAIL)
+        .doesNotContain("6f1c2a3b-4d5e-4f60-8a7b-9c0d1e2f3a4b");
     Mockito.verifyNoInteractions(getMovieUseCase);
   }
 

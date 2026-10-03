@@ -15,6 +15,7 @@ import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.SpecVersion;
 import com.networknt.schema.ValidationMessage;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -69,7 +70,8 @@ class InterfaceDescriptionContractTest extends PostgresIntegrationTest {
   void loadServedDescription() throws Exception {
     MvcResult result = mockMvc.perform(get("/openapi/openapi.bundled.yaml")).andReturn();
     assertThat(result.getResponse().getStatus()).isEqualTo(200);
-    document = yamlMapper.readTree(result.getResponse().getContentAsString());
+    // YAML is UTF-8 by definition; the descriptions contain non-ASCII text (e.g. "A–Z").
+    document = yamlMapper.readTree(result.getResponse().getContentAsString(StandardCharsets.UTF_8));
   }
 
   @AfterEach
@@ -106,10 +108,39 @@ class InterfaceDescriptionContractTest extends PostgresIntegrationTest {
   @Test
   void sharedConceptsAreDefinedOnceUnderTheirOwnNames() {
     Set<String> schemaNames = collectFieldNames(document.at("/components/schemas"));
-    assertThat(schemaNames).contains("Problem", "Meta", "Link");
+    assertThat(schemaNames).contains("Problem", "Meta", "Link", "Pagination", "PageLinks");
     assertThat(schemaNames).noneMatch(name -> name.matches(".*(_\\d+|\\d+)$"));
     assertThat(collectFieldNames(document.at("/components/headers")))
         .containsExactly("X-Correlation-Id");
+    assertThat(collectFieldNames(document.at("/components/parameters")))
+        .containsExactlyInAnyOrder("page", "size");
+  }
+
+  @Test
+  void pagingConceptsAreReferencedNotRedefined() {
+    JsonNode searchParameters = document.at("/paths/~1movies/get/parameters");
+    List<String> parameterRefs = new ArrayList<>();
+    List<String> inlineNames = new ArrayList<>();
+    searchParameters.forEach(
+        parameter -> {
+          if (parameter.has("$ref")) {
+            parameterRefs.add(parameter.get("$ref").asText());
+          } else {
+            inlineNames.add(parameter.get("name").asText());
+          }
+        });
+    assertThat(parameterRefs)
+        .containsExactlyInAnyOrder("#/components/parameters/page", "#/components/parameters/size");
+    assertThat(inlineNames).doesNotContain("page", "size");
+
+    JsonNode schemas = document.at("/components/schemas");
+    assertThat(schemas.at("/MovieSearchPage/properties/_links/$ref").asText())
+        .isEqualTo("#/components/schemas/PageLinks");
+    assertThat(schemas.at("/Meta/properties/pagination/$ref").asText())
+        .isEqualTo("#/components/schemas/Pagination");
+    assertThat(collectRefValues(document))
+        .filteredOn(ref -> ref.endsWith("/Pagination") || ref.endsWith("/PageLinks"))
+        .allSatisfy(ref -> assertThat(ref).startsWith("#/components/schemas/"));
   }
 
   @Test
@@ -234,6 +265,66 @@ class InterfaceDescriptionContractTest extends PostgresIntegrationTest {
   @Test
   void getMovieMethodNotAllowedBodyConformsToTheSharedProblemSchema() throws Exception {
     assertNoErrors(validate(performJson(put("/movies/" + UUID.randomUUID())), "Problem"));
+  }
+
+  @Test
+  void searchMoviesSuccessBodiesConformToTheirDeclaredSchema() throws Exception {
+    UUID drama = UUID.randomUUID();
+    jdbcTemplate.update("INSERT INTO genre (id, name) VALUES (?, ?)", drama, "Drama");
+    for (int i = 0; i < 3; i++) {
+      UUID movieId = UUID.randomUUID();
+      jdbcTemplate.update(
+          "INSERT INTO movie (id, title, release_year, runtime_minutes, synopsis, rating) "
+              + "VALUES (?, ?, ?, ?, ?, ?)",
+          movieId,
+          "Movie" + i,
+          2000 + i,
+          i == 0 ? null : 100 + i,
+          "A synopsis.",
+          i == 0 ? null : new BigDecimal("4.0"));
+      if (i > 0) {
+        jdbcTemplate.update(
+            "INSERT INTO movie_genre (movie_id, genre_id) VALUES (?, ?)", movieId, drama);
+      }
+    }
+
+    String populated = performJson(get("/movies").param("size", "2").param("page", "0"));
+    assertThat(jsonMapper.readTree(populated).at("/data/_embedded/movies")).hasSize(2);
+    assertNoErrors(validate(populated, "MovieSearchEnvelope"));
+    String lastPage = performJson(get("/movies").param("size", "2").param("page", "1"));
+    assertNoErrors(validate(lastPage, "MovieSearchEnvelope"));
+    assertNoErrors(
+        validate(performJson(get("/movies").param("title", "zzzz")), "MovieSearchEnvelope"));
+    assertNoErrors(
+        validate(
+            performJson(get("/movies").param("size", "2").param("page", "9")),
+            "MovieSearchEnvelope"));
+  }
+
+  @Test
+  void anExtraKeyInAMovieSummaryFailsValidation() throws Exception {
+    UUID movieId = UUID.randomUUID();
+    jdbcTemplate.update(
+        "INSERT INTO movie (id, title, release_year, runtime_minutes, synopsis, rating) "
+            + "VALUES (?, ?, ?, ?, ?, ?)",
+        movieId,
+        "Arrival",
+        2016,
+        116,
+        "A linguist is recruited.",
+        new BigDecimal("4.5"));
+    ObjectNode mutated = (ObjectNode) jsonMapper.readTree(performJson(get("/movies")));
+    ((ObjectNode) mutated.at("/data/_embedded/movies/0")).put("synopsis", "leaked");
+
+    assertThat(validate(mutated.toString(), "MovieSearchEnvelope")).isNotEmpty();
+  }
+
+  @Test
+  void searchMoviesRefusalBodiesConformToTheSharedProblemSchema() throws Exception {
+    assertNoErrors(validate(performJson(get("/movies").param("genre", "Spaghetti")), "Problem"));
+    assertNoErrors(validate(performJson(get("/movies").param("size", "101")), "Problem"));
+    assertNoErrors(validate(performJson(get("/movies").param("minRating", "high")), "Problem"));
+    assertNoErrors(validate(performJson(post("/movies")), "Problem"));
   }
 
   private String performJson(

@@ -67,6 +67,8 @@ class PingControllerTest {
     JsonNode meta = body.get("meta");
     assertThat(meta.get("timestamp").asText()).isEqualTo("2026-01-01T00:00:00Z");
     assertThat(meta.get("correlationId").asText()).isEqualTo(correlationHeader);
+    // Only a paged list's meta carries pagination (uniform-responses "Uniform success envelope").
+    assertThat(meta.has("pagination")).isFalse();
   }
 
   @Test

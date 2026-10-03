@@ -14,7 +14,9 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
  * The movie behaviours that must answer identically in standalone and persistent mode ({@code
  * catalog/movies} "Movie details behave identically in both runtime modes", design D6): {@code 404}
  * {@code NOT_FOUND} for a random well-formed identifier, and {@code 400} {@code BAD_REQUEST} for a
- * malformed one. Kept separate from {@link Uc000Assertions}, which stays unchanged.
+ * malformed one. Search ({@code catalog/movies} "Search behaves identically in both runtime
+ * modes"): {@code 400} for an unknown genre, and {@code 200} with an empty list for a title that
+ * matches nothing. Kept separate from {@link Uc000Assertions}, which stays unchanged.
  */
 final class MovieRuntimeModeAssertions {
 
@@ -26,6 +28,26 @@ final class MovieRuntimeModeAssertions {
   static void runAll(MockMvc mockMvc) throws Exception {
     unknownWellFormedIdIsNotFound(mockMvc);
     malformedIdIsBadRequest(mockMvc);
+    unknownGenreIsBadRequest(mockMvc);
+    titleMatchingNothingIsAnEmptySuccess(mockMvc);
+  }
+
+  private static void unknownGenreIsBadRequest(MockMvc mockMvc) throws Exception {
+    assertProblem(
+        mockMvc.perform(request("/movies").param("genre", "Spaghetti")).andReturn(),
+        400,
+        "BAD_REQUEST");
+  }
+
+  private static void titleMatchingNothingIsAnEmptySuccess(MockMvc mockMvc) throws Exception {
+    MvcResult result =
+        mockMvc.perform(request("/movies").param("title", "zzzz-no-such-title")).andReturn();
+    assertThat(result.getResponse().getStatus()).isEqualTo(200);
+    assertThat(result.getResponse().getContentType()).startsWith("application/json");
+    JsonNode body = OBJECT_MAPPER.readTree(result.getResponse().getContentAsString());
+    assertThat(body.get("data").get("_embedded").get("movies").isArray()).isTrue();
+    assertThat(body.get("data").get("_embedded").get("movies").isEmpty()).isTrue();
+    assertThat(body.get("meta").get("pagination").get("totalElements").asLong()).isZero();
   }
 
   private static void unknownWellFormedIdIsNotFound(MockMvc mockMvc) throws Exception {

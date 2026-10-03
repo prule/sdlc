@@ -11,6 +11,7 @@ import com.acme.platform.availability.adapters.in.web.PingController;
 import com.acme.platform.availability.application.port.in.CheckAvailabilityUseCase;
 import com.acme.platform.availability.domain.model.Availability;
 import com.acme.platform.availability.domain.model.AvailabilityStatus;
+import com.acme.testsupport.LogCaptor;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -106,18 +107,84 @@ class FailureKindsTest {
   }
 
   @Test
-  void missingRequiredParameterIs400WithoutLeakingTheParameterType() throws Exception {
+  void missingRequiredParameterIs400NamingItWithoutLeakingTheParameterType() throws Exception {
     MvcResult result = mockMvc.perform(get("/test-only/uuid-param")).andReturn();
     JsonNode body = assertProblem(result, 400, "BAD_REQUEST", "urn:problem-type:bad-request");
+    assertThat(body.get("detail").asText()).isEqualTo("The request parameter 'id' is not valid.");
     assertThat(body.get("detail").asText()).doesNotContainIgnoringCase("uuid");
   }
 
   @Test
-  void malformedParameterIs400WithoutLeakingTheParameterType() throws Exception {
+  void malformedParameterIs400NamingItWithoutLeakingTheValueOrType() throws Exception {
     MvcResult result =
         mockMvc.perform(get("/test-only/uuid-param").param("id", "not-a-uuid")).andReturn();
     JsonNode body = assertProblem(result, 400, "BAD_REQUEST", "urn:problem-type:bad-request");
-    assertThat(body.get("detail").asText()).doesNotContainIgnoringCase("uuid");
+    assertThat(body.get("detail").asText()).isEqualTo("The request parameter 'id' is not valid.");
+    assertThat(body.get("detail").asText())
+        .doesNotContain("not-a-uuid")
+        .doesNotContainIgnoringCase("uuid");
+  }
+
+  @Test
+  void outOfBoundsParameterIs400NamingItsPublishedName() throws Exception {
+    MvcResult result =
+        mockMvc
+            .perform(
+                get("/test-only/bounded").param("first-param", "11").param("second-param", "1"))
+            .andReturn();
+    JsonNode body = assertProblem(result, 400, "BAD_REQUEST", "urn:problem-type:bad-request");
+    assertThat(body.get("detail").asText())
+        .isEqualTo("The request parameter 'first-param' is not valid.")
+        .doesNotContain("11");
+  }
+
+  @Test
+  void outOfBoundsSecondParameterIsNamedOnItsOwn() throws Exception {
+    MvcResult result =
+        mockMvc
+            .perform(
+                get("/test-only/bounded").param("first-param", "1").param("second-param", "12"))
+            .andReturn();
+    JsonNode body = assertProblem(result, 400, "BAD_REQUEST", "urn:problem-type:bad-request");
+    assertThat(body.get("detail").asText())
+        .isEqualTo("The request parameter 'second-param' is not valid.")
+        .doesNotContain("12");
+  }
+
+  @Test
+  void whenSeveralParametersAreOutOfBoundsTheLowestIndexIsNamedEveryTime() throws Exception {
+    for (int i = 0; i < 5; i++) {
+      MvcResult result =
+          mockMvc
+              .perform(
+                  get("/test-only/bounded").param("first-param", "11").param("second-param", "12"))
+              .andReturn();
+      JsonNode body = assertProblem(result, 400, "BAD_REQUEST", "urn:problem-type:bad-request");
+      assertThat(body.get("detail").asText())
+          .isEqualTo("The request parameter 'first-param' is not valid.");
+    }
+  }
+
+  @Test
+  void invalidRequestExceptionIs400NamingItsField() throws Exception {
+    MvcResult result = mockMvc.perform(get("/test-only/invalid-request")).andReturn();
+    JsonNode body = assertProblem(result, 400, "BAD_REQUEST", "urn:problem-type:bad-request");
+    assertThat(body.get("detail").asText())
+        .isEqualTo("The request parameter 'thing' is not valid.");
+  }
+
+  @Test
+  void constraintViolationOutsideAControllerIsAGenericInternalErrorLoggedAtError()
+      throws Exception {
+    try (LogCaptor logCaptor = LogCaptor.forClass(GlobalExceptionHandler.class)) {
+      MvcResult result = mockMvc.perform(get("/test-only/non-controller-violation")).andReturn();
+
+      JsonNode body =
+          assertProblem(result, 500, "INTERNAL_ERROR", "urn:problem-type:internal-error");
+      assertThat(body.get("detail").asText()).isEqualTo("An unexpected error occurred.");
+      assertThat(logCaptor.events())
+          .anySatisfy(event -> assertThat(event.getLevel().toString()).isEqualTo("ERROR"));
+    }
   }
 
   @Test

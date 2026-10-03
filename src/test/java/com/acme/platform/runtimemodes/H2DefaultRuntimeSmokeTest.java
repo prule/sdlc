@@ -58,6 +58,46 @@ class H2DefaultRuntimeSmokeTest {
     assertThat(data.has("rating")).isFalse();
   }
 
+  @Test
+  void browsingListsTheSampleMoviesInTheDefaultOrder() throws Exception {
+    MvcResult result =
+        mockMvc
+            .perform(MockMvcRequestBuilders.get(CONTEXT_PATH + "/movies").contextPath(CONTEXT_PATH))
+            .andReturn();
+
+    assertThat(result.getResponse().getStatus()).isEqualTo(200);
+    JsonNode body = objectMapper.readTree(result.getResponse().getContentAsString());
+    assertThat(body.get("meta").get("pagination").get("totalElements").asLong()).isEqualTo(4);
+    // Distinct release years, so the default order never depends on title collation (design D5).
+    assertThat(body.get("data").get("_embedded").get("movies"))
+        .map(movie -> movie.get("title").asText())
+        .containsExactly("Arrival", "The Grand Heist", "Laugh Track", "Untitled Reel");
+  }
+
+  @Test
+  void searchCriteriaAndRatingOrderRunOnTheH2Dialect() throws Exception {
+    MvcResult result =
+        mockMvc
+            .perform(
+                MockMvcRequestBuilders.get(CONTEXT_PATH + "/movies")
+                    .contextPath(CONTEXT_PATH)
+                    .param("title", "a")
+                    .param("genre", "drama")
+                    .param("releaseYearFrom", "1900")
+                    .param("minRating", "0")
+                    .param("sort", "-rating"))
+            .andReturn();
+
+    assertThat(result.getResponse().getStatus()).isEqualTo(200);
+    JsonNode movies =
+        objectMapper
+            .readTree(result.getResponse().getContentAsString())
+            .get("data")
+            .get("_embedded")
+            .get("movies");
+    assertThat(movies).map(movie -> movie.get("title").asText()).containsExactly("Arrival");
+  }
+
   private JsonNode getMovie(String id) throws Exception {
     MvcResult result =
         mockMvc

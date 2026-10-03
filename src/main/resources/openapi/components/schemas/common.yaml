@@ -9,6 +9,47 @@ Meta:
     correlationId:
       type: string
       format: uuid
+    pagination:
+      $ref: '#/Pagination'
+
+Pagination:
+  type: object
+  required: [page, size, totalElements, totalPages]
+  additionalProperties: false
+  properties:
+    page:
+      type: integer
+      format: int32
+      minimum: 0
+    size:
+      type: integer
+      format: int32
+      minimum: 1
+      maximum: 100
+    totalElements:
+      type: integer
+      format: int64
+      minimum: 0
+    totalPages:
+      type: integer
+      format: int32
+      minimum: 0
+
+PageLinks:
+  type: object
+  required: [self, first, last]
+  additionalProperties: false
+  properties:
+    self:
+      $ref: '#/Link'
+    first:
+      $ref: '#/Link'
+    prev:
+      $ref: '#/Link'
+    next:
+      $ref: '#/Link'
+    last:
+      $ref: '#/Link'
 
 Link:
   type: object
