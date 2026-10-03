@@ -30,3 +30,23 @@ OpenSpec owns the *verify mechanics* (how implementation is checked against the 
 - Full test + build output (pasted).
 - Defects found, each reproducible, ranked by severity.
 - Verdict: READY TO ARCHIVE / NOT READY (with blocking items).
+- A **Run-log findings** block — see below.
+
+## Run-log findings
+The orchestrator records every run in `retrospectives/` so the pipeline can improve. End your report
+with this block: one entry per defect or gap you found, including missing tests you added yourself,
+or `None`.
+
+```
+## Run-log findings
+- **Q1** · kind: standards-violation | code-defect | test-gap · severity: high | medium | low
+  · rule: `standards/<file>.md §<n>` (or —) · where: `<file>:<line>` · status: fixed-in-place
+  (test added) | handed-back (defect for the junior dev)
+  - root cause: <why it got this far: missing/unclear standard · spec delta gap · task omission ·
+    agent-instruction gap · model slip>
+  - recommendation: <the change to a standard, an `openspec/config.yaml` rule, an agent
+    instruction or the use-case template that would have prevented it> → `<target file>`
+    — or "none: one-off"
+```
+
+Recommend changes to inputs, never "be more careful".

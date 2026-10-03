@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Baseline: plain /opsx vs Agent pipeline — session compare</title>
+<style>
+:root { --bg:#0f1117; --panel:#171a23; --panel2:#1e222d; --line:#2a2f3c;
+  --fg:#e6e8ee; --muted:#9aa2b4; --good:#10b981; --bad:#ef4444; }
+@media (prefers-color-scheme: light) { :root { --bg:#f6f7f9; --panel:#fff;
+  --panel2:#f0f2f6; --line:#e2e5ec; --fg:#1c2027; --muted:#5c6472; } }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--fg);
+  font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; }
+.wrap { max-width:820px; margin:0 auto; padding:32px 20px 80px; }
+h1 { font-size:23px; margin:0 0 4px; }
+.sub { color:var(--muted); font-size:13px; margin-bottom:22px; }
+table { width:100%; border-collapse:collapse; }
+th, td { padding:10px 12px; border-bottom:1px solid var(--line); text-align:left; }
+th { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.05em; }
+td.num, th.num { text-align:right; font-variant-numeric:tabular-nums; }
+.good { color:var(--good); } .bad { color:var(--bad); }
+.note { color:var(--muted); font-size:13px; margin-top:20px;
+  background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px 16px; }
+.note b { color:var(--fg); }
+</style></head>
+<body><div class="wrap">
+  <h1>Baseline: plain /opsx <span style="color:var(--muted)">vs</span> Agent pipeline</h1>
+  <div class="sub">1829479a-405a-4f3e-9d41-03557a4aa1e7 → 05ad576e-90db-460e-a21a-278fef817c63 · generated 2026-10-03 13:04</div>
+  <table>
+    <thead><tr><th>Metric</th><th class="num">Baseline: plain /opsx</th>
+    <th class="num">Agent pipeline</th><th class="num">Δ</th></tr></thead>
+    <tbody><tr>
+          <td>Wall-clock</td>
+          <td class="num">37m 36s</td>
+          <td class="num">2h 9m</td>
+          <td class="num "><b>+1h 32m</b></td></tr><tr>
+          <td>Agent runs</td>
+          <td class="num">0</td>
+          <td class="num">8</td>
+          <td class="num "><b>+8</b></td></tr><tr>
+          <td>Review-gate runs</td>
+          <td class="num">0</td>
+          <td class="num">4</td>
+          <td class="num "><b>+4</b></td></tr><tr>
+          <td>Issues caught by gates</td>
+          <td class="num">0</td>
+          <td class="num">3</td>
+          <td class="num "><b>+3</b></td></tr><tr>
+          <td>Errors</td>
+          <td class="num">1</td>
+          <td class="num">3</td>
+          <td class="num bad"><b>+2</b></td></tr><tr>
+          <td>Rejections</td>
+          <td class="num">0</td>
+          <td class="num">0</td>
+          <td class="num "><b>—</b></td></tr><tr>
+          <td>Tool calls (incl. subagents)</td>
+          <td class="num">68</td>
+          <td class="num">418</td>
+          <td class="num bad"><b>+350</b></td></tr><tr>
+          <td>Files touched (incl. subagents)</td>
+          <td class="num">7</td>
+          <td class="num">93</td>
+          <td class="num "><b>+86</b></td></tr><tr>
+          <td>Output tokens (cost)</td>
+          <td class="num">299,330</td>
+          <td class="num">196,901</td>
+          <td class="num good"><b>−102,429</b></td></tr><tr>
+          <td>Context-doc reads</td>
+          <td class="num">0</td>
+          <td class="num">4</td>
+          <td class="num "><b>+4</b></td></tr><tr>
+          <td>Distinct context docs used</td>
+          <td class="num">1</td>
+          <td class="num">4</td>
+          <td class="num "><b>+3</b></td></tr><tr>
+          <td>Catches citing a context doc</td>
+          <td class="num">0</td>
+          <td class="num">4</td>
+          <td class="num good"><b>+4</b></td></tr></tbody>
+  </table>
+  <div class="note">
+    <b>How to read this.</b> Δ is Agent pipeline minus Baseline: plain /opsx. Green/red is applied
+    only where direction is unambiguous — fewer <b>errors</b>, <b>rejections</b>,
+    <b>tokens</b> is better; more <b>catches that cite a context doc</b> is better.
+    The rest (runs, issues caught, files) are shown without a verdict because
+    their meaning depends on your hypothesis: e.g. if the stripped-context run
+    catches <em>more</em> issues late, the context was preventing defects; if it
+    catches <em>fewer</em> but ships worse code, the gates lost their reference.
+    Pair this with a look at the two full reports.
+  </div>
+</div></body></html>

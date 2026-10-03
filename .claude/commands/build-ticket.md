@@ -29,10 +29,17 @@ If the ticket above is empty, ask the user to paste it and stop.
 
 6. **Archive.** On approval, run the OpenSpec archive procedure (`.claude/skills/openspec-archive-change/SKILL.md`) to fold the spec deltas into the main specs. Report the final status.
 
+7. **Record the run (always).** Write the run's retrospective to `retrospectives/<YYYY-MM-DD>-<change-name>.md` (add `-2`, `-3`… if that file exists), following `retrospectives/TEMPLATE.md`. Do this at the end of **every** run — archived, stopped at a gate, escalated or aborted — because failed runs teach the most. This is bookkeeping, not phase work, so you write it yourself.
+   - **Sources:** the *Run-log findings* block at the end of each spec-reviewer, qa and senior-dev report (transcribe every entry; on a re-review, update the earlier entries' status to `fixed-by-rework`); the human's answer at each gate (a "revise" or "stop" is a failed review — record what was asked for); every fix-loop round, stall, junior-dev blocker and escalation.
+   - **Recurrence:** before writing, read the five most recent records in `retrospectives/`. Mark any finding or recommendation that appeared before with `recurs: <earlier file>`. A recurring finding means an input isn't working, so rank its recommendation first.
+   - **Session:** the session id is the newest log in `~/.claude/projects/$(pwd | sed 's#[/.]#-#g')/` (`ls -t … | head -1`). Generate its report with `python3 .claude/skills/session-report/session_report.py <log> --compact` and put both in the front matter.
+   - Then print a one-line status: `📝 retrospective — <file> (<n> failed reviews, <n> standards violations, <n> recommendations)`.
+
 ## Rules
 - Keep each subagent's context tight: pass it the change name and only what it needs, not this whole conversation.
 - After every phase, print a one-line status: `✅ <phase> — <verdict>`.
 - Never skip a gate. Never archive without GATE 2 approval.
+- Never end a run without step 7. Whenever you stop, escalate or abort, write the retrospective before handing control back.
 - If any agent stalls twice on the same issue, stop and hand the decision to the human with a crisp summary of the disagreement.
 
 ## Budget guardrails (prevent runaway spend)

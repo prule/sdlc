@@ -35,6 +35,25 @@ Check the plan against each standard and cite the specific doc + rule for every 
 - Findings ranked most-severe first. For each: which artifact + section, which standard/rule (or design concern), why it matters, and the concrete fix the architect should make.
 - Confirm whether `openspec validate --strict` passed.
 - If APPROVE, note any minor non-blocking suggestions separately so they don't block the gate.
+- End with a **Run-log findings** block — see below.
+
+## Run-log findings
+The orchestrator records every run in `retrospectives/` so the pipeline can improve. End your report
+with this block: one entry per finding (blocking and advisory), or `None`.
+
+```
+## Run-log findings
+- **P1** · kind: standards-violation | plan-defect | test-gap · severity: blocking | advisory
+  · rule: `standards/<file>.md §<n>` (or —) · where: `<artifact> § <section>` · status: handed-back
+  - root cause: <why the architect produced this: missing/unclear standard · use-case gap ·
+    agent-instruction gap · plan omission · model slip>
+  - recommendation: <the change to a standard, an `openspec/config.yaml` rule, an agent
+    instruction, a `domain/` doc or the use-case template that would have prevented it>
+    → `<target file>` — or "none: one-off"
+```
+
+Recommend changes to inputs, never "be more careful". On a re-review, list only new findings and
+say which earlier ones are now fixed.
 
 ## Budget discipline
 - Review in one focused pass. Do not re-read everything repeatedly hunting for marginal nits — report what matters and return a verdict.

@@ -61,7 +61,7 @@ only design/plan/scope calls. Agents never format code — the pre-commit hook d
 ## The pipeline (`/build-ticket`)
 
 ```
-architect ─▶ spec-reviewer ─▶ 🚦 GATE 1 ─▶ junior-dev ─▶ qa ─▶ senior-dev ─▶ 🚦 GATE 2 ─▶ archive
+architect ─▶ spec-reviewer ─▶ 🚦 GATE 1 ─▶ junior-dev ─▶ qa ─▶ senior-dev ─▶ 🚦 GATE 2 ─▶ archive ─▶ 📝 retro
   (plan)      (plan gate)      (you)        (implement)  (verify) (code review)  (you)
                    ▲                              │          │         │
                    └──── revise (max 2 rounds) ───┴──────────┴─────────┘
@@ -72,6 +72,10 @@ architect ─▶ spec-reviewer ─▶ 🚦 GATE 1 ─▶ junior-dev ─▶ qa �
 - **🚦 GATE 2 — merge/archive approval.** You review QA evidence + code-review verdict + the diff
   and approve the merge/archive.
 - Fix-loops are capped at **2 rounds**, then the pipeline stops and escalates to you.
+- **📝 Retrospective — every run, however it ends.** The orchestrator writes
+  `retrospectives/<date>-<change>.md`: the gate log, failed reviews, standards violations and other
+  defects, each with a root cause and a recommended change to a standard, rule or agent, and links
+  the run's session report. Commit it with the change. See [retrospectives/](retrospectives/).
 
 ### Run phases by hand
 
@@ -232,8 +236,13 @@ or worse, run an A/B ablation with `--compare`. **Full method:
 [docs/evaluating-the-pipeline.md](docs/evaluating-the-pipeline.md)** — a manual
 for figuring out how well the pipeline is working.
 
+**4. Run retrospectives (what should we change?)** — one record per run in
+[retrospectives/](retrospectives/): failed reviews and standards violations, each with a root cause
+and a recommended fix to the pipeline's inputs, with recurring findings flagged across runs.
+
 Hooks answer "what did this run touch?"; OTel answers "what did it cost, how many tokens, how does it trend?";
-the session report answers "did each agent and each piece of context earn its place?".
+the session report answers "did each agent and each piece of context earn its place?"; the
+retrospectives answer "what keeps going wrong, and what should we change?".
 
 ---
 

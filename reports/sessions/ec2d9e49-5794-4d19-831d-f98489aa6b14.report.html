@@ -1,0 +1,664 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ec2d9e49-5794-4d19-831d-f98489aa6b14.jsonl — session report</title>
+<style>
+:root { --bg:#0f1117; --panel:#171a23; --panel2:#1e222d; --line:#2a2f3c;
+  --fg:#e6e8ee; --muted:#9aa2b4; --accent:#6366f1;
+  --good:#10b981; --warn:#f59e0b; --bad:#ef4444; }
+@media (prefers-color-scheme: light) { :root { --bg:#f6f7f9; --panel:#fff;
+  --panel2:#f0f2f6; --line:#e2e5ec; --fg:#1c2027; --muted:#5c6472; } }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--fg);
+  font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; }
+.wrap { max-width:1120px; margin:0 auto; padding:32px 20px 90px; }
+h1 { font-size:24px; margin:0 0 4px; }
+.sub { color:var(--muted); font-size:13px; }
+.meta { color:var(--muted); font-size:12px; margin-top:4px; word-break:break-all; }
+h2 { font-size:14px; text-transform:uppercase; letter-spacing:.06em;
+  color:var(--muted); margin:36px 0 12px; }
+.cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(135px,1fr));
+  gap:12px; margin-top:22px; }
+.card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:15px; }
+.card-val { font-size:21px; font-weight:650; }
+.card-lbl { color:var(--muted); font-size:12px; margin-top:2px; }
+.panel { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:18px; }
+.insights { list-style:none; padding:0; margin:18px 0 0; display:grid; gap:8px; }
+.ins { padding:10px 14px; border-radius:10px; border-left:3px solid var(--muted);
+  background:var(--panel); font-size:13px; }
+.ins.good { border-color:var(--good); } .ins.warn { border-color:var(--warn); }
+.ins.bad { border-color:var(--bad); } .ins.info { border-color:var(--accent); }
+.legend { display:inline-flex; align-items:center; gap:6px; margin:0 12px 8px 0;
+  font-size:12px; color:var(--muted); }
+.legend i { width:11px; height:11px; border-radius:3px; display:inline-block; }
+.note { color:var(--muted); font-size:12px; margin:-4px 0 10px; font-style:italic; }
+.gantt-row { display:flex; align-items:center; gap:12px; margin:6px 0; }
+.gantt-label { width:220px; flex:none; font-size:12px; color:var(--muted);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:right; }
+.gantt-track { position:relative; flex:1; height:24px; background:var(--panel2);
+  border-radius:6px; overflow:hidden; }
+.gantt-bar { position:absolute; top:0; height:100%; border-radius:6px; min-width:3px;
+  display:flex; align-items:center; opacity:.92; }
+.gantt-bar:hover { opacity:1; }
+.gantt-bar span { font-size:11px; color:#fff; padding:0 7px; white-space:nowrap;
+  overflow:hidden; text-shadow:0 1px 1px rgba(0,0,0,.4); }
+.gantt-bar.caught { outline:2px solid var(--good); outline-offset:-2px; }
+.gantt-bar.error { outline:2px solid var(--bad); outline-offset:-2px; }
+.gantt-bar.pending { background-image:repeating-linear-gradient(45deg,
+  rgba(255,255,255,.15) 0 6px, transparent 6px 12px)!important; }
+.vtable { width:100%; border-collapse:collapse; font-size:13px; }
+.vtable th { text-align:left; color:var(--muted); font-weight:600; font-size:12px;
+  padding:8px 10px; border-bottom:1px solid var(--line); }
+.vtable td { padding:9px 10px; border-bottom:1px solid var(--line); }
+.dot { width:10px; height:10px; border-radius:3px; display:inline-block; margin-right:7px; }
+.gate-tag { font-size:10px; background:var(--accent); color:#fff; padding:1px 6px;
+  border-radius:5px; margin-left:6px; }
+.pill { font-size:11px; padding:2px 9px; border-radius:20px; font-weight:600; }
+.pill.good { background:rgba(16,185,129,.16); color:var(--good); }
+.pill.warn { background:rgba(245,158,11,.16); color:var(--warn); }
+.pill.bad { background:rgba(239,68,68,.16); color:var(--bad); }
+.muted { color:var(--muted); }
+.gate-item { border:1px solid var(--line); border-left:3px solid var(--muted);
+  border-radius:10px; padding:12px 14px; margin:8px 0; background:var(--panel); }
+.gate-item.caught { border-left-color:var(--good); }
+.gate-item.clean { border-left-color:var(--muted); opacity:.85; }
+.gate-head { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.gate-desc { margin-top:5px; font-size:13px; }
+.gate-snip { margin-top:7px; padding:8px 10px; background:var(--panel2);
+  border-radius:8px; font-size:12px; color:var(--muted); }
+.verdict { font-size:11px; font-weight:700; padding:2px 9px; border-radius:6px; }
+.verdict.caught { background:rgba(16,185,129,.18); color:var(--good); }
+.verdict.clean { background:var(--panel2); color:var(--muted); }
+.err-item { display:flex; gap:12px; padding:11px 0; border-top:1px solid var(--line); }
+.err-item .err-time { width:66px; flex:none; color:var(--muted); font-size:12px; }
+.err-body { flex:1; min-width:0; }
+.err-msg { margin-top:5px; font-size:12px; color:var(--bad); white-space:pre-wrap; }
+.err-item.rejected .err-msg { color:var(--warn); }
+.tool-bar-wrap { background:var(--panel2); border-radius:5px; height:14px; min-width:60px; }
+.tool-bar { height:100%; background:var(--accent); border-radius:5px; }
+.vtable td.num { text-align:right; font-variant-numeric:tabular-nums; }
+.vtable th.num { text-align:right; }
+.fpath { font-family:ui-monospace,Menlo,monospace; font-size:12px; word-break:break-all; }
+.fop { display:inline-block; font-size:10px; font-weight:600; padding:1px 7px;
+  border-radius:20px; margin-right:5px; }
+.fop.write { background:rgba(99,102,241,.16); color:var(--accent); }
+.fop.edit { background:rgba(245,158,11,.16); color:var(--warn); }
+.fop.read { background:var(--panel2); color:var(--muted); }
+.rdr { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:3px; }
+.vtable code { font-size:12px; }
+.feed { display:flex; gap:14px; padding:12px 0; border-top:1px solid var(--line); }
+.feed-time { width:66px; flex:none; color:var(--muted); font-size:12px;
+  font-variant-numeric:tabular-nums; }
+.feed-body { flex:1; min-width:0; }
+.feed-who { font-size:12px; font-weight:600; margin-bottom:3px; }
+.feed-text { white-space:pre-wrap; word-wrap:break-word; }
+.feed-text.mono { font-family:ui-monospace,Menlo,monospace; font-size:12px; color:var(--muted); }
+.feed-result { margin-top:6px; padding:8px 10px; background:var(--panel2);
+  border-radius:8px; font-size:12px; color:var(--muted); white-space:pre-wrap; }
+.feed.user .feed-who { color:var(--good); }
+.feed.assistant .feed-who { color:var(--accent); }
+.feed.thinking { opacity:.7; } .feed.thinking .feed-who { color:#a855f7; }
+.feed.thinking .feed-text { font-style:italic; }
+.agent-badge, .tool-tag { display:inline-block; padding:1px 8px; border-radius:6px;
+  color:#fff; font-size:11px; font-weight:600; }
+.tool-tag { background:var(--panel2); color:var(--muted); }
+.dur { color:var(--muted); font-weight:400; font-size:11px; }
+.err { color:var(--bad); } .empty { color:var(--muted); font-style:italic; }
+.filters { margin:10px 0 4px; display:flex; gap:8px; flex-wrap:wrap; }
+.filters button { background:var(--panel2); color:var(--fg); border:1px solid var(--line);
+  border-radius:20px; padding:4px 13px; font-size:12px; cursor:pointer; }
+.filters button.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+</style></head>
+<body><div class="wrap">
+  <h1>ec2d9e49-5794-4d19-831d-f98489aa6b14.jsonl</h1>
+  <div class="sub">ec2d9e49-5794-4d19-831d-f98489aa6b14.jsonl · 03:26:19 → 04:10:25 · generated 2026-10-03 14:11</div>
+  <div class="meta">experiment/pipeline-opus-uc-002 · /Users/paulrule/projects/current/sdlc-pipeline-opus-uc002 · v2.1.288</div>
+  <div class="cards"><div class="card"><div class="card-val">44m 6s</div><div class="card-lbl">Duration</div></div>
+<div class="card"><div class="card-val">7</div><div class="card-lbl">Agent runs</div></div>
+<div class="card"><div class="card-val">174</div><div class="card-lbl">Tool calls (incl. subagents)</div></div>
+<div class="card"><div class="card-val">23</div><div class="card-lbl">Files touched (incl. subagents)</div></div>
+<div class="card"><div class="card-val">0</div><div class="card-lbl">Errors</div></div>
+<div class="card"><div class="card-val">0</div><div class="card-lbl">Rejections</div></div>
+<div class="card"><div class="card-val">2</div><div class="card-lbl">Issues caught by gates</div></div>
+<div class="card"><div class="card-val">24,703</div><div class="card-lbl">Output tokens</div></div></div>
+
+  <h2>Insights</h2><ul class="insights"><li class="ins warn">qa approved all 1 runs with no findings — either the upstream work was clean, or this gate is low-signal.</li>
+<li class="ins good">senior-dev proved its worth — caught something in 1/1 runs (1 issues).</li>
+<li class="ins good">spec-reviewer proved its worth — caught something in 1/2 runs.</li>
+<li class="ins info">Slowest agent: junior-dev &quot;Implement add-movie-search tasks&quot; at 18m 35s.</li></ul>
+
+  <h2>Agent timeline</h2>
+  <div class="note">idle gaps collapsed — bar widths still proportional to real duration</div>
+  <div style="margin-bottom:10px"><span class="legend"><i style="background:#6366f1"></i>architect</span> <span class="legend"><i style="background:#ec4899"></i>junior-dev</span> <span class="legend"><i style="background:#14b8a6"></i>qa</span> <span class="legend"><i style="background:#f59e0b"></i>senior-dev</span> <span class="legend"><i style="background:#8b5cf6"></i>spec-reviewer</span></div>
+  <div class="panel">
+        <div class="gantt-row">
+          <div class="gantt-label" title="Plan UC-002 OpenSpec change">Plan UC-002 OpenSpec change</div>
+          <div class="gantt-track">
+            <div class="gantt-bar ok" style="left:0.00%;width:20.98%;background:#6366f1"
+                 title="architect — Plan UC-002 OpenSpec change
+start 03:26:28 · 7m 46s"><span>architect · 7m 46s</span></div>
+          </div>
+        </div>
+
+        <div class="gantt-row">
+          <div class="gantt-label" title="Review add-movie-search plan">Review add-movie-search plan</div>
+          <div class="gantt-track">
+            <div class="gantt-bar caught" style="left:21.21%;width:6.99%;background:#8b5cf6"
+                 title="spec-reviewer — Review add-movie-search plan
+start 03:34:19 · 2m 35s · REQUEST CHANGES"><span>spec-reviewer · 2m 35s</span></div>
+          </div>
+        </div>
+
+        <div class="gantt-row">
+          <div class="gantt-label" title="Revise plan per spec review round 1">Revise plan per spec review round 1</div>
+          <div class="gantt-track">
+            <div class="gantt-bar ok" style="left:28.55%;width:5.89%;background:#6366f1"
+                 title="architect — Revise plan per spec review round 1
+start 03:37:04 · 2m 10s · BACKGROUND"><span>architect · 2m 10s</span></div>
+          </div>
+        </div>
+
+        <div class="gantt-row">
+          <div class="gantt-label" title="Re-review revised add-movie-search plan">Re-review revised add-movie-search plan</div>
+          <div class="gantt-track">
+            <div class="gantt-bar ok" style="left:34.68%;width:1.31%;background:#8b5cf6"
+                 title="spec-reviewer — Re-review revised add-movie-search plan
+start 03:39:21 · 29.1s · BACKGROUND · APPROVED / PASS"><span>spec-reviewer · 29.1s</span></div>
+          </div>
+        </div>
+
+        <div class="gantt-row">
+          <div class="gantt-label" title="Implement add-movie-search tasks">Implement add-movie-search tasks</div>
+          <div class="gantt-track">
+            <div class="gantt-bar ok" style="left:36.35%;width:50.15%;background:#ec4899"
+                 title="junior-dev — Implement add-movie-search tasks
+start 03:41:15 · 18m 35s"><span>junior-dev · 18m 35s</span></div>
+          </div>
+        </div>
+
+        <div class="gantt-row">
+          <div class="gantt-label" title="Verify add-movie-search">Verify add-movie-search</div>
+          <div class="gantt-track">
+            <div class="gantt-bar ok" style="left:86.78%;width:6.66%;background:#14b8a6"
+                 title="qa — Verify add-movie-search
+start 03:59:57 · 2m 28s · APPROVED / PASS"><span>qa · 2m 28s</span></div>
+          </div>
+        </div>
+
+        <div class="gantt-row">
+          <div class="gantt-label" title="Code review add-movie-search">Code review add-movie-search</div>
+          <div class="gantt-track">
+            <div class="gantt-bar caught" style="left:93.74%;width:6.26%;background:#f59e0b"
+                 title="senior-dev — Code review add-movie-search
+start 04:02:32 · 2m 19s · FIXED IN PLACE"><span>senior-dev · 2m 19s</span></div>
+          </div>
+        </div></div>
+
+  <h2>Subagent value &amp; efficiency</h2>
+  <div class="panel"><p class="note">Tool calls / Files / Out tokens are the work done <em>inside</em> each subagent (summed across its runs).</p><table class="vtable">
+      <thead><tr><th>Subagent</th><th>Model</th><th class="num">Runs</th>
+      <th class="num">Total time</th><th class="num">Avg</th><th class="num">Tool calls</th><th class="num">Files</th><th class="num">Out tokens</th>
+      <th>Gate value</th><th class="num">Errors</th></tr></thead>
+      <tbody><tr>
+          <td><i class="dot" style="background:#ec4899"></i>junior-dev</td>
+          <td>opus-5-5</td>
+          <td class="num">1</td><td class="num">18m 35s</td>
+          <td class="num">18m 35s</td><td class="num">60</td><td class="num">2</td><td class="num muted">1,773</td>
+          <td><span class="muted">producer</span></td><td class="num">0</td></tr><tr>
+          <td><i class="dot" style="background:#6366f1"></i>architect</td>
+          <td>opus-5-5</td>
+          <td class="num">2</td><td class="num">9m 57s</td>
+          <td class="num">4m 58s</td><td class="num">34</td><td class="num">10</td><td class="num muted">33,856</td>
+          <td><span class="muted">producer</span></td><td class="num">0</td></tr><tr>
+          <td><i class="dot" style="background:#8b5cf6"></i>spec-reviewer <span class="gate-tag">gate</span></td>
+          <td>opus-5-5</td>
+          <td class="num">2</td><td class="num">3m 4s</td>
+          <td class="num">1m 32s</td><td class="num">19</td><td class="num">3</td><td class="num muted">860</td>
+          <td><span class="pill good">caught 1/2</span></td><td class="num">0</td></tr><tr>
+          <td><i class="dot" style="background:#14b8a6"></i>qa <span class="gate-tag">gate</span></td>
+          <td>opus-5-5</td>
+          <td class="num">1</td><td class="num">2m 28s</td>
+          <td class="num">2m 28s</td><td class="num">23</td><td class="num">2</td><td class="num muted">1,761</td>
+          <td><span class="pill warn">0/1 — approved all</span></td><td class="num">0</td></tr><tr>
+          <td><i class="dot" style="background:#f59e0b"></i>senior-dev <span class="gate-tag">gate</span></td>
+          <td>opus-5-5</td>
+          <td class="num">1</td><td class="num">2m 19s</td>
+          <td class="num">2m 19s</td><td class="num">24</td><td class="num">5</td><td class="num muted">1,988</td>
+          <td><span class="pill good">caught 1/1</span></td><td class="num">0</td></tr></tbody></table></div>
+
+  <h2>Review-gate value — what the reviewers caught</h2>
+  <div class="panel">
+        <div class="gate-item caught">
+          <div class="gate-head">
+            <span class="agent-badge" style="background:#8b5cf6">spec-reviewer</span>
+            <span class="verdict caught">REQUEST CHANGES</span>
+            <span class="muted">03:34:19 · 2m 35s</span>
+          </div>
+          <div class="gate-desc">Review add-movie-search plan</div>
+          <div class="gate-snip">REQUEST CHANGES.** There is one blocking item (#1), and it takes one sentence to fix. Items 2–4 should be fixed in the same pass. The rest are advisory. **Validation:** `openspec validate add-movie-search --strict` passed (&quot;Change &#x27;add-mov</div>
+        </div>
+
+        <div class="gate-item clean">
+          <div class="gate-head">
+            <span class="agent-badge" style="background:#8b5cf6">spec-reviewer</span>
+            <span class="verdict clean">APPROVED / PASS</span>
+            <span class="muted">03:39:21 · 29.1s</span>
+          </div>
+          <div class="gate-desc">Re-review revised add-movie-search plan</div>
+          <div class="gate-snip">APPROVE.** I re-checked all 9 findings against the revised artifacts. Each one is actually fixed, and I found no new inconsistency that blocks the plan. **Validation:** `openspec validate add-movie-search --strict` passes on the revision (</div>
+        </div>
+
+        <div class="gate-item clean">
+          <div class="gate-head">
+            <span class="agent-badge" style="background:#14b8a6">qa</span>
+            <span class="verdict clean">APPROVED / PASS</span>
+            <span class="muted">03:59:57 · 2m 28s</span>
+          </div>
+          <div class="gate-desc">Verify add-movie-search</div>
+          <div class="gate-snip">passes and every requirement and scenario in the three spec deltas has a test that would fail if the behaviour regressed. I added two end-to-end tests where coverage was thin. I changed no production code. ### Build and test evidence - I r</div>
+        </div>
+
+        <div class="gate-item caught">
+          <div class="gate-head">
+            <span class="agent-badge" style="background:#f59e0b">senior-dev</span>
+            <span class="verdict caught">FIXED IN PLACE</span>
+            <span class="muted">04:02:32 · 2m 19s</span>
+          </div>
+          <div class="gate-desc">Code review add-movie-search</div>
+          <div class="gate-snip">fixed what I found. Nothing needs a design, plan or scope decision, so I&#x27;m not handing anything back. **Build:** `./gradlew build -x spotlessCheck` → BUILD SUCCESSFUL. 340 tests, 0 failures, 0 errors, 0 skipped. That is QA&#x27;s 339 plus one t</div>
+        </div></div>
+
+  <h2>Errors &amp; friction</h2>
+  <div class="panel"><p class="empty">No errors or rejected tool calls. 🎉</p></div>
+
+  <h2>Tool usage</h2>
+  <div class="panel"><p class="note">Includes tool calls and file access from inside every subagent transcript, not just the top-level session.</p><table class="vtable">
+      <thead><tr><th>Tool</th><th style="width:38%"></th><th class="num">Calls</th>
+      <th class="num">Total time</th><th class="num">Errors</th></tr></thead>
+      <tbody><tr>
+          <td>Bash</td>
+          <td><div class="tool-bar-wrap"><div class="tool-bar" style="width:100.0%"></div></div></td>
+          <td class="num">126</td>
+          <td class="num muted">7m 2s</td>
+          <td class="num"><span class="pill bad">5</span></td></tr><tr>
+          <td>Read</td>
+          <td><div class="tool-bar-wrap"><div class="tool-bar" style="width:14.3%"></div></div></td>
+          <td class="num">18</td>
+          <td class="num muted">9.6s</td>
+          <td class="num">—</td></tr><tr>
+          <td>SubagentHandback</td>
+          <td><div class="tool-bar-wrap"><div class="tool-bar" style="width:4.8%"></div></div></td>
+          <td class="num">6</td>
+          <td class="num muted">3.5s</td>
+          <td class="num">—</td></tr><tr>
+          <td>Edit</td>
+          <td><div class="tool-bar-wrap"><div class="tool-bar" style="width:4.8%"></div></div></td>
+          <td class="num">6</td>
+          <td class="num muted">10.3s</td>
+          <td class="num">—</td></tr><tr>
+          <td>Write</td>
+          <td><div class="tool-bar-wrap"><div class="tool-bar" style="width:4.8%"></div></div></td>
+          <td class="num">6</td>
+          <td class="num muted">7.6s</td>
+          <td class="num">—</td></tr><tr>
+          <td>Agent</td>
+          <td><div class="tool-bar-wrap"><div class="tool-bar" style="width:4.0%"></div></div></td>
+          <td class="num">5</td>
+          <td class="num muted">7m 48s</td>
+          <td class="num">—</td></tr><tr>
+          <td>Skill</td>
+          <td><div class="tool-bar-wrap"><div class="tool-bar" style="width:2.4%"></div></div></td>
+          <td class="num">3</td>
+          <td class="num muted">1.3s</td>
+          <td class="num">—</td></tr><tr>
+          <td>SendMessage</td>
+          <td><div class="tool-bar-wrap"><div class="tool-bar" style="width:1.6%"></div></div></td>
+          <td class="num">2</td>
+          <td class="num muted">971ms</td>
+          <td class="num">—</td></tr><tr>
+          <td>AskUserQuestion</td>
+          <td><div class="tool-bar-wrap"><div class="tool-bar" style="width:1.6%"></div></div></td>
+          <td class="num">2</td>
+          <td class="num muted">5m 59s</td>
+          <td class="num">—</td></tr></tbody></table></div>
+
+  <h2>Files touched</h2>
+  <div class="panel"><p class="note">Includes tool calls and file access from inside every subagent transcript, not just the top-level session.</p><p class="note">23 files touched · 5 written fresh (no prior read).</p><table class="vtable">
+      <thead><tr><th>File</th><th>Operations</th><th class="num">Total</th></tr></thead>
+      <tbody><tr>
+          <td class="fpath" title="/Users/paulrule/projects/current/sdlc-pipeline-opus-uc002/openspec/changes/add-movie-search/design.md">openspec/changes/add-movie-search/design.md</td>
+          <td><span class="fop write">write ×1</span> <span class="fop edit">edit ×3</span> <span class="fop read">read ×1</span></td>
+          <td class="num muted">5</td></tr><tr>
+          <td class="fpath" title="/Users/paulrule/.claude/projects/-Users-paulrule-projects-current-sdlc-pipeline-opus-uc002/ec2d9e49-5794-4d19-831d-f98489aa6b14/tool-results/bsnsgvay3.txt">-Users-paulrule-projects-current-sdlc-pipeline-opus-uc002/ec2d9e49-5794-4d19-831d-f98489aa6b14/tool-results/bsnsgvay3.txt</td>
+          <td><span class="fop read">read ×2</span></td>
+          <td class="num muted">2</td></tr><tr>
+          <td class="fpath" title="/Users/paulrule/projects/current/sdlc-pipeline-opus-uc002/src/test/java/com/acme/catalog/movies/adapters/out/persistence/MovieSearchAdapterTest.java">adapters/out/persistence/MovieSearchAdapterTest.java</td>
+          <td><span class="fop edit">edit ×1</span> <span class="fop read">read ×1</span></td>
+          <td class="num muted">2</td></tr><tr>
+          <td class="fpath" title="/Users/paulrule/projects/current/sdlc-pipeline-opus-uc002/src/main/java/com/acme/platform/web/GlobalExceptionHandler.java">acme/platform/web/GlobalExceptionHandler.java</td>
+          <td><span class="fop read">read ×2</span></td>
+          <td class="num muted">2</td></tr><tr>
+          <td class="fpath" title="/Users/paulrule/projects/current/sdlc-pipeline-opus-uc002/.claude/skills/openspec-archive-change/SKILL.md">.claude/skills/openspec-archive-change/SKILL.md</td>
+          <td><span class="fop read">read ×1</span></td>
+          <td class="num muted">1</td></tr><tr>
+          <td class="fpath" title="/Users/paulrule/projects/current/sdlc-pipeline-opus-uc002/standards/openapi.md">current/sdlc-pipeline-opus-uc002/standards/openapi.md</td>
+          <td><span class="fop read">read ×1</span></td>
+          <td class="num muted">1</td></tr><tr>
+          <td class="fpath" title="/Users/paulrule/projects/current/sdlc-pipeline-opus-uc002/standards/error-handling.md">current/sdlc-pipeline-opus-uc002/standards/error-handling.md</td>
+          <td><span class="fop read">read ×1</span></td>
+          <td class="num muted">1</td></tr><tr>
+          <td class="fpath" title="/Users/paulrule/.claude/projects/-Users-paulrule-projects-current-sdlc-pipeline-opus-uc002/ec2d9e49-5794-4d19-831d-f98489aa6b14/tool-results/b84ioju8l.txt">-Users-paulrule-projects-current-sdlc-pipeline-opus-uc002/ec2d9e49-5794-4d19-831d-f98489aa6b14/tool-results/b84ioju8l.txt</td>
+          <td><span class="fop read">read ×1</span></td>
+          <td class="num muted">1</td></tr><tr>
+          <td class="fpath" title="/Users/paulrule/.claude/projects/-Users-paulrule-projects-current-sdlc-pipeline-opus-uc002/ec2d9e49-5794-4d19-831d-f98489aa6b14/tool-results/bfbr5446l.txt">-Users-paulrule-projects-current-sdlc-pipeline-opus-uc002/ec2d9e49-5794-4d19-831d-f98489aa6b14/tool-results/bfbr5446l.txt</td>
+          <td><span class="fop read">read ×1</span></td>
+          <td class="num muted">1</td></tr><tr>
+          <td class="fpath" title="/Users/paulrule/.claude/projects/-Users-paulrule-projects-current-sdlc-pipeline-opus-uc002/ec2d9e49-5794-4d19-831d-f98489aa6b14/tool-results/br15yy2y6.txt">-Users-paulrule-projects-current-sdlc-pipeline-opus-uc002/ec2d9e49-5794-4d19-831d-f98489aa6b14/tool-results/br15yy2y6.txt</td>
+          <td><span class="fop read">read ×1</span></td>
+          <td class="num muted">1</td></tr><tr>
+          <td class="fpath" title="/Users/paulrule/.claude/projects/-Users-paulrule-projects-current-sdlc-pipeline-opus-uc002/ec2d9e49-5794-4d19-831d-f98489aa6b14/tool-results/bl5id16kv.txt">-Users-paulrule-projects-current-sdlc-pipeline-opus-uc002/ec2d9e49-5794-4d19-831d-f98489aa6b14/tool-results/bl5id16kv.txt</td>
+          <td><span class="fop read">read ×1</span></td>
+          <td class="num muted">1</td></tr><tr>
+          <td class="fpath" title="/Users/paulrule/projects/current/sdlc-pipeline-opus-uc002/src/main/java/com/acme/catalog/movies/adapters/out/persistence/MovieSearchAdapter.java">adapters/out/persistence/MovieSearchAdapter.java</td>
+          <td><span class="fop edit">edit ×1</span></td>
+          <td class="num muted">1</td></tr><tr>
+          <td class="fpath" title="/Users/paulrule/.claude/projects/-Users-paulrule-projects-current-sdlc-pipeline-opus-uc002/ec2d9e49-5794-4d19-831d-f98489aa6b14/tool-results/bvp9wbuex.txt">-Users-paulrule-projects-current-sdlc-pipeline-opus-uc002/ec2d9e49-5794-4d19-831d-f98489aa6b14/tool-results/bvp9wbuex.txt</td>
+          <td><span class="fop read">read ×1</span></td>
+          <td class="num muted">1</td></tr><tr>
+          <td class="fpath" title="/Users/paulrule/projects/current/sdlc-pipeline-opus-uc002/src/test/java/com/acme/catalog/movies/adapters/in/web/MovieSearchEndToEndTest.java">adapters/in/web/MovieSearchEndToEndTest.java</td>
+          <td><span class="fop edit">edit ×1</span></td>
+          <td class="num muted">1</td></tr><tr>
+          <td class="fpath" title="/Users/paulrule/projects/current/sdlc-pipeline-opus-uc002/use-cases/UC-002-search-and-browse-movies.md">current/sdlc-pipeline-opus-uc002/use-cases/UC-002-search-and-browse-movies.md</td>
+          <td><span class="fop read">read ×1</span></td>
+          <td class="num muted">1</td></tr><tr>
+          <td class="fpath" title="/Users/paulrule/projects/current/sdlc-pipeline-opus-uc002/openspec/specs/catalog/movies/spec.md">specs/catalog/movies/spec.md</td>
+          <td><span class="fop read">read ×1</span></td>
+          <td class="num muted">1</td></tr><tr>
+          <td class="fpath" title="/Users/paulrule/projects/current/sdlc-pipeline-opus-uc002/openspec/specs/platform/uniform-responses/spec.md">specs/platform/uniform-responses/spec.md</td>
+          <td><span class="fop read">read ×1</span></td>
+          <td class="num muted">1</td></tr><tr>
+          <td class="fpath" title="/Users/paulrule/.claude/projects/-Users-paulrule-projects-current-sdlc-pipeline-opus-uc002/ec2d9e49-5794-4d19-831d-f98489aa6b14/tool-results/bbeaofbp5.txt">-Users-paulrule-projects-current-sdlc-pipeline-opus-uc002/ec2d9e49-5794-4d19-831d-f98489aa6b14/tool-results/bbeaofbp5.txt</td>
+          <td><span class="fop read">read ×1</span></td>
+          <td class="num muted">1</td></tr><tr>
+          <td class="fpath" title="/Users/paulrule/projects/current/sdlc-pipeline-opus-uc002/openspec/changes/add-movie-search/proposal.md">openspec/changes/add-movie-search/proposal.md</td>
+          <td><span class="fop write">write ×1</span></td>
+          <td class="num muted">1</td></tr><tr>
+          <td class="fpath" title="/Users/paulrule/projects/current/sdlc-pipeline-opus-uc002/openspec/changes/add-movie-search/specs/catalog/movies/spec.md">specs/catalog/movies/spec.md</td>
+          <td><span class="fop write">write ×1</span></td>
+          <td class="num muted">1</td></tr><tr>
+          <td class="fpath" title="/Users/paulrule/projects/current/sdlc-pipeline-opus-uc002/openspec/changes/add-movie-search/specs/platform/uniform-responses/spec.md">specs/platform/uniform-responses/spec.md</td>
+          <td><span class="fop write">write ×1</span></td>
+          <td class="num muted">1</td></tr><tr>
+          <td class="fpath" title="/Users/paulrule/projects/current/sdlc-pipeline-opus-uc002/openspec/changes/add-movie-search/specs/platform/interface-description/spec.md">specs/platform/interface-description/spec.md</td>
+          <td><span class="fop write">write ×1</span></td>
+          <td class="num muted">1</td></tr><tr>
+          <td class="fpath" title="/Users/paulrule/projects/current/sdlc-pipeline-opus-uc002/openspec/changes/add-movie-search/tasks.md">openspec/changes/add-movie-search/tasks.md</td>
+          <td><span class="fop write">write ×1</span></td>
+          <td class="num muted">1</td></tr></tbody></table></div>
+
+  <h2>Context ingestion — domain &amp; standards</h2>
+  <div class="panel"><p class="note"><b>Reading is not proof of benefit.</b> This shows the docs reach the agents and are used (Influence = reads + citations; Informed = read before the agent started writing). To prove they <em>help vs hinder</em>, compare two runs with <code>--compare</code> (full vs stripped context). Note CLAUDE.md is always in-context and is not counted here.</p><table class="vtable">
+      <thead><tr><th>Doc</th><th class="num" title="approx tokens (chars/4)">Size</th>
+      <th class="num">Reads</th>
+      <th class="num" title="share of reads before the agent's first write">Informed</th>
+      <th class="num">Cited</th><th class="num">Influence</th>
+      <th class="num" title="influence per 1K tokens of the doc — value per word">Value/1K</th>
+      <th class="num" title="reads × size = context tokens spent re-reading it">Read cost</th>
+      <th>Readers</th><th></th></tr></thead>
+      <tbody><tr>
+          <td class="fpath">standards/openapi.md</td>
+          <td class="num muted">3,291</td>
+          <td class="num">1</td>
+          <td class="num muted">100%</td>
+          <td class="num">3</td>
+          <td class="num"><b>4</b></td>
+          <td class="num muted">1.2</td>
+          <td class="num muted">3,291</td>
+          <td><span class="rdr" style="background:#8b5cf6" title="spec-reviewer"></span></td>
+          <td></td></tr><tr>
+          <td class="fpath">standards/error-handling.md</td>
+          <td class="num muted">1,436</td>
+          <td class="num">1</td>
+          <td class="num muted">100%</td>
+          <td class="num">0</td>
+          <td class="num"><b>1</b></td>
+          <td class="num muted">0.7</td>
+          <td class="num muted">1,436</td>
+          <td><span class="rdr" style="background:#8b5cf6" title="spec-reviewer"></span></td>
+          <td><span class="pill warn">read, never cited</span></td></tr></tbody></table>
+      <p class="note">~4,727 tokens were spent re-reading
+      context docs across the run. <b>Value/1K</b> (influence per 1000 tokens of the
+      doc) is the signal-density proxy: a large doc with low Value/1K is a
+      bloat/trim candidate; confirm by trimming it and re-running with
+      <code>--compare</code>.</p><p class="note">Reviewer catches that explicitly cite a doc — direct evidence the doc earned its place:</p><div><span class="pill good">standards/openapi.md → 1 catch</span> <span class="pill good">standards/error-handling.md → 1 catch</span> <span class="pill good">standards/testing.md → 1 catch</span> <span class="pill good">standards/clean-architecture.md → 1 catch</span></div><ul class="insights"><li class="ins warn">Never read by any agent: domain/README.md, domain/actors-and-personas.md, domain/bounded-contexts.md, domain/business-rules.md, domain/glossary.md, domain/overview.md, standards/clean-architecture.md, standards/clean-code.md, standards/formatting.md, standards/security.md, standards/testing.md — dead weight, or context you assume is absorbed via CLAUDE.md.</li><li class="ins info">Read but never cited in reasoning: standards/error-handling.md — opened, but did it actually shape the output?</li></ul></div>
+
+  <h2>Activity feed</h2>
+  <div class="filters">
+    <button data-f="all" class="active">All</button>
+    <button data-f="user">Prompts</button>
+    <button data-f="assistant">Decisions</button>
+    <button data-f="agent">Agents</button>
+    <button data-f="tool">Tools</button>
+    <button data-f="thinking">Thinking</button>
+  </div>
+  <div id="feed"><div class="feed user"><div class="feed-time">03:26:19</div>
+      <div class="feed-body"><div class="feed-who">You</div>
+      <div class="feed-text">You are the **orchestrator** (Engineering Manager) for a multi-agent SDLC pipeline. Drive the ticket below through the OpenSpec workflow, delegating each phase to the appropriate role subagent via the Agent tool. Do NOT do the phase work yourself — your job is sequencing, passing artifacts between agents, and enforcing the two human gates.
+
+## Ticket
+use-cases/UC-002-search-and-browse-movies.md
+
+If the ticket above is empty, ask the user to paste it and stop.
+
+## Pipeline
+
+1. **Architect (plan).** Spawn the `architect` agent with the full ticket text. It creates the OpenSpec change and all pl…</div></div></div>
+<div class="feed tool"><div class="feed-time">03:26:22</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">Bash</span>
+      <span class="dur">857ms</span></div>
+      <div class="feed-text mono">git branch --show-current &amp;&amp; ls use-cases/ &amp;&amp; wc -l use-cases/UC-002-search-and-browse-movies.md &amp;&amp; ls openspec/changes 2&gt;/dev/null</div></div></div>
+<div class="feed assistant"><div class="feed-time">03:26:25</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">Running on `experiment/pipeline-opus-uc-002` (the dedicated branch for this run), so I&#x27;m not cutting a new `feat/` branch. Starting the architect phase.</div></div></div>
+<div class="feed tool agent"><div class="feed-time">03:26:28</div>
+          <div class="feed-body">
+          <div class="feed-who"><span class="agent-badge" style="background:#6366f1">architect</span> ran <span class="dur">7m 46s</span></div>
+          <div class="feed-text">Plan UC-002 OpenSpec change</div><div class="feed-result">I&#x27;ve planned UC-002 as a new OpenSpec change, **`add-movie-search`**. All four artifacts are written and `openspec validate add-movie-search --strict` passes. No code was written and the branch was not switched.
+
+**Summary:** the change adds a public, read-only `GET /api/v1/movies`. It returns one page of movie summaries (UC-001 details without the synopsis), each linking to the movie&#x27;s details. …</div></div></div>
+<div class="feed assistant"><div class="feed-time">03:26:29</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">The architect is drafting the OpenSpec change for UC-002. I&#x27;ll come back with its summary, then send it to spec review.</div></div></div>
+<div class="feed assistant"><div class="feed-time">03:34:16</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">✅ Architect — change `add-movie-search` created, validates strict</div></div></div>
+<div class="feed tool agent"><div class="feed-time">03:34:19</div>
+          <div class="feed-body">
+          <div class="feed-who"><span class="agent-badge" style="background:#8b5cf6">spec-reviewer</span> ran <span class="dur">2m 35s</span> <span class="verdict caught">REQUEST CHANGES</span></div>
+          <div class="feed-text">Review add-movie-search plan</div><div class="feed-result">**Verdict: REQUEST CHANGES.** There is one blocking item (#1), and it takes one sentence to fix. Items 2–4 should be fixed in the same pass. The rest are advisory.
+
+**Validation:** `openspec validate add-movie-search --strict` passed (&quot;Change &#x27;add-movie-search&#x27; is valid&quot;).
+
+**Traceability:** every UC-002 flow is covered by a spec requirement or scenario (main flow 1–6, 1a, 2a, 3a, 3b, 3c, 4a, 5a,…</div></div></div>
+<div class="feed assistant"><div class="feed-time">03:34:22</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">The architect created the OpenSpec change `add-movie-search`, and it passes strict validation. It plans a public, paged `GET /api/v1/movies` search. The spec reviewer is now checking the plan against the standards and for design quality. When its verdict comes back I&#x27;ll bring the full plan to you at Gate 1.</div></div></div>
+<div class="feed assistant"><div class="feed-time">03:36:57</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">✅ Spec review (round 1) — REQUEST CHANGES (1 blocking, 3 should-fix)
+
+Sending findings back to architect (revision round 1 of 2).</div></div></div>
+<div class="feed tool agent"><div class="feed-time">03:37:04</div>
+          <div class="feed-body">
+          <div class="feed-who"><span class="agent-badge" style="background:#6366f1">architect</span> re-ran (resumed) <span class="dur">2m 10s</span></div>
+          <div class="feed-text">Revise plan per spec review round 1</div><div class="feed-result">I&#x27;ve revised `add-movie-search` for all 9 review findings. It is planning artifacts only, no code. `openspec validate add-movie-search --strict` passes again (&quot;Change &#x27;add-movie-search&#x27; is valid&quot;).
+
+**Must fix**
+
+1. **`@Validated` deviation:** the design no longer departs from the standard.
+   - Design D3 now puts `@Validated` on `MovieController`, as `standards/openapi.md` §2a requires.
+   - `Co…</div></div></div>
+<div class="feed assistant"><div class="feed-time">03:37:08</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">The spec review asked for changes: one blocking item and three should-fix items.
+
+- **Blocking:** the plan left `@Validated` off the controller, which the standard requires. The reason given doesn&#x27;t hold, because the generated interface probably carries `@Validated` already.
+- **Should fix:**
+  - The rule turning a `ConstraintViolationException` into a 400 is too broad. It would also turn server-side faults into 400s.
+  - The reusable paging types sit in the movies slice instead of the shared kernel.
+  - One acceptance check has no task.
+
+The architect is revising the plan now; this is revisi…</div></div></div>
+<div class="feed assistant"><div class="feed-time">03:39:17</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">✅ Architect revision (round 1) — all 9 findings addressed, validates strict</div></div></div>
+<div class="feed tool agent"><div class="feed-time">03:39:21</div>
+          <div class="feed-body">
+          <div class="feed-who"><span class="agent-badge" style="background:#8b5cf6">spec-reviewer</span> re-ran (resumed) <span class="dur">29.1s</span> <span class="verdict clean">APPROVED / PASS</span></div>
+          <div class="feed-text">Re-review revised add-movie-search plan</div><div class="feed-result">**Verdict: APPROVE.** I re-checked all 9 findings against the revised artifacts. Each one is actually fixed, and I found no new inconsistency that blocks the plan.
+
+**Validation:** `openspec validate add-movie-search --strict` passes on the revision (&quot;Change &#x27;add-movie-search&#x27; is valid&quot;).
+
+## How each finding was resolved
+1. **`@Validated` (was blocking): fixed.**
+   - D3 now class-annotates `Mov…</div></div></div>
+<div class="feed assistant"><div class="feed-time">03:39:22</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">The architect has revised the plan for all 9 review findings, and it still passes strict validation. The spec reviewer is now doing its second pass. When its verdict comes back, I&#x27;ll bring you the plan and its open questions at Gate 1.</div></div></div>
+<div class="feed assistant"><div class="feed-time">03:40:02</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">✅ Spec review (round 2) — APPROVE
+
+# 🚦 Gate 1: approve the plan for UC-002
+
+**Change:** `add-movie-search`. The spec reviewer approved it after one revision round, and it passes `openspec validate --strict`.
+
+## What it builds
+A public, read-only `GET /api/v1/movies` that returns one page of movie summaries. Each summary is UC-001&#x27;s details without the synopsis, plus a link to the movie&#x27;s details.
+- **Filters**, all combined with AND:
+  - `title` (substring)
+  - repeatable `genre` (a movie must have every one)
+  - `releaseYearFrom` / `releaseYearTo`
+  - `minRating`
+- **Ordering:** `sort=title…</div></div></div>
+<div class="feed tool"><div class="feed-time">03:40:06</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">AskUserQuestion</span>
+      <span class="dur">1m 3s</span></div>
+      <div class="feed-text mono">{&quot;questions&quot;: [{&quot;question&quot;: &quot;Gate 1: how should the add-movie-search plan proceed?&quot;, &quot;header&quot;: &quot;Gate 1&quot;, &quot;multiSelect&quot;: false, &quot;options&quot;: [{&quot;label&quot;: &quot;Proceed (Recommended)&quot;, &quot;description&quot;: &quot;Accept the</div></div></div>
+<div class="feed assistant"><div class="feed-time">03:41:11</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">✅ Gate 1 — approved (proceed; no title max length)</div></div></div>
+<div class="feed tool agent"><div class="feed-time">03:41:15</div>
+          <div class="feed-body">
+          <div class="feed-who"><span class="agent-badge" style="background:#ec4899">junior-dev</span> ran <span class="dur">18m 35s</span></div>
+          <div class="feed-text">Implement add-movie-search tasks</div><div class="feed-result">## add-movie-search: implementation report
+
+`GET /api/v1/movies` is implemented as planned, with no blockers and no design changes. 19 of 20 tasks are ticked. 8.2 is left unticked on purpose (reason below). The full build passes (337 tests, 0 failures) and `openspec validate add-movie-search --strict` passes. I committed nothing and stayed on `experiment/pipeline-opus-uc002`.
+
+### Build and test …</div></div></div>
+<div class="feed assistant"><div class="feed-time">03:41:17</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">Gate 1 is approved: the plan goes ahead with no maximum title length and the default answers to the other open questions. The junior dev is now implementing `add-movie-search` against `tasks.md`. If it hits a blocker or finds a flaw in the plan, it will stop and report rather than work around it. When it finishes, I&#x27;ll send the change to QA.</div></div></div>
+<div class="feed assistant"><div class="feed-time">03:59:52</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">✅ Implement — 19/20 tasks done (8.2 is formatting and is left to the pre-commit hook); build green with 337 tests passing</div></div></div>
+<div class="feed tool agent"><div class="feed-time">03:59:57</div>
+          <div class="feed-body">
+          <div class="feed-who"><span class="agent-badge" style="background:#14b8a6">qa</span> ran <span class="dur">2m 28s</span> <span class="verdict clean">APPROVED / PASS</span></div>
+          <div class="feed-text">Verify add-movie-search</div><div class="feed-result">## Verdict: READY TO ARCHIVE (add-movie-search)
+
+There are no blocking defects. The full build passes and every requirement and scenario in the three spec deltas has a test that would fail if the behaviour regressed. I added two end-to-end tests where coverage was thin. I changed no production code.
+
+### Build and test evidence
+- I ran `./gradlew cleanTest build -x spotlessCheck` so the tests ran…</div></div></div>
+<div class="feed assistant"><div class="feed-time">04:00:01</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">The junior dev implemented `GET /api/v1/movies` and finished 19 of 20 tasks. The full build passes with 337 tests and no failures, including the Testcontainers ones. Task 8.2 (formatting) is left unticked on purpose: the pre-commit hook handles formatting, so it ticks once the commit-time check passes.
+
+It reported four small departures from the plan:
+- **UTF-8 contract test:** the contract test now reads the served YAML as UTF-8, because the new descriptions contain en-dashes.
+- **Link encoding:** page links are percent-encoded value by value. The method in the design left `&amp;` and `+` in tit…</div></div></div>
+<div class="feed assistant"><div class="feed-time">04:02:26</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">✅ QA — READY (339 tests pass; 2 tests added; all deviations acceptable)</div></div></div>
+<div class="feed tool agent"><div class="feed-time">04:02:32</div>
+          <div class="feed-body">
+          <div class="feed-who"><span class="agent-badge" style="background:#f59e0b">senior-dev</span> ran <span class="dur">2m 19s</span> <span class="verdict caught">FIXED IN PLACE</span></div>
+          <div class="feed-text">Code review add-movie-search</div><div class="feed-result">## Verdict: APPROVE
+
+I reviewed the change and fixed what I found. Nothing needs a design, plan or scope decision, so I&#x27;m not handing anything back.
+
+**Build:** `./gradlew build -x spotlessCheck` → BUILD SUCCESSFUL. 340 tests, 0 failures, 0 errors, 0 skipped. That is QA&#x27;s 339 plus one test I added.
+
+## Fixes applied
+
+1. **Client title term was written into the SQL text** (`/Users/paulrule/project…</div></div></div>
+<div class="feed assistant"><div class="feed-time">04:02:35</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">QA marked `add-movie-search` ready. A fresh build passes with 339 tests and no failures. Every requirement in the three spec deltas has a test that would fail if the behaviour broke. QA added two end-to-end tests where coverage was thin:
+- **No login needed:** a search succeeds with no credentials, a junk token or Basic credentials.
+- **Genre input:** comma-separated genres match the same movies as repeated `genre` values, and blank ones are ignored.
+
+QA judged all four of the junior dev&#x27;s departures from the plan acceptable. Its only follow-up is that `design.md` still describes the old link…</div></div></div>
+<div class="feed tool"><div class="feed-time">04:04:53</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">Bash</span>
+      <span class="dur">602ms</span></div>
+      <div class="feed-text mono">git branch --show-current &amp;&amp; git status --short</div></div></div>
+<div class="feed assistant"><div class="feed-time">04:05:06</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">✅ Code review — APPROVE (the reviewer fixed 1 real issue and the design doc drift)
+
+# 🚦 Gate 2: archive `add-movie-search`?
+
+UC-002 movie search is built and verified. The build passes with 340 tests and no failures. The final code review fixed one real problem and approved. No commits have been made yet.
+
+## QA: ready
+- **Build:** a fresh `./gradlew cleanTest build -x spotlessCheck` passed with 339 tests.
+- **Coverage:** every requirement and scenario in the three spec deltas has a test that would fail if the behaviour broke.
+- **Databases:** the database tests run on PostgreSQL via Testcont…</div></div></div>
+<div class="feed tool"><div class="feed-time">04:05:07</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">AskUserQuestion</span>
+      <span class="dur">4m 55s</span></div>
+      <div class="feed-text mono">{&quot;questions&quot;: [{&quot;question&quot;: &quot;Gate 2: archive the add-movie-search change now?&quot;, &quot;header&quot;: &quot;Gate 2&quot;, &quot;multiSelect&quot;: false, &quot;options&quot;: [{&quot;label&quot;: &quot;Archive (Recommended)&quot;, &quot;description&quot;: &quot;Run the OpenSpe</div></div></div>
+<div class="feed assistant"><div class="feed-time">04:10:04</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">✅ Gate 2 — approved</div></div></div>
+<div class="feed tool"><div class="feed-time">04:10:04</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">Read</span>
+      <span class="dur">386ms</span></div>
+      <div class="feed-text mono">/Users/paulrule/projects/current/sdlc-pipeline-opus-uc002/.claude/skills/openspec-archive-change/SKILL.md</div></div></div>
+<div class="feed tool"><div class="feed-time">04:10:10</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">Bash</span>
+      <span class="dur">3.8s</span></div>
+      <div class="feed-text mono">openspec instructions archive --change add-movie-search --json 2&gt;/dev/null | head -c 1500; echo; openspec status --change add-movie-search --json | head -c 2500; echo; grep -c &#x27;\- \[ \]&#x27; openspec/cha…</div></div></div>
+<div class="feed assistant"><div class="feed-time">04:10:16</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">Using change: `add-movie-search`. One task is still open: 8.2, formatting, deliberately left for the pre-commit hook and shown at Gate 2. Archiving with the spec sync.</div></div></div>
+<div class="feed tool"><div class="feed-time">04:10:17</div>
+      <div class="feed-body"><div class="feed-who"><span class="tool-tag">Bash</span>
+      <span class="dur">2.9s</span></div>
+      <div class="feed-text mono">openspec archive add-movie-search -y 2&gt;&amp;1 | tail -30; ls openspec/changes/archive | tail -3; openspec validate --specs --strict 2&gt;&amp;1 | tail -8</div></div></div>
+<div class="feed assistant"><div class="feed-time">04:10:25</div>
+      <div class="feed-body"><div class="feed-who">Claude</div>
+      <div class="feed-text">✅ Archive — done
+
+UC-002 (search and browse movies) has been through the whole pipeline and is archived. `GET /api/v1/movies` is built, tested and approved at both gates.
+
+- **Specs updated:** the change&#x27;s spec deltas are now in the main specs. That added 14 requirements to `catalog/movies`, added 2 and changed 2 in `platform/uniform-responses`, and changed 1 in `platform/interface-description`. `openspec validate --specs --strict` passes for all 5 specs.
+- **Archived to:** `openspec/changes/archive/2026-10-03-add-movie-search/`.
+- **Tests:** the last build passed with 340 tests and no failur…</div></div></div></div>
+</div>
+<script>
+const btns=[...document.querySelectorAll('.filters button')];
+const items=[...document.querySelectorAll('#feed .feed')];
+btns.forEach(b=>b.onclick=()=>{
+  btns.forEach(x=>x.classList.remove('active')); b.classList.add('active');
+  const f=b.dataset.f;
+  items.forEach(it=>{
+    let show = f==='all' || it.classList.contains(f)
+      || (f==='tool' && it.classList.contains('tool') && !it.classList.contains('agent'));
+    it.style.display = show ? '' : 'none';
+  });
+});
+</script>
+</body></html>
