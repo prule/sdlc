@@ -93,6 +93,41 @@ class SearchMoviesFilteringTest extends PostgresIntegrationTest {
   }
 
   @Test
+  void titleSubstringMaySpanASpace() {
+    insertMovie("The Grand Heist", 2005, null);
+    insertMovie("Heist Night", 2010, null);
+    insertMovie("Arrival", 2016, null);
+
+    Page<MovieSummary> result =
+        search(
+            criteria(
+                Optional.of("rand h"),
+                Set.of(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty()));
+
+    assertThat(result.items()).extracting(MovieSummary::title).containsExactly("The Grand Heist");
+  }
+
+  @Test
+  void aBlankTitleIsNoTitleCriterion() {
+    insertMovie("The Grand Heist", 2005, null);
+    insertMovie("Heist Night", 2010, null);
+    insertMovie("Arrival", 2016, null);
+
+    Page<MovieSummary> result =
+        search(
+            criteria(
+                Optional.of("  "), Set.of(), Optional.empty(), Optional.empty(), Optional.empty()));
+
+    assertThat(result.items())
+        .extracting(MovieSummary::title)
+        .containsExactlyInAnyOrder("The Grand Heist", "Heist Night", "Arrival");
+    assertThat(result.totalElements()).isEqualTo(3);
+  }
+
+  @Test
   void titleSubstringMatchesWildcardCharactersLiterally() {
     insertMovie("100%_Real", 2001, null);
     insertMovie("Arrival", 2016, null);
@@ -194,6 +229,38 @@ class SearchMoviesFilteringTest extends PostgresIntegrationTest {
     assertThat(singleYear.items())
         .extracting(MovieSummary::title)
         .containsExactly("Two Thousand Five");
+  }
+
+  @Test
+  void onlyAnInclusiveLowerYearBound() {
+    insertMovie("Nineteen Ninety Eight", 1998, null);
+    insertMovie("Two Thousand Five", 2005, null);
+    insertMovie("Two Thousand Sixteen", 2016, null);
+
+    Page<MovieSummary> result =
+        search(
+            criteria(
+                Optional.empty(), Set.of(), Optional.of(2005), Optional.empty(), Optional.empty()));
+
+    assertThat(result.items())
+        .extracting(MovieSummary::title)
+        .containsExactlyInAnyOrder("Two Thousand Five", "Two Thousand Sixteen");
+  }
+
+  @Test
+  void onlyAnInclusiveUpperYearBound() {
+    insertMovie("Nineteen Ninety Eight", 1998, null);
+    insertMovie("Two Thousand Five", 2005, null);
+    insertMovie("Two Thousand Sixteen", 2016, null);
+
+    Page<MovieSummary> result =
+        search(
+            criteria(
+                Optional.empty(), Set.of(), Optional.empty(), Optional.of(2005), Optional.empty()));
+
+    assertThat(result.items())
+        .extracting(MovieSummary::title)
+        .containsExactlyInAnyOrder("Nineteen Ninety Eight", "Two Thousand Five");
   }
 
   @Test

@@ -56,7 +56,7 @@ class MovieSearchRefusalTest {
             .perform(get("/api/v1/movies").contextPath("/api/v1").param(param, value))
             .andReturn();
 
-    JsonNode body = assertBadRequestNaming(result, expectedName);
+    assertBadRequestNaming(result, expectedName);
     Mockito.verifyNoInteractions(searchMoviesUseCase);
   }
 

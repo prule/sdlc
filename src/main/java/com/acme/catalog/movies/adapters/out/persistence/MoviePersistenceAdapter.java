@@ -13,6 +13,7 @@ import com.acme.catalog.movies.domain.model.RuntimeMinutes;
 import com.acme.shared.domain.paging.Page;
 import com.acme.shared.domain.paging.PageRequest;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Expression;
@@ -46,6 +47,7 @@ public class MoviePersistenceAdapter
     implements LoadMoviePort, LoadGenreVocabularyPort, SearchMoviesPort {
 
   private static final char ESCAPE_CHAR = '\\';
+  private static final String TITLE_PATTERN_PARAMETER = "titlePattern";
 
   private final MovieJpaRepository movieJpaRepository;
   private final GenreJpaRepository genreJpaRepository;
@@ -96,7 +98,7 @@ public class MoviePersistenceAdapter
     Root<MovieJpaEntity> root = query.from(MovieJpaEntity.class);
     query.select(cb.count(root));
     query.where(predicates(cb, query, root, criteria));
-    return entityManager.createQuery(query).getSingleResult();
+    return bindTitlePattern(entityManager.createQuery(query), criteria).getSingleResult();
   }
 
   private List<UUID> pageOfIds(
@@ -108,8 +110,7 @@ public class MoviePersistenceAdapter
     query.where(predicates(cb, query, root, criteria));
     query.orderBy(orderBy(cb, root, order));
 
-    return entityManager
-        .createQuery(query)
+    return bindTitlePattern(entityManager.createQuery(query), criteria)
         .setFirstResult(Math.toIntExact(pageRequest.offset()))
         .setMaxResults(pageRequest.size())
         .getResultList();
@@ -124,6 +125,20 @@ public class MoviePersistenceAdapter
     return ids.stream().map(byId::get).filter(Objects::nonNull).map(this::toSummary).toList();
   }
 
+  /**
+   * Binds the title LIKE pattern as a named parameter when a title term is present, so the term
+   * never becomes part of the SQL text (design D1). Must be applied to every query built with
+   * {@link #predicates}.
+   */
+  private static <T> TypedQuery<T> bindTitlePattern(
+      TypedQuery<T> query, MovieSearchCriteria criteria) {
+    criteria
+        .titleTerm()
+        .ifPresent(
+            term -> query.setParameter(TITLE_PATTERN_PARAMETER, "%" + escapeLikeTerm(term) + "%"));
+    return query;
+  }
+
   private Predicate[] predicates(
       CriteriaBuilder cb,
       CriteriaQuery<?> outerQuery,
@@ -134,11 +149,12 @@ public class MoviePersistenceAdapter
     criteria
         .titleTerm()
         .ifPresent(
-            term -> {
-              String pattern = "%" + escapeLikeTerm(term) + "%";
-              predicates.add(
-                  cb.like(cb.lower(root.get("title")), cb.lower(cb.literal(pattern)), ESCAPE_CHAR));
-            });
+            term ->
+                predicates.add(
+                    cb.like(
+                        cb.lower(root.get("title")),
+                        cb.lower(cb.parameter(String.class, TITLE_PATTERN_PARAMETER)),
+                        ESCAPE_CHAR)));
 
     for (String genreName : criteria.genres()) {
       predicates.add(genreExists(cb, outerQuery, root, genreName));

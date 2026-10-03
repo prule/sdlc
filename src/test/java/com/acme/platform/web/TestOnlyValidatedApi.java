@@ -2,6 +2,8 @@ package com.acme.platform.web;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,4 +33,24 @@ public interface TestOnlyValidatedApi {
   @GetMapping("/test-only/validated/service-conflict")
   ResponseEntity<String> serviceConflict(
       @RequestParam("page") Integer p, @RequestParam("size") Integer s);
+
+  /**
+   * The result violates its declared constraint (the implementation returns {@code null}), so the
+   * method-validation proxy raises a real return-value violation (design D3): a server-side fault.
+   */
+  @GetMapping("/test-only/validated/result-constraint")
+  @NotNull(message = "secret-detail must not be blank")
+  ResponseEntity<String> resultConstraint();
+
+  /** Each value of a repeated query parameter is constrained: a violation is client input. */
+  @GetMapping("/test-only/validated/elements")
+  ResponseEntity<String> elements(@RequestParam("ids") List<@Min(0) Integer> ids);
+
+  /**
+   * Both a constrained {@code page} parameter and a constrained result, used only by the
+   * handler-level mixed-violation test (design D3).
+   */
+  @GetMapping("/test-only/validated/mixed")
+  @NotNull
+  ResponseEntity<String> mixed(@Min(0) @RequestParam("page") Integer p);
 }

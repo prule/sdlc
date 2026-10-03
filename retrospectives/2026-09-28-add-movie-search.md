@@ -79,12 +79,12 @@ the spec delta had no malformed-input scenarios, so QA's tests could not catch t
 | S3 | `standards/testing.md` §2 (slice tests use production wiring) | `MethodValidationTestConfig.java` | senior-dev | fixed-in-place | → R3 |
 | S4 | `standards/openapi.md` §2a (hrefs via `WebMvcLinkBuilder`) | `CollectionLinksFactory.java:34,95-102` | blind review | waived → standard amended (#38) | → R1 |
 | S5 | `standards/openapi.md` §2a (`@Validated` on the class) | `MovieController.java:47-48` | blind review | waived → standard amended (#38) | → R1 |
-| S6 | `standards/testing.md` §4 (no loops in tests) | `SearchMoviesOrderingAndPagingTest.java:178-190` (`while (true)`), `CollectionLinksFactoryForwardedHeadersTest.java:36-39` (asserts in a loop) | blind review | outstanding | → R5 |
-| S7 | `standards/testing.md` §1 (test fails on regression) | `SearchMoviesOrderingAndPagingTest.java:74-88` checks size, not order | blind review | outstanding | → R5 |
-| S8 | `standards/clean-code.md` §6 (dead code) | `MovieSearchRefusalTest.java:59` unused local | blind review | outstanding | → R5 |
-| S9 | `standards/clean-code.md` §1 (class ≲ 200 lines; flag) | `MoviePersistenceAdapter.java` (238, three ports), `GlobalExceptionHandler.java` (237) | blind review | outstanding | → R5 |
-| S10 | `standards/testing.md` §1/§5 (spec acceptance checks tested as specified) | summary contents, paging defaults, single-bound year filters and the huge-page request not checked against Postgres | blind review | outstanding | → R4, R5 |
-| S11 | `standards/clean-architecture.md` §5 (values bound, never inlined — added by R8) | `MoviePersistenceAdapter.java:140`: title LIKE pattern built with `cb.literal(pattern)` | adoption of R8 (same defect the senior-dev fixed in `2026-10-03-add-movie-search.md`; missed in this run) | outstanding | → R5 |
+| S6 | `standards/testing.md` §4 (no loops in tests) | `SearchMoviesOrderingAndPagingTest.java:178-190` (`while (true)`), `CollectionLinksFactoryForwardedHeadersTest.java:36-39` (asserts in a loop) | blind review | fixed (`cleanup-uc-002-standards`, CLEAN-001) | → R5 |
+| S7 | `standards/testing.md` §1 (test fails on regression) | `SearchMoviesOrderingAndPagingTest.java:74-88` checks size, not order | blind review | fixed (`cleanup-uc-002-standards`, CLEAN-001) | → R5 |
+| S8 | `standards/clean-code.md` §6 (dead code) | `MovieSearchRefusalTest.java:59` unused local | blind review | fixed (`cleanup-uc-002-standards`, CLEAN-001) | → R5 |
+| S9 | `standards/clean-code.md` §1 (class ≲ 200 lines; flag) | `MoviePersistenceAdapter.java` (238, three ports), `GlobalExceptionHandler.java` (237) | blind review | deferred (flag only; CLEAN-001 out of scope) | → R5 |
+| S10 | `standards/testing.md` §1/§5 (spec acceptance checks tested as specified) | summary contents, paging defaults, single-bound year filters and the huge-page request not checked against Postgres | blind review | fixed (`cleanup-uc-002-standards`, CLEAN-001) | → R4, R5 |
+| S11 | `standards/clean-architecture.md` §5 (values bound, never inlined — added by R8) | `MoviePersistenceAdapter.java:140`: title LIKE pattern built with `cb.literal(pattern)` | adoption of R8 (same defect the senior-dev fixed in `2026-10-03-add-movie-search.md`; missed in this run) | fixed (`cleanup-uc-002-standards`, CLEAN-001) | → R5 |
 
 ## Other defects caught
 
@@ -94,7 +94,7 @@ the spec delta had no malformed-input scenarios, so QA's tests could not catch t
 | D2 | code-defect (high) | `CollectionLinksFactory.java`: malformed percent-encoding (`?title=%zz`) → 500 | senior-dev | fixed-in-place | → R4 |
 | D3 | code-defect (medium) | `GlobalExceptionHandler.java`: `@RequestParam(name = …)` produced `Query parameter '' is invalid.` | senior-dev | fixed-in-place | → R4 |
 | D4 | code-defect (low) | `MoviePersistenceAdapter.java`: a movie deleted between the two queries → NPE | senior-dev | fixed-in-place | none: one-off |
-| D5 | plan-defect (low) | D2: return-value violations get 400, not 500 (unreachable today) | senior-dev | outstanding | → R6 |
+| D5 | plan-defect (low) | D2: return-value violations get 400, not 500 (unreachable today) | senior-dev | fixed (`cleanup-uc-002-standards`, CLEAN-001) | → R6 |
 
 ## Recommendations
 
@@ -114,4 +114,4 @@ the spec delta had no malformed-input scenarios, so QA's tests could not catch t
 - [x] **R6** — Add the counterpart row: a `ConstraintViolationException` not raised on a web
   handler's method parameters (a service bean, a return value, a JPA flush) is a 500
   → `standards/error-handling.md` §3 (from F2, D5) · recurs: `2026-10-03-add-movie-search.md` · adopted in #40
-- [ ] **R5** — Cleanup change for the outstanding code findings S6–S11 and D5 (return-value violations now break the R6 row) → code fix (ticket)
+- [x] **R5** — Cleanup change for the outstanding code findings S6–S11 and D5 (return-value violations now break the R6 row) → code fix (ticket) · adopted as CLEAN-001 (`cleanup-uc-002-standards`); S9 deferred to a follow-up split ticket

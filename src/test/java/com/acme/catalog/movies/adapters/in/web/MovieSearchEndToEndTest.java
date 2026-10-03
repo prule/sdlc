@@ -8,6 +8,8 @@ import com.acme.testsupport.PostgresIntegrationTest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
+import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -58,9 +60,12 @@ class MovieSearchEndToEndTest extends PostgresIntegrationTest {
         "INSERT INTO movie_genre (movie_id, genre_id) VALUES (?, ?)", movieId, genreId);
   }
 
+  /** Sends {@code query} as written (a URI, not a template), so escapes are never re-encoded. */
   private JsonNode search(String query) throws Exception {
     MvcResult result =
-        mockMvc.perform(get("/api/v1/movies" + query).contextPath("/api/v1")).andReturn();
+        mockMvc
+            .perform(get(URI.create("/api/v1/movies" + query)).contextPath("/api/v1"))
+            .andReturn();
     assertThat(result.getResponse().getStatus()).isEqualTo(200);
     return objectMapper.readTree(result.getResponse().getContentAsString());
   }
@@ -93,6 +98,33 @@ class MovieSearchEndToEndTest extends PostgresIntegrationTest {
 
     assertThat(body.get("data").get("_embedded").get("movies")).isEmpty();
     assertThat(body.get("meta").get("pagination").get("totalElements").asLong()).isEqualTo(0);
+  }
+
+  @Test
+  void anEmptyTitleBrowsesTheWholeCatalog() throws Exception {
+    insertMovie("The Grand Heist", 2005, null);
+    insertMovie("Heist Night", 2010, null);
+    insertMovie("Arrival", 2016, null);
+
+    JsonNode body = search("?title=");
+
+    assertThat(body.get("data").get("_embedded").get("movies"))
+        .extracting(movie -> movie.get("title").asText())
+        .containsExactlyInAnyOrder("The Grand Heist", "Heist Night", "Arrival");
+    assertThat(body.get("meta").get("pagination").get("totalElements").asLong()).isEqualTo(3);
+  }
+
+  @Test
+  void aWhitespaceOnlyTitleBrowsesTheWholeCatalog() throws Exception {
+    insertMovie("The Grand Heist", 2005, null);
+    insertMovie("Heist Night", 2010, null);
+    insertMovie("Arrival", 2016, null);
+
+    JsonNode body = search("?title=%20%20");
+
+    assertThat(body.get("data").get("_embedded").get("movies"))
+        .extracting(movie -> movie.get("title").asText())
+        .containsExactlyInAnyOrder("The Grand Heist", "Heist Night", "Arrival");
   }
 
   @Test
@@ -158,6 +190,84 @@ class MovieSearchEndToEndTest extends PostgresIntegrationTest {
     JsonNode details = objectMapper.readTree(detailsResult.getResponse().getContentAsString());
     assertThat(details.get("data").get("id").asText()).isEqualTo(movieId.toString());
   }
+
+  @Test
+  void summariesCarryExactlyTheirRecordedMembersAndLinkToTheirDetails() throws Exception {
+    UUID drama = insertGenre("Drama");
+    UUID sciFi = insertGenre("Sci-Fi");
+    UUID curated = UUID.randomUUID();
+    insertFullMovie(curated, "Arrival", 2016, 116, "A linguist is recruited.", "4.5");
+    linkGenre(curated, sciFi);
+    linkGenre(curated, drama);
+    UUID fiveRated = UUID.randomUUID();
+    insertFullMovie(fiveRated, "Five Rated", 2002, null, null, "5.0");
+    UUID minimal = UUID.randomUUID();
+    insertFullMovie(minimal, "Untitled Reel", 1974, null, null, null);
+
+    // Default order is release year descending: curated, fiveRated, minimal.
+    JsonNode movies = search("").get("data").get("_embedded").get("movies");
+    JsonNode curatedSummary = movies.get(0);
+    JsonNode fiveRatedSummary = movies.get(1);
+    JsonNode minimalSummary = movies.get(2);
+
+    assertThat(curatedSummary.fieldNames())
+        .toIterable()
+        .containsExactlyInAnyOrder(
+            "id", "title", "releaseYear", "genres", "runtimeMinutes", "rating", "_links");
+    assertThat(curatedSummary.get("id").asText()).isEqualTo(curated.toString());
+    assertThat(curatedSummary.get("genres"))
+        .map(JsonNode::asText)
+        .containsExactly("Drama", "Sci-Fi");
+    assertThat(fiveRatedSummary.fieldNames())
+        .toIterable()
+        .containsExactlyInAnyOrder("id", "title", "releaseYear", "genres", "rating", "_links");
+    assertThat(fiveRatedSummary.get("rating").toString()).isEqualTo("5");
+    assertThat(minimalSummary.fieldNames())
+        .toIterable()
+        .containsExactlyInAnyOrder("id", "title", "releaseYear", "genres", "_links");
+    assertThat(minimalSummary.get("genres").isArray()).isTrue();
+    assertThat(minimalSummary.get("genres").isEmpty()).isTrue();
+    assertThat(List.of(curatedSummary, fiveRatedSummary, minimalSummary))
+        .extracting(this::followSelfLink)
+        .containsExactly(
+            new FollowedLink(200, curated.toString()),
+            new FollowedLink(200, fiveRated.toString()),
+            new FollowedLink(200, minimal.toString()));
+  }
+
+  private void insertFullMovie(
+      UUID id,
+      String title,
+      int releaseYear,
+      Integer runtimeMinutes,
+      String synopsis,
+      String rating) {
+    jdbcTemplate.update(
+        "INSERT INTO movie (id, title, release_year, runtime_minutes, synopsis, rating) "
+            + "VALUES (?, ?, ?, ?, ?, ?)",
+        id,
+        title,
+        releaseYear,
+        runtimeMinutes,
+        synopsis,
+        rating == null ? null : new BigDecimal(rating));
+  }
+
+  /** The status and {@code data.id} of the details reached through a summary's self link. */
+  private FollowedLink followSelfLink(JsonNode summary) {
+    String href = summary.get("_links").get("self").get("href").asText();
+    String path = href.substring(href.indexOf("/movies/"));
+    try {
+      MvcResult result = mockMvc.perform(get("/api/v1" + path).contextPath("/api/v1")).andReturn();
+      JsonNode details = objectMapper.readTree(result.getResponse().getContentAsString());
+      return new FollowedLink(
+          result.getResponse().getStatus(), details.get("data").get("id").asText());
+    } catch (Exception e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
+  private record FollowedLink(int status, String id) {}
 
   @Test
   void aPostFollowedByAGetLeavesTotalElementsUnchanged() throws Exception {

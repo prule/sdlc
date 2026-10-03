@@ -67,10 +67,12 @@ Each `href` SHALL be an absolute URI, built as follows:
 - A recognised parameter that the client did not send SHALL NOT be added. That includes `size` and the ordering parameter when left at their defaults.
 - Unrecognised query parameters SHALL NOT be carried.
 
-Links SHALL be navigational only. Acceptance check: web tests for:
+Links SHALL be navigational only. Acceptance check, web tests for:
 - the first, a middle, the last and a beyond-last page, and a result with no matches, asserting exactly which relations are present and each target `page`;
-- a request with repeated and mixed-case parameters, asserting that the decoded query of every link equals the request's recognised parameters with only `page` replaced;
-- a request that includes an unrecognised parameter `foo=bar`, asserting that no link carries `foo`;
+- a request that includes an unrecognised parameter `foo=bar`, asserting that no link carries `foo`.
+
+Acceptance check, on the real `GET /api/v1/movies` against PostgreSQL (Testcontainers), not a test-only operation:
+- a request with repeated and mixed-case parameter values and an unrecognised parameter, asserting that the decoded query of every link equals the request's recognised parameters, in order, with only `page` replaced by that link's target page;
 - `X-Forwarded-Proto: https` and `X-Forwarded-Host: api.example.test`, asserting that every href starts with `https://api.example.test/api/v1/movies`.
 
 #### Scenario: Middle page links
@@ -93,8 +95,12 @@ Links SHALL be navigational only. Acceptance check: web tests for:
 - **WHEN** a client sends `GET /api/v1/movies?foo=bar&title=heist`
 - **THEN** the response status is `200` and no link contains `foo`, but every link contains `title=heist`
 
+#### Scenario: Recognised parameters are echoed exactly on the real operation
+- **WHEN** a client sends `GET /api/v1/movies?title=Movie&genre=drama&genre=SCI-FI&foo=bar&sort=-rating&size=7&page=1` to the service backed by PostgreSQL, while 25 movies titled `Movie …` carry both Drama and Sci-Fi
+- **THEN** the decoded query of every href in `data._links` is `title=Movie&genre=drama&genre=SCI-FI&sort=-rating&size=7&page=<target>`, where `<target>` is `1` for `self`, `0` for `first` and `prev`, `3` for `last` and `2` for `next`
+
 #### Scenario: Links honour forwarded headers
-- **WHEN** a client sends `GET /api/v1/movies` with `X-Forwarded-Proto: https` and `X-Forwarded-Host: api.example.test`
+- **WHEN** a client sends `GET /api/v1/movies` with `X-Forwarded-Proto: https` and `X-Forwarded-Host: api.example.test` to the service backed by PostgreSQL
 - **THEN** every href in `data._links` starts with `https://api.example.test/api/v1/movies?`
 
 ### Requirement: Empty and beyond-last pages are successes
