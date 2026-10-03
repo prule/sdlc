@@ -81,6 +81,12 @@ If you want a Spring-free application layer, wire beans in a `config` package wi
 - Schema changes ship as **Flyway** migrations (`src/main/resources/db/migration/V<n>__desc.sql`).
   Never edit an applied migration; add a new one. Integration tests run against real Postgres via
   Testcontainers.
+- **Values are always bound, never written into the query.** Anything that came from a request (and
+  any other variable value) reaches the database as a bind parameter: named/positional parameters in
+  JPQL/SQL, and `cb.parameter(...)` or `cb.value(...)` in the Criteria API. Never `cb.literal(...)`
+  for a variable value (Hibernate 6 renders an `SqmLiteral` inline into the SQL text), and never
+  string concatenation. Inlined values risk injection and give every distinct value its own query
+  plan. A test with a quote in the value (e.g. `r's l`) pins this.
 
 ## 6. Web rules (adapters/in/web)
 
@@ -125,4 +131,5 @@ HTTP POST /users
 - Application layer importing a JPA entity or a concrete adapter class.
 - Hand-written request/response DTOs that duplicate the OpenAPI contract.
 - Editing an already-applied Flyway migration instead of adding a new one.
+- A variable value written into a query (`cb.literal(...)`, string concatenation) instead of bound (§5).
 - Business logic in a "service" that's really a transaction script bypassing the domain model.

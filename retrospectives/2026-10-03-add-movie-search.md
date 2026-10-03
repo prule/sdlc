@@ -80,15 +80,15 @@ it was implicit, and the spec still asked for H2 query checks.
 - [x] **R2** — Spell out what the H2 smoke test may assert; spec rule for H2 runtime-mode scenarios;
   bounded traversal loops only → `standards/testing.md` §3–§4, `openspec/config.yaml` (from S4, S5)
   · recurs: `2026-09-28-add-movie-search.md` · adopted in #38
-- [ ] **R6** — Add the counterpart row: a `ConstraintViolationException` not raised on a web
+- [x] **R6** — Add the counterpart row: a `ConstraintViolationException` not raised on a web
   handler's method parameters is a 500. Consider moving parameter-name resolution out of
   `GlobalExceptionHandler` → `standards/error-handling.md` §3 (from F1, S9)
-  · recurs: `2026-09-28-add-movie-search.md`
-- [ ] **R4** — Add a spec rule for malformed and mixed-form inputs on every query parameter
+  · recurs: `2026-09-28-add-movie-search.md` · adopted in #40
+- [x] **R4** — Add a spec rule for malformed and mixed-form inputs on every query parameter
   (including repeated plus comma-separated) → `openspec/config.yaml` (from D2, D3)
-  · recurs: `2026-09-28-add-movie-search.md`
-- [ ] **R8** — Persistence: JPA Criteria values are always bound with `cb.parameter`/`cb.value`,
-  never `cb.literal` → `standards/clean-architecture.md` (outbound adapters) (from D1)
+  · recurs: `2026-09-28-add-movie-search.md` · adopted in #40
+- [x] **R8** — Persistence: JPA Criteria values are always bound with `cb.parameter`/`cb.value`,
+  never `cb.literal` → `standards/clean-architecture.md` (outbound adapters) (from D1) · adopted in #40
 - [ ] **R7** — Published parameter names live in one constants holder per operation, and link
   builders take a page result rather than flags → none: style; covered by clean-code §3/§9 (from
   S6, S8)

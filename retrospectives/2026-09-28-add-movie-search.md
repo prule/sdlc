@@ -84,6 +84,7 @@ the spec delta had no malformed-input scenarios, so QA's tests could not catch t
 | S8 | `standards/clean-code.md` §6 (dead code) | `MovieSearchRefusalTest.java:59` unused local | blind review | outstanding | → R5 |
 | S9 | `standards/clean-code.md` §1 (class ≲ 200 lines; flag) | `MoviePersistenceAdapter.java` (238, three ports), `GlobalExceptionHandler.java` (237) | blind review | outstanding | → R5 |
 | S10 | `standards/testing.md` §1/§5 (spec acceptance checks tested as specified) | summary contents, paging defaults, single-bound year filters and the huge-page request not checked against Postgres | blind review | outstanding | → R4, R5 |
+| S11 | `standards/clean-architecture.md` §5 (values bound, never inlined — added by R8) | `MoviePersistenceAdapter.java:140`: title LIKE pattern built with `cb.literal(pattern)` | adoption of R8 (same defect the senior-dev fixed in `2026-10-03-add-movie-search.md`; missed in this run) | outstanding | → R5 |
 
 ## Other defects caught
 
@@ -103,14 +104,14 @@ the spec delta had no malformed-input scenarios, so QA's tests could not catch t
 - [x] **R2** — Spell out what the H2 smoke test may assert, and add a spec rule keeping H2
   runtime-mode scenarios to "responds with seeded data" → `standards/testing.md` §3,
   `openspec/config.yaml` (from F1, S2) · recurs: `2026-10-03-add-movie-search.md` · adopted in #38
-- [ ] **R4** — Add a spec rule: every query parameter gets malformed-input scenarios (bad
+- [x] **R4** — Add a spec rule: every query parameter gets malformed-input scenarios (bad
   percent-encoding, wrong type, empty, repeated), and every risk listed in the design gets an
-  acceptance check → `openspec/config.yaml` (from D1–D3, S10)
-- [ ] **R3** — Slice tests must run the production framework wiring; a test-only replacement of a
+  acceptance check → `openspec/config.yaml` (from D1–D3, S10) · adopted in #40
+- [x] **R3** — Slice tests must run the production framework wiring; a test-only replacement of a
   framework bean needs a cited reason. QA verifies an implementer's justification against the
   framework source instead of accepting it → `standards/testing.md` §2, `.claude/agents/qa.md`
-  (from F3, S3)
-- [ ] **R6** — Add the counterpart row: a `ConstraintViolationException` not raised on a web
+  (from F3, S3) · adopted in #40
+- [x] **R6** — Add the counterpart row: a `ConstraintViolationException` not raised on a web
   handler's method parameters (a service bean, a return value, a JPA flush) is a 500
-  → `standards/error-handling.md` §3 (from F2, D5) · recurs: `2026-10-03-add-movie-search.md`
-- [ ] **R5** — Cleanup change for the outstanding code findings S6–S10 → code fix (ticket)
+  → `standards/error-handling.md` §3 (from F2, D5) · recurs: `2026-10-03-add-movie-search.md` · adopted in #40
+- [ ] **R5** — Cleanup change for the outstanding code findings S6–S11 and D5 (return-value violations now break the R6 row) → code fix (ticket)
