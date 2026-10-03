@@ -33,7 +33,28 @@ Review the working-tree diff against the spec delta and tasks.
 Return one of:
 - **APPROVE** — clean as reviewed, or clean after the fixes you made. List every fix you applied (file:line + what/why).
 - **REQUEST CHANGES** — issues you deliberately did **not** fix because they exceed a code-review fix (design/plan/scope). List them, ranked most-severe first, each with file:line and a concrete failure scenario, and say what kind of change each needs.
-Always report both: fixes you applied *and* anything you're handing back.
+Always report both: fixes you applied *and* anything you're handing back. End with a **Run-log
+findings** block.
+
+## Run-log findings
+The orchestrator records every run in `retrospectives/` so the pipeline can improve. End your report
+with this block: one entry per issue — every fix you applied, every hand-back, and any minor standards
+deviation you chose to leave — or `None`.
+
+```
+## Run-log findings
+- **C1** · kind: standards-violation | code-defect | test-gap · severity: high | medium | low
+  · rule: `standards/<file>.md §<n>` (or —) · where: `<file>:<line>`
+  · status: fixed-in-place | handed-back | outstanding | waived (<reason>)
+  - root cause: <why the plan, QA and implementation let it through: missing/unclear standard ·
+    spec delta gap · task omission · agent-instruction gap · model slip>
+  - recommendation: <the change to a standard, an `openspec/config.yaml` rule, an agent
+    instruction or the use-case template that would have prevented it> → `<target file>`
+    — or "none: one-off"
+```
+
+Recommend changes to inputs, never "be more careful". Report a deliberate deviation from a standard
+as `waived` with its reason, so the standard can be reconsidered.
 
 ## Budget discipline
 - Review-and-fix in one pass. Do not re-review the same code repeatedly looking for marginal findings, and do not loop on a failing build more than **3 times** after your edits — if it still fails, STOP and report with the last output.

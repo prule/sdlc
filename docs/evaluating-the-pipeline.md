@@ -302,5 +302,6 @@ Skim these on any run:
 | Curated domain context | [`domain/`](../domain/) |
 | Engineering standards | [`standards/`](../standards/) |
 | Input-format experiment | [`EXPERIMENT.md`](../EXPERIMENT.md) |
+| Run retrospectives (findings, root causes, recommendations) | [`retrospectives/`](../retrospectives/) |
 | Pipeline agents | `.claude/agents/` |
 | Session logs (raw) | `~/.claude/projects/<slug>/<session-id>.jsonl` |
