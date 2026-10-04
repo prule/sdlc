@@ -33,8 +33,8 @@ documents before planning, writing or reviewing.
 ## What things mean — `domain/`
 - **[glossary.md](domain/glossary.md)**: the ubiquitous language. Use these terms in use cases,
   specs, and class and method names.
-  - **[business-rules.md](domain/business-rules.md)**: durable rules (read-only, paging, search
-    matching, …) that every capability must respect.
+- **[business-rules.md](domain/business-rules.md)**: durable rules (read-only, paging, search
+  matching, …) that every capability must respect.
 - **[bounded-contexts.md](domain/bounded-contexts.md)**, **[actors-and-personas.md](domain/actors-and-personas.md)**,
   **[overview.md](domain/overview.md)**: what lives where, and who the users are.
 
