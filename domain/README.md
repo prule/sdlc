@@ -1,8 +1,8 @@
 # Domain knowledge base
 
 Business/domain context that the code, git history, and `standards/` **cannot** tell you — the
-"what and why" of the product. Agents (especially `ticket-writer` and `architect`) read this to write
-tickets and plans that use the right language, respect real business rules, and land in the right
+"what and why" of the product. Agents (especially `use-case-writer` and `architect`) read this to write
+use cases and plans that use the right language, respect real business rules, and land in the right
 bounded context.
 
 Keep it **current and factual**. If a ticket reveals a new term, rule, or context, add it here as part

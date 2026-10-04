@@ -1,5 +1,10 @@
 # Tickets
 
+> **Historical.** New work starts from a use case in [`use-cases/`](../use-cases/), written with
+> `/sdlc-pipeline:write-use-case` and built with `/sdlc-pipeline:build-use-case`. The ticket workflow
+> below (`/write-ticket`, `ticket-writer`, `/build-ticket`) no longer exists; these tickets stay as the
+> record of the work they drove.
+
 Human-authored requirements — the **input** to the delivery pipeline. A ticket says **what** and
 **why**; the pipeline's architect decides **how**. Write the ticket first, then feed it to
 `/build-ticket` (or the individual agents).
