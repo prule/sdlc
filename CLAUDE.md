@@ -26,7 +26,7 @@ documents before planning, writing or reviewing.
 - **[security.md](standards/security.md)**: stateless JWT, claims, ownership/tenant checks, secrets.
 - **[clean-code.md](standards/clean-code.md)**: small classes, naming, immutability, review smells.
 - **[testing.md](standards/testing.md)**: useful tests for every requirement, the per-layer pyramid,
-  Testcontainers for all database tests, production framework wiring.
+  database tests on the target database (Testcontainers), production framework wiring.
 - **[formatting.md](standards/formatting.md)**: google-java-format via Spotless, applied by the
   pre-commit hook. Agents never format; they build with `-x spotlessCheck`.
 
