@@ -24,8 +24,8 @@ context: |
     - 2xx responses use the standard success envelope; errors use RFC 7807 problem+json.
     - Breaking API changes must be called out explicitly in the proposal.
 
-  Security: stateless JWT bearer auth (OAuth2 resource server). Authorization from token roles/scopes
-  plus ownership/tenant checks. No sensitive PII in tokens; no secrets in source/config.
+  Security: the API is public — no authentication, accounts or tokens; rate limiting is the abuse
+  control. Stateless; no secrets in source/config (standards/security.md).
 
   Testing: write useful tests for all new code (happy path + edge + failure per requirement); test the
   pyramid per layer; persistence-logic tests run on the project's target database

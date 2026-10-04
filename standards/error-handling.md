@@ -68,8 +68,6 @@ class GlobalExceptionHandler {
 | Constrained handler-method parameter violates its bound (e.g. `@Min`/`@Max` on `page`/`size`) | `ConstraintViolationException` (from a handler method, via a `@Validated` proxy) | 400 | `BAD_REQUEST`, `detail` names the query parameter |
 | Any other constraint violation — a `@Validated` service bean, a handler return value, a JPA/Hibernate Validator check on flush | `ConstraintViolationException` whose violations are **not all** on a web handler's method parameters | 500 | `INTERNAL_ERROR` (a server-side bug, logged at ERROR — never blamed on the client) |
 | Query parameter cannot convert to its declared type (non-numeric, overflow) | `MethodArgumentTypeMismatchException` | 400 | `BAD_REQUEST`, `detail` names the query parameter |
-| Missing/invalid credentials | (Spring Security) | 401 | `UNAUTHENTICATED` |
-| Authenticated but not allowed | `AccessDeniedException` | 403 | `FORBIDDEN` |
 | Resource does not exist | `ResourceNotFoundException` | 404 | `NOT_FOUND` |
 | Method not allowed on an offered path | `HttpRequestMethodNotSupportedException` (framework-detected) | 405 | `METHOD_NOT_ALLOWED` |
 | Unsatisfiable `Accept` | `HttpMediaTypeNotAcceptableException` (framework-detected) | 406 | `NOT_ACCEPTABLE` |

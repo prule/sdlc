@@ -36,7 +36,7 @@ server:
   servlet:
     context-path: /api/v1
   # Trust X-Forwarded-* from the gateway: HSTS and self-link scheme/host follow the externally
-  # visible request (see standards/security.md §3 and platform SecurityConfig).
+  # visible request (see standards/security.md §2 and platform SecurityConfig).
   forward-headers-strategy: framework
   error:
     # ProblemErrorController renders every failure as problem+json; the default whitelabel HTML

@@ -23,7 +23,7 @@ documents before planning, writing or reviewing.
   paging; controllers implement generated interfaces.
 - **[error-handling.md](standards/error-handling.md)**: one `@RestControllerAdvice`, RFC 7807, the
   code↔status table, correlation ids.
-- **[security.md](standards/security.md)**: stateless JWT, claims, ownership/tenant checks, secrets.
+- **[security.md](standards/security.md)**: public API (no auth), transport, input, rate limiting, secrets.
 - **[clean-code.md](standards/clean-code.md)**: small classes, naming, immutability, review smells.
 - **[testing.md](standards/testing.md)**: useful tests for every requirement, the per-layer pyramid,
   database tests on the target database (Testcontainers), production framework wiring.

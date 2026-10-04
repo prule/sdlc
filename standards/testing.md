@@ -16,7 +16,7 @@ first-class code — the [clean-code.md](clean-code.md) rules apply to them too.
 - Prefer real collaborators where cheap; mock only at architectural seams (ports), external systems,
   and non-determinism (clock, random, network). Don't mock what you own and can exercise directly.
 - Cover the cases that actually break software: boundaries (empty, null, zero, max, off-by-one),
-  error/exception paths, concurrency where relevant, and security rules (authz, ownership).
+  error/exception paths, concurrency where relevant, and security rules (headers, public access).
 - Coverage is a **diagnostic, not a target** — 100% of trivial getters proves nothing. Aim for every
   branch of real logic exercised; don't write tests solely to move a number.
 

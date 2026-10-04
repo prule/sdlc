@@ -5,9 +5,7 @@ live in the ticket; durable policies live here.
 
 ## Access & security posture
 - The catalog is **public**: no authentication, no user accounts, no credentials needed to read it.
-  > **Deliberate divergence from `standards/security.md`** (which assumes authenticated access): that
-  > standard applies to any *future authenticated* surface (e.g. an admin/curation surface). For the
-  > public catalog, the primary abuse control is **rate limiting**, not authentication.
+  The primary abuse control is **rate limiting**, not authentication.
 - **Rate limiting** applies to public access (per client). TODO: confirm the limits (e.g. requests
   per minute) and where they are enforced.
 - No secrets are needed to use the catalog, and none are ever revealed.
