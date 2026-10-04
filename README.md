@@ -121,7 +121,7 @@ openspec archive <change> --yes     # complete a change (updates openspec/specs/
 | `clean-architecture.md` | Layering (domain / application / adapters), allowed imports, request flow, per-layer tests |
 | `openapi.md` | Contract-first; split-by-domain spec; success envelope + RFC 7807; **bundle→generate** pipeline |
 | `error-handling.md` | Exception taxonomy, single `@RestControllerAdvice`, code↔status map, correlation ids |
-| `security.md` | Stateless JWT, required claims, ownership/tenant authz, secrets handling |
+| `security.md` | Public API (no auth), transport and headers, input, rate limiting, secrets |
 | `clean-code.md` | Small single-responsibility classes, naming, immutability, review smells |
 | `testing.md` | Useful tests for all new code; per-layer pyramid; **DB tests on the target database (Testcontainers)** |
 | `formatting.md` | google-java-format via Spotless, auto-format on commit, CI enforced |

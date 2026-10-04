@@ -19,7 +19,7 @@ Review the working-tree diff against the spec delta and tasks.
   - `openapi.md` — one-file specs (must be split by domain), missing success envelope, non-RFC-7807 errors, hand-written DTOs duplicating the contract.
   - `clean-code.md` §9 — god classes/methods, long parameter lists, boolean flag args, primitive obsession, returned `null`, swallowed exceptions.
   - `error-handling.md` — stack traces/internal detail leaked to clients, missing correlation id, HTTP status logic outside the global handler.
-  - `security.md` — sensitive PII in JWT claims, secrets in source/config, missing ownership/tenant checks, tokens/secrets in URLs or logs.
+  - `security.md` — secrets in source/config, secrets or PII in URLs or logs, missing security headers, sessions or cookies introduced.
   - `testing.md` — missing/edge/failure tests for a requirement, tautological tests, persistence logic tested on an engine other than the target database (§3).
   - `formatting.md` — Spotless disabled/bypassed is a defect. **Formatting itself is never a review topic and never something you fix** — google-java-format is applied automatically by the pre-commit hook. Do not run `spotlessApply`/`spotlessCheck` or reformat code.
 - Verify tests exist and are meaningful, not tautological.

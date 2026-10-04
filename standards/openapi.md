@@ -18,7 +18,7 @@ src/main/resources/openapi/
     │   ├── common.yaml          # Envelope, ErrorResponse, Problem, Page, etc.
     │   ├── user.yaml
     │   └── order.yaml
-    ├── responses/common.yaml    # reusable 400/401/403/404/409/422/500 responses
+    ├── responses/common.yaml    # reusable 400/404/409/422/500 responses
     └── parameters/common.yaml   # pagination, correlation-id, etc.
 ```
 
@@ -172,7 +172,7 @@ Problem:
 ```
 
 Define reusable responses in `components/responses/common.yaml` and `$ref` them everywhere:
-`BadRequest` (400), `Unauthorized` (401), `Forbidden` (403), `NotFound` (404), `Conflict` (409),
+`BadRequest` (400), `NotFound` (404), `Conflict` (409),
 `UnprocessableEntity` (422, includes `errors[]`), `InternalError` (500). Never return a bare string
 or a stack trace. See [error-handling.md](error-handling.md) for the code↔status mapping.
 
@@ -183,7 +183,7 @@ or a stack trace. See [error-handling.md](error-handling.md) for the code↔stat
 - Every request body and every response references a named schema in `components/schemas/*` — no inline object schemas.
 - Use `format` (`uuid`, `date-time`, `email`, `int64`) and validation keywords (`minLength`, `pattern`, `enum`).
 - IDs in URLs are opaque strings (UUID); do not expose DB sequence integers.
-- Declare `security` globally (bearer JWT — see [security.md](security.md)); mark public endpoints with `security: []`.
+- The API is public ([security.md](security.md)): mark every operation `security: []`.
 - Version the API via a base path (`/api/v1`). Breaking changes → new major version, called out in the proposal.
 - Every collection endpoint supports `page` and `size` query params from `components/parameters/common.yaml`.
 

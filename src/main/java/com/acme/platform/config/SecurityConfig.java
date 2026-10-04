@@ -13,10 +13,9 @@ import org.springframework.web.filter.ForwardedHeaderFilter;
 
 /**
  * Public, stateless, read-only security configuration (design D4). There is no authentication: the
- * read API is public by domain decision (deliberate divergence from {@code standards/security.md}'s
- * default JWT auth, recorded in design.md). CSRF is disabled because there are no cookies/sessions
- * and no state-changing endpoints; leaving it enabled would turn a write attempt into 403 instead
- * of the correct 405/404 refusal.
+ * read API is public ({@code standards/security.md} §1). CSRF is disabled because there are no
+ * cookies/sessions and no state-changing endpoints; leaving it enabled would turn a write attempt
+ * into 403 instead of the correct 405/404 refusal.
  *
  * <p>{@link CorrelationIdFilter} is registered on this chain (rather than as a generic servlet
  * filter) so it runs on the ERROR dispatch too: Boot's security auto-configuration registers the

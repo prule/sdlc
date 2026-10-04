@@ -23,7 +23,7 @@ documents before planning, writing or reviewing.
   paging; controllers implement generated interfaces.
 - **[error-handling.md](standards/error-handling.md)**: one `@RestControllerAdvice`, RFC 7807, the
   code↔status table, correlation ids.
-- **[security.md](standards/security.md)**: stateless JWT, claims, ownership/tenant checks, secrets.
+- **[security.md](standards/security.md)**: public API (no auth), transport, input, rate limiting, secrets.
 - **[clean-code.md](standards/clean-code.md)**: small classes, naming, immutability, review smells.
 - **[testing.md](standards/testing.md)**: useful tests for every requirement, the per-layer pyramid,
   database tests on the target database (Testcontainers), production framework wiring.
@@ -33,8 +33,8 @@ documents before planning, writing or reviewing.
 ## What things mean — `domain/`
 - **[glossary.md](domain/glossary.md)**: the ubiquitous language. Use these terms in use cases,
   specs, and class and method names.
-- **[business-rules.md](domain/business-rules.md)**: durable rules (read-only, paging, search
-  matching, …) that every capability must respect.
+  - **[business-rules.md](domain/business-rules.md)**: durable rules (read-only, paging, search
+    matching, …) that every capability must respect.
 - **[bounded-contexts.md](domain/bounded-contexts.md)**, **[actors-and-personas.md](domain/actors-and-personas.md)**,
   **[overview.md](domain/overview.md)**: what lives where, and who the users are.
 
