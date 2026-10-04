@@ -20,7 +20,7 @@ Check the plan against each standard and cite the specific doc + rule for every 
 - **openapi.md** — contract-first (spec before code); split-by-domain layout (not one file); standard success **Envelope**; RFC 7807 **Problem** errors reused from common; generated interfaces, no hand-written DTOs.
 - **error-handling.md** — domain exception taxonomy with stable codes; single `@RestControllerAdvice`; correct code↔status mapping; correlation id; no leaking internals.
 - **security.md** — stateless JWT; required claims; no sensitive PII in tokens; authz + ownership/tenant checks; secrets not in source/config; public endpoints explicit.
-- **testing.md** — a useful test plan per requirement (happy/edge/failure); the per-layer pyramid; all DB tests on Testcontainers, H2 excluded.
+- **testing.md** — a useful test plan per requirement (happy/edge/failure); the per-layer pyramid; persistence logic tested on the target database via Testcontainers (§3).
 - **formatting.md** — Spotless/google-java-format wiring and on-commit hook accounted for where relevant.
 - **domain/** — requirements and component names use `glossary.md`'s terms; the plan honors `business-rules.md` and stays inside its bounded context (`bounded-contexts.md`); a new term or durable rule is recorded in `domain/` by a task.
 

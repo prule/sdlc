@@ -18,7 +18,7 @@ architect's job downstream. A good ticket lets the pipeline plan confidently wit
 2. **Classify** the request as a **Feature** (user-facing business requirement) or **Technical**
    (enabler/chore/infra/refactor), and pick the matching template.
 3. **Write the ticket** to `tickets/<AREA>-<n>-<slug>.md` using the template. Choose a sensible
-   `<AREA>` from the bounded context (e.g. IDENTITY, PLAT) and the next number.
+   `<AREA>` from the bounded context (e.g. CATALOG, PLAT) and the next number.
 
 ## Rules
 - **Requirements altitude only.** No solution design, no class/endpoint/DB design, no code. If you catch
