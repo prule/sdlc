@@ -3,270 +3,169 @@ package com.acme.catalog.movies.adapters.in.web;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
-import com.acme.catalog.movies.application.port.in.GetMovieCreditsUseCase;
-import com.acme.catalog.movies.application.port.in.GetMovieDetailUseCase;
+import com.acme.catalog.movies.application.port.in.GetMovieUseCase;
 import com.acme.catalog.movies.application.port.in.SearchMoviesUseCase;
-import com.acme.catalog.movies.domain.model.Credit;
+import com.acme.catalog.movies.domain.model.InvalidSearchCriterionException;
 import com.acme.catalog.movies.domain.model.Movie;
-import com.acme.catalog.movies.domain.model.MovieCredits;
-import com.acme.catalog.movies.domain.model.MoviePage;
-import com.acme.catalog.movies.domain.model.MoviePageRequest;
+import com.acme.catalog.movies.domain.model.MovieId;
 import com.acme.catalog.movies.domain.model.MovieSearchCriteria;
-import com.acme.catalog.movies.domain.model.MovieSort;
-import com.acme.catalog.movies.domain.model.Person;
-import com.acme.common.web.CorrelationId;
+import com.acme.catalog.movies.domain.model.MovieSortOrder;
+import com.acme.catalog.movies.domain.model.Rating;
 import com.acme.generated.api.MoviesApi;
-import com.acme.generated.model.CastCredit;
-import com.acme.generated.model.CreditPerson;
-import com.acme.generated.model.CreditsLinks;
-import com.acme.generated.model.CrewCredit;
-import com.acme.generated.model.Genre;
+import com.acme.generated.model.CollectionLinks;
 import com.acme.generated.model.Link;
-import com.acme.generated.model.Meta;
-import com.acme.generated.model.MovieCollectionLinks;
-import com.acme.generated.model.MovieCreditsData;
-import com.acme.generated.model.MovieCreditsDataEmbedded;
-import com.acme.generated.model.MovieCreditsEnvelope;
+import com.acme.generated.model.MovieCollection;
+import com.acme.generated.model.MovieCollectionEmbedded;
+import com.acme.generated.model.MovieCollectionEnvelope;
 import com.acme.generated.model.MovieDetail;
-import com.acme.generated.model.MovieDetailEnvelope;
+import com.acme.generated.model.MovieEnvelope;
 import com.acme.generated.model.MovieLinks;
-import com.acme.generated.model.MovieSummary;
-import com.acme.generated.model.MovieSummaryCollectionData;
-import com.acme.generated.model.MovieSummaryCollectionDataEmbedded;
-import com.acme.generated.model.MovieSummaryCollectionEnvelope;
 import com.acme.generated.model.Pagination;
+import com.acme.platform.web.CollectionLinksFactory;
+import com.acme.platform.web.InvalidQueryParameterException;
+import com.acme.platform.web.ResponseMetaFactory;
+import com.acme.shared.domain.paging.Page;
+import com.acme.shared.domain.paging.PageRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
+import java.net.URI;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Implements the generated {@link MoviesApi}. Thin: calls the use case(s), maps the domain {@link
- * Movie} to the generated DTOs, and builds HAL links via {@link
- * org.springframework.hateoas.server.mvc.WebMvcLinkBuilder}. Link assembly is web-adapter-only —
- * the domain and application layers know nothing about hypermedia. {@code @Validated} enforces the
- * generated {@code @Min}/{@code @Max} query-param constraints (see {@code
- * com.acme.platform.sample.adapters.in.web.SampleController} for the same note).
+ * Retrieves one movie's curated details ({@code GET /movies/{id}}, UC-001) and searches/browses
+ * movies ({@code GET /movies}, UC-002). Content-Type is always {@code application/json}, never
+ * negotiated to {@code application/problem+json} (design D1/D3).
  */
 @RestController
-@Validated
 public class MovieController implements MoviesApi {
 
-  private final GetMovieDetailUseCase getMovieDetailUseCase;
+  /** The query parameters {@code CollectionLinksFactory} preserves on navigation links (D6). */
+  private static final Set<String> RECOGNISED_SEARCH_PARAMS =
+      Set.of(
+          "title",
+          "genre",
+          "releaseYearFrom",
+          "releaseYearTo",
+          "minRating",
+          "sort",
+          "page",
+          "size");
+
+  private final GetMovieUseCase getMovieUseCase;
   private final SearchMoviesUseCase searchMoviesUseCase;
-  private final GetMovieCreditsUseCase getMovieCreditsUseCase;
+  private final ResponseMetaFactory responseMetaFactory;
+  private final CollectionLinksFactory collectionLinksFactory;
+  private final HttpServletRequest request;
 
   public MovieController(
-      GetMovieDetailUseCase getMovieDetailUseCase,
+      GetMovieUseCase getMovieUseCase,
       SearchMoviesUseCase searchMoviesUseCase,
-      GetMovieCreditsUseCase getMovieCreditsUseCase) {
-    this.getMovieDetailUseCase = getMovieDetailUseCase;
+      ResponseMetaFactory responseMetaFactory,
+      CollectionLinksFactory collectionLinksFactory,
+      HttpServletRequest request) {
+    this.getMovieUseCase = getMovieUseCase;
     this.searchMoviesUseCase = searchMoviesUseCase;
-    this.getMovieCreditsUseCase = getMovieCreditsUseCase;
+    this.responseMetaFactory = responseMetaFactory;
+    this.collectionLinksFactory = collectionLinksFactory;
+    this.request = request;
   }
 
   @Override
-  public ResponseEntity<MovieDetailEnvelope> getMovieById(UUID id, UUID xCorrelationId) {
-    Movie movie = getMovieDetailUseCase.getMovieDetail(id);
-    String correlationId = CorrelationId.current();
+  public ResponseEntity<MovieEnvelope> getMovie(UUID id) {
+    Movie movie = getMovieUseCase.getMovie(new MovieId(id));
 
-    MovieDetail data = toMovieDetail(movie);
-    Meta meta = new Meta(OffsetDateTime.now(ZoneOffset.UTC), UUID.fromString(correlationId));
-
-    return ResponseEntity.ok(new MovieDetailEnvelope(data, meta));
-  }
-
-  @Override
-  public ResponseEntity<MovieCreditsEnvelope> getMovieCredits(UUID id, UUID xCorrelationId) {
-    MovieCredits credits = getMovieCreditsUseCase.getMovieCredits(id);
-    String correlationId = CorrelationId.current();
-
-    MovieCreditsData data = toMovieCreditsData(id, credits);
-    Meta meta = new Meta(OffsetDateTime.now(ZoneOffset.UTC), UUID.fromString(correlationId));
-
-    return ResponseEntity.ok(new MovieCreditsEnvelope(data, meta));
-  }
-
-  @Override
-  public ResponseEntity<MovieSummaryCollectionEnvelope> getMovies(
-      UUID xCorrelationId,
-      Integer page,
-      Integer size,
-      String title,
-      List<Genre> genre,
-      Integer releaseYearFrom,
-      Integer releaseYearTo,
-      BigDecimal minRating,
-      String sort) {
-    MovieSearchCriteria criteria =
-        MovieSearchCriteria.of(
-            title, toDomainGenres(genre), releaseYearFrom, releaseYearTo, minRating);
-    MoviePageRequest pageRequest = new MoviePageRequest(page, size);
-    MovieSort movieSort = MovieSort.parse(sort);
-    String sortForLink = movieSort.equals(MovieSort.defaultSort()) ? null : sort;
-
-    MoviePage moviePage = searchMoviesUseCase.search(criteria, pageRequest, movieSort);
-    String correlationId = CorrelationId.current();
-
-    List<MovieSummary> summaries =
-        moviePage.content().stream().map(MovieController::toSummary).toList();
-
-    MovieSummaryCollectionData data =
-        new MovieSummaryCollectionData(
-            new MovieSummaryCollectionDataEmbedded(summaries),
-            collectionLinks(
-                moviePage, title, genre, releaseYearFrom, releaseYearTo, minRating, sortForLink));
-
-    Meta meta =
-        new Meta(OffsetDateTime.now(ZoneOffset.UTC), UUID.fromString(correlationId))
-            .pagination(
-                new Pagination(
-                    moviePage.page(),
-                    moviePage.size(),
-                    moviePage.totalElements(),
-                    moviePage.totalPages()));
-
-    return ResponseEntity.ok(new MovieSummaryCollectionEnvelope(data, meta));
-  }
-
-  private static Set<com.acme.catalog.movies.domain.model.Genre> toDomainGenres(
-      List<Genre> genres) {
-    if (genres == null) {
-      return Set.of();
-    }
-    return genres.stream()
-        .map(genre -> com.acme.catalog.movies.domain.model.Genre.valueOf(genre.name()))
-        .collect(java.util.stream.Collectors.toUnmodifiableSet());
-  }
-
-  private static MovieDetail toMovieDetail(Movie movie) {
-    MovieLinks links = new MovieLinks(selfLink(movie.id()));
-    links.setCredits(creditsLink(movie.id()));
+    URI self = linkTo(methodOn(MoviesApi.class).getMovie(movie.id().value())).toUri();
+    MovieLinks links = new MovieLinks(new Link(self));
 
     MovieDetail data =
         new MovieDetail(
-            movie.id(),
-            movie.title(),
-            movie.releaseYear(),
-            movie.genres().stream().map(genre -> Genre.valueOf(genre.name())).toList(),
-            links);
+                movie.id().value(), movie.title(), movie.releaseYear(), movie.genres(), links)
+            .runtimeMinutes(movie.runtime().map(rm -> rm.value()).orElse(null))
+            .synopsis(movie.synopsis().orElse(null))
+            .rating(movie.rating().map(r -> r.value().stripTrailingZeros()).orElse(null));
 
-    movie.runtimeMinutes().ifPresent(data::setRuntimeMinutes);
-    movie.synopsis().ifPresent(data::setSynopsis);
-    movie.rating().ifPresent(rating -> data.setRating(rating.value()));
-
-    return data;
+    MovieEnvelope envelope = new MovieEnvelope(data, responseMetaFactory.create());
+    return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(envelope);
   }
 
-  private static MovieCreditsData toMovieCreditsData(UUID movieId, MovieCredits credits) {
-    List<CastCredit> cast = credits.cast().stream().map(MovieController::toCastCredit).toList();
-    List<CrewCredit> crew = credits.crew().stream().map(MovieController::toCrewCredit).toList();
-
-    return new MovieCreditsData(
-        new MovieCreditsDataEmbedded(cast, crew), new CreditsLinks(creditsLink(movieId)));
-  }
-
-  private static CastCredit toCastCredit(Credit.Cast cast) {
-    CastCredit dto = new CastCredit(toCreditPerson(cast.person()), cast.billingOrder());
-    cast.character().ifPresent(dto::setCharacter);
-    return dto;
-  }
-
-  private static CrewCredit toCrewCredit(Credit.Crew crew) {
-    return new CrewCredit(toCreditPerson(crew.person()), crew.department(), crew.job());
-  }
-
-  private static CreditPerson toCreditPerson(Person person) {
-    return new CreditPerson(person.id(), person.name());
-  }
-
-  private static MovieSummary toSummary(Movie movie) {
-    MovieSummary summary =
-        new MovieSummary(
-            movie.id(),
-            movie.title(),
-            movie.releaseYear(),
-            movie.genres().stream().map(genre -> Genre.valueOf(genre.name())).toList(),
-            new MovieLinks(selfLink(movie.id())));
-
-    movie.runtimeMinutes().ifPresent(summary::setRuntimeMinutes);
-    movie.rating().ifPresent(rating -> summary.setRating(rating.value()));
-
-    return summary;
-  }
-
-  private static Link selfLink(UUID id) {
-    return new Link(linkTo(methodOn(MoviesApi.class).getMovieById(id, null)).toUri());
-  }
-
-  private static Link creditsLink(UUID id) {
-    return new Link(linkTo(methodOn(MoviesApi.class).getMovieCredits(id, null)).toUri());
-  }
-
-  private static MovieCollectionLinks collectionLinks(
-      MoviePage moviePage,
+  @Override
+  public ResponseEntity<MovieCollectionEnvelope> searchMovies(
       String title,
-      List<Genre> genre,
+      List<String> genre,
       Integer releaseYearFrom,
       Integer releaseYearTo,
       BigDecimal minRating,
-      String sort) {
-    int page = moviePage.page();
-    int size = moviePage.size();
-    int totalPages = moviePage.totalPages();
+      String sort,
+      Integer page,
+      Integer size) {
+    Page<com.acme.catalog.movies.domain.model.MovieSummary> resultPage;
+    try {
+      MovieSearchCriteria criteria =
+          MovieSearchCriteria.of(
+              Optional.ofNullable(title),
+              rawGenreValues(),
+              Optional.ofNullable(releaseYearFrom),
+              Optional.ofNullable(releaseYearTo),
+              Optional.ofNullable(minRating).map(Rating::new));
+      MovieSortOrder order = MovieSortOrder.parse(Optional.ofNullable(sort));
+      PageRequest pageRequest = new PageRequest(page, size);
 
-    MovieCollectionLinks links =
-        new MovieCollectionLinks(
-            pageLink(page, size, title, genre, releaseYearFrom, releaseYearTo, minRating, sort));
-    links.first(pageLink(0, size, title, genre, releaseYearFrom, releaseYearTo, minRating, sort));
-    links.last(
-        pageLink(
-            Math.max(totalPages - 1, 0),
-            size,
-            title,
-            genre,
-            releaseYearFrom,
-            releaseYearTo,
-            minRating,
-            sort));
-    if (page > 0) {
-      links.prev(
-          pageLink(page - 1, size, title, genre, releaseYearFrom, releaseYearTo, minRating, sort));
+      resultPage = searchMoviesUseCase.search(criteria, order, pageRequest);
+    } catch (InvalidSearchCriterionException ex) {
+      throw new InvalidQueryParameterException(parameterNameFor(ex));
     }
-    if (page < totalPages - 1) {
-      links.next(
-          pageLink(page + 1, size, title, genre, releaseYearFrom, releaseYearTo, minRating, sort));
-    }
-    return links;
+
+    List<com.acme.generated.model.MovieSummary> summaries =
+        resultPage.items().stream().map(this::toDto).toList();
+    MovieCollectionEmbedded embedded = new MovieCollectionEmbedded(summaries);
+    CollectionLinks links = collectionLinksFactory.create(resultPage, RECOGNISED_SEARCH_PARAMS);
+    MovieCollection data = new MovieCollection(embedded, links);
+
+    Pagination pagination =
+        new Pagination(
+            resultPage.request().page(),
+            resultPage.request().size(),
+            resultPage.totalElements(),
+            resultPage.totalPages());
+    MovieCollectionEnvelope envelope =
+        new MovieCollectionEnvelope(data, responseMetaFactory.create(pagination));
+    return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(envelope);
   }
 
-  private static Link pageLink(
-      int page,
-      int size,
-      String title,
-      List<Genre> genre,
-      Integer releaseYearFrom,
-      Integer releaseYearTo,
-      BigDecimal minRating,
-      String sort) {
-    return new Link(
-        linkTo(
-                methodOn(MoviesApi.class)
-                    .getMovies(
-                        null,
-                        page,
-                        size,
-                        title,
-                        genre,
-                        releaseYearFrom,
-                        releaseYearTo,
-                        minRating,
-                        sort))
-            .toUri());
+  /**
+   * Reads {@code genre} directly from the servlet request, never the generated {@code List<String>}
+   * (design D2/D6): Spring's conversion would silently turn {@code genre=} into an empty list and
+   * split a comma-containing value, both of which must instead reach the vocabulary check.
+   */
+  private Set<String> rawGenreValues() {
+    String[] values = request.getParameterValues("genre");
+    return values == null ? Set.of() : new LinkedHashSet<>(Arrays.asList(values));
+  }
+
+  private static String parameterNameFor(InvalidSearchCriterionException ex) {
+    return switch (ex.criterion()) {
+      case SORT -> "sort";
+      case RELEASE_YEAR_RANGE -> "releaseYearFrom";
+      case GENRE -> "genre";
+    };
+  }
+
+  private com.acme.generated.model.MovieSummary toDto(
+      com.acme.catalog.movies.domain.model.MovieSummary summary) {
+    URI self = linkTo(methodOn(MoviesApi.class).getMovie(summary.id().value())).toUri();
+    MovieLinks links = new MovieLinks(new Link(self));
+
+    return new com.acme.generated.model.MovieSummary(
+            summary.id().value(), summary.title(), summary.releaseYear(), summary.genres(), links)
+        .runtimeMinutes(summary.runtime().map(rm -> rm.value()).orElse(null))
+        .rating(summary.rating().map(r -> r.value().stripTrailingZeros()).orElse(null));
   }
 }

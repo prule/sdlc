@@ -1,12 +1,19 @@
 package com.acme.catalog.movies.application.port.out;
 
-import com.acme.catalog.movies.domain.model.MoviePage;
-import com.acme.catalog.movies.domain.model.MoviePageRequest;
 import com.acme.catalog.movies.domain.model.MovieSearchCriteria;
-import com.acme.catalog.movies.domain.model.MovieSort;
+import com.acme.catalog.movies.domain.model.MovieSortOrder;
+import com.acme.catalog.movies.domain.model.MovieSummary;
+import com.acme.shared.domain.paging.Page;
+import com.acme.shared.domain.paging.PageRequest;
 
-/** Outbound port: fetch a page of movies matching criteria, ordered and paged. */
+/**
+ * Outbound port for the movie search query (design D5). {@code criteria.genres()} are already the
+ * canonical vocabulary names resolved by {@link
+ * com.acme.catalog.movies.application.service.SearchMoviesService} — the port never re-checks them
+ * against the vocabulary.
+ */
 public interface SearchMoviesPort {
 
-  MoviePage search(MovieSearchCriteria criteria, MoviePageRequest pageRequest, MovieSort sort);
+  Page<MovieSummary> search(
+      MovieSearchCriteria criteria, MovieSortOrder order, PageRequest pageRequest);
 }

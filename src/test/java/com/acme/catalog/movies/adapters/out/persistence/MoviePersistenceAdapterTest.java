@@ -2,72 +2,163 @@ package com.acme.catalog.movies.adapters.out.persistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.acme.catalog.movies.domain.model.Genre;
 import com.acme.catalog.movies.domain.model.Movie;
-import com.acme.common.test.PostgresIntegrationTest;
+import com.acme.catalog.movies.domain.model.MovieId;
+import com.acme.testsupport.PostgresIntegrationTest;
 import java.math.BigDecimal;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
- * Persistence adapter test against real Postgres (Testcontainers, never H2). Own fixtures,
- * independent of {@link MovieDemoSeed}.
+ * Testcontainers coverage for {@link MoviePersistenceAdapter} against real PostgreSQL (design D5).
  */
 class MoviePersistenceAdapterTest extends PostgresIntegrationTest {
 
-  @Autowired private MovieJpaRepository movieJpaRepository;
-
   @Autowired private MoviePersistenceAdapter adapter;
+  @Autowired private JdbcTemplate jdbcTemplate;
 
-  @Test
-  void loadById_seededMovieWithAllOptionalFields_returnsItMappedToDomain() {
-    UUID id = UUID.randomUUID();
-    movieJpaRepository.save(
-        new MovieJpaEntity(
-            id,
-            "The Wandering Reel",
-            2019,
-            118,
-            "A projectionist discovers a film that predicts the news.",
-            BigDecimal.valueOf(4.5),
-            Set.of(Genre.DRAMA, Genre.MYSTERY)));
+  @AfterEach
+  void cleanUp() {
+    jdbcTemplate.update("DELETE FROM movie_genre");
+    jdbcTemplate.update("DELETE FROM movie");
+    jdbcTemplate.update("DELETE FROM genre");
+  }
 
-    Optional<Movie> result = adapter.loadById(id);
+  private void insertGenre(UUID id, String name) {
+    jdbcTemplate.update("INSERT INTO genre (id, name) VALUES (?, ?)", id, name);
+  }
 
-    assertThat(result).isPresent();
-    Movie movie = result.orElseThrow();
-    assertThat(movie.id()).isEqualTo(id);
-    assertThat(movie.title()).isEqualTo("The Wandering Reel");
-    assertThat(movie.releaseYear()).isEqualTo(2019);
-    assertThat(movie.genres()).containsExactlyInAnyOrder(Genre.DRAMA, Genre.MYSTERY);
-    assertThat(movie.runtimeMinutes()).contains(118);
-    assertThat(movie.synopsis()).isPresent();
-    assertThat(movie.rating()).isPresent();
-    assertThat(movie.rating().orElseThrow().value()).isEqualByComparingTo(BigDecimal.valueOf(4.5));
+  private void insertMovie(
+      UUID id,
+      String title,
+      int releaseYear,
+      Integer runtimeMinutes,
+      String synopsis,
+      BigDecimal rating) {
+    jdbcTemplate.update(
+        "INSERT INTO movie (id, title, release_year, runtime_minutes, synopsis, rating) "
+            + "VALUES (?, ?, ?, ?, ?, ?)",
+        id,
+        title,
+        releaseYear,
+        runtimeMinutes,
+        synopsis,
+        rating);
+  }
+
+  private void linkGenre(UUID movieId, UUID genreId) {
+    jdbcTemplate.update(
+        "INSERT INTO movie_genre (movie_id, genre_id) VALUES (?, ?)", movieId, genreId);
   }
 
   @Test
-  void loadById_seededMovieWithNoOptionalFields_returnsItWithThemAbsent() {
-    UUID id = UUID.randomUUID();
-    movieJpaRepository.save(
-        new MovieJpaEntity(id, "Silent Harbor", 2021, null, null, null, Set.of(Genre.MYSTERY)));
+  void loadsAFullyPopulatedMovie() {
+    UUID movieId = UUID.randomUUID();
+    UUID dramaId = UUID.randomUUID();
+    UUID sciFiId = UUID.randomUUID();
+    insertGenre(dramaId, "Drama");
+    insertGenre(sciFiId, "Sci-Fi");
+    insertMovie(
+        movieId,
+        "Arrival",
+        2016,
+        116,
+        "A linguist deciphers an alien language.",
+        new BigDecimal("4.5"));
+    linkGenre(movieId, dramaId);
+    linkGenre(movieId, sciFiId);
 
-    Optional<Movie> result = adapter.loadById(id);
+    Optional<Movie> result = adapter.loadMovie(new MovieId(movieId));
 
     assertThat(result).isPresent();
     Movie movie = result.orElseThrow();
-    assertThat(movie.runtimeMinutes()).isEmpty();
+    assertThat(movie.id()).isEqualTo(new MovieId(movieId));
+    assertThat(movie.title()).isEqualTo("Arrival");
+    assertThat(movie.releaseYear()).isEqualTo(2016);
+    assertThat(movie.genres()).containsExactly("Drama", "Sci-Fi");
+    assertThat(movie.runtime()).isPresent().get().extracting("value").isEqualTo(116);
+    assertThat(movie.synopsis()).contains("A linguist deciphers an alien language.");
+    assertThat(movie.rating())
+        .isPresent()
+        .get()
+        .extracting("value")
+        .isEqualTo(new BigDecimal("4.5"));
+  }
+
+  @Test
+  void loadsAMovieWithNoOptionalFields() {
+    UUID movieId = UUID.randomUUID();
+    insertMovie(movieId, "Untitled", 1999, null, null, null);
+
+    Optional<Movie> result = adapter.loadMovie(new MovieId(movieId));
+
+    assertThat(result).isPresent();
+    Movie movie = result.orElseThrow();
+    assertThat(movie.runtime()).isEmpty();
     assertThat(movie.synopsis()).isEmpty();
     assertThat(movie.rating()).isEmpty();
   }
 
   @Test
-  void loadById_unknownId_returnsEmpty() {
-    Optional<Movie> result = adapter.loadById(UUID.randomUUID());
+  void aBlankSynopsisMapsToAbsent() {
+    UUID movieId = UUID.randomUUID();
+    insertMovie(movieId, "Untitled", 1999, null, "   ", null);
+
+    Optional<Movie> result = adapter.loadMovie(new MovieId(movieId));
+
+    assertThat(result).isPresent();
+    assertThat(result.orElseThrow().synopsis()).isEmpty();
+  }
+
+  @Test
+  void loadsAMovieWithNoGenres() {
+    UUID movieId = UUID.randomUUID();
+    insertMovie(movieId, "Untitled", 1999, null, null, null);
+
+    Optional<Movie> result = adapter.loadMovie(new MovieId(movieId));
+
+    assertThat(result).isPresent();
+    assertThat(result.orElseThrow().genres()).isEmpty();
+  }
+
+  @Test
+  void genresLinkedOutOfOrderAreReturnedAlphabetically() {
+    UUID movieId = UUID.randomUUID();
+    UUID thrillerId = UUID.randomUUID();
+    UUID dramaId = UUID.randomUUID();
+    insertGenre(thrillerId, "Thriller");
+    insertGenre(dramaId, "Drama");
+    insertMovie(movieId, "Untitled", 1999, null, null, null);
+    linkGenre(movieId, thrillerId);
+    linkGenre(movieId, dramaId);
+
+    Optional<Movie> result = adapter.loadMovie(new MovieId(movieId));
+
+    assertThat(result.orElseThrow().genres()).containsExactly("Drama", "Thriller");
+  }
+
+  @Test
+  void returnsEmptyForAnUnknownId() {
+    Optional<Movie> result = adapter.loadMovie(new MovieId(UUID.randomUUID()));
 
     assertThat(result).isEmpty();
+  }
+
+  @Test
+  void loadGenreNamesReturnsTheCuratedVocabulary() {
+    insertGenre(UUID.randomUUID(), "Drama");
+    insertGenre(UUID.randomUUID(), "Sci-Fi");
+    insertGenre(UUID.randomUUID(), "Comedy");
+
+    assertThat(adapter.loadGenreNames()).containsExactlyInAnyOrder("Drama", "Sci-Fi", "Comedy");
+  }
+
+  @Test
+  void loadGenreNamesIsEmptyWhenNoGenresAreCurated() {
+    assertThat(adapter.loadGenreNames()).isEmpty();
   }
 }

@@ -6,44 +6,43 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
 
-/** Unit tests for the {@link Rating} value object's 0–5 bounds. */
 class RatingTest {
 
   @Test
-  void withValueWithinBounds_isAccepted() {
-    Rating rating = new Rating(BigDecimal.valueOf(3.5));
+  void acceptsAMidRangeValue() {
+    Rating rating = new Rating(new BigDecimal("4.5"));
 
-    assertThat(rating.value()).isEqualByComparingTo(BigDecimal.valueOf(3.5));
+    assertThat(rating.value()).isEqualTo(new BigDecimal("4.5"));
   }
 
   @Test
-  void withValueAtLowerBound_isAccepted() {
+  void acceptsTheLowerBoundary() {
     Rating rating = new Rating(BigDecimal.ZERO);
 
-    assertThat(rating.value()).isEqualByComparingTo(BigDecimal.ZERO);
+    assertThat(rating.value()).isEqualTo(BigDecimal.ZERO);
   }
 
   @Test
-  void withValueAtUpperBound_isAccepted() {
-    Rating rating = new Rating(BigDecimal.valueOf(5));
+  void acceptsTheUpperBoundary() {
+    Rating rating = new Rating(new BigDecimal("5"));
 
-    assertThat(rating.value()).isEqualByComparingTo(BigDecimal.valueOf(5));
+    assertThat(rating.value()).isEqualTo(new BigDecimal("5"));
   }
 
   @Test
-  void withValueBelowLowerBound_throwsIllegalArgumentException() {
-    assertThatThrownBy(() -> new Rating(BigDecimal.valueOf(-0.1)))
+  void rejectsJustBelowTheLowerBoundary() {
+    assertThatThrownBy(() -> new Rating(new BigDecimal("-0.1")))
         .isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
-  void withValueAboveUpperBound_throwsIllegalArgumentException() {
-    assertThatThrownBy(() -> new Rating(BigDecimal.valueOf(5.1)))
+  void rejectsJustAboveTheUpperBoundary() {
+    assertThatThrownBy(() -> new Rating(new BigDecimal("5.1")))
         .isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
-  void withNullValue_throwsNullPointerException() {
+  void rejectsANullValue() {
     assertThatThrownBy(() -> new Rating(null)).isInstanceOf(NullPointerException.class);
   }
 }

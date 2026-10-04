@@ -65,12 +65,31 @@ class GlobalExceptionHandler {
 | Situation | Exception | HTTP | code |
 |-----------|-----------|------|------|
 | Malformed request / bad param | `IllegalArgumentException`, parse errors | 400 | `BAD_REQUEST` |
-| Missing/invalid credentials | (Spring Security) | 401 | `UNAUTHENTICATED` |
-| Authenticated but not allowed | `AccessDeniedException` | 403 | `FORBIDDEN` |
+| Constrained handler-method parameter violates its bound (e.g. `@Min`/`@Max` on `page`/`size`) | `ConstraintViolationException` (from a handler method, via a `@Validated` proxy) | 400 | `BAD_REQUEST`, `detail` names the query parameter |
+| Any other constraint violation — a `@Validated` service bean, a handler return value, a JPA/Hibernate Validator check on flush | `ConstraintViolationException` whose violations are **not all** on a web handler's method parameters | 500 | `INTERNAL_ERROR` (a server-side bug, logged at ERROR — never blamed on the client) |
+| Query parameter cannot convert to its declared type (non-numeric, overflow) | `MethodArgumentTypeMismatchException` | 400 | `BAD_REQUEST`, `detail` names the query parameter |
 | Resource does not exist | `ResourceNotFoundException` | 404 | `NOT_FOUND` |
+| Method not allowed on an offered path | `HttpRequestMethodNotSupportedException` (framework-detected) | 405 | `METHOD_NOT_ALLOWED` |
+| Unsatisfiable `Accept` | `HttpMediaTypeNotAcceptableException` (framework-detected) | 406 | `NOT_ACCEPTABLE` |
 | State/uniqueness conflict | `*AlreadyInUseException`, optimistic lock | 409 | domain code |
-| Field validation failed | `MethodArgumentNotValidException`, `ValidationException` | 422 | `VALIDATION_FAILED` |
+| Field validation failed (request body) | `MethodArgumentNotValidException`, `ValidationException` | 422 | `VALIDATION_FAILED` |
+| Unsupported request body media type | `HttpMediaTypeNotSupportedException` (framework-detected) | 415 | `UNSUPPORTED_MEDIA_TYPE` |
 | Anything unexpected | catch-all | 500 | `INTERNAL_ERROR` |
+
+`ConstraintViolationException` is a `ValidationException`, but it is never mapped by the 422 row: it
+is classified by the two `ConstraintViolationException` rows above. Decide ownership first — 400 only
+when the set is non-empty and every violation's root bean is a web controller (proxy unwrapped) and
+the node after the handler's METHOD node is a PARAMETER node of the handler that ran (deeper element
+or property nodes are allowed: one bad value of a repeated parameter is a violation on that
+parameter); anything else, including an empty or null set, is 500. When several parameters fail,
+name the lowest parameter index. The named `detail` applies to **query parameters** only, taking the
+name from `@RequestParam`, never the Java argument name; a violation only on path variables gets the
+generic 400 detail.
+
+Any other framework-detected 4xx not listed above (a malformed request, a missing or ill-typed
+parameter, or any other client fault Spring resolves to a 4xx status) collapses to `400`
+`BAD_REQUEST`, keeping the code set closed. No framework-detected client fault is ever reported as
+`500` — see `platform`'s `GlobalExceptionHandler`/`ProblemFactory` (`openspec/specs/platform/uniform-responses`) for the full classification.
 
 ## 4. Rules
 

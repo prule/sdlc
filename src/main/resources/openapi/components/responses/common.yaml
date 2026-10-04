@@ -1,55 +1,39 @@
 BadRequest:
-  description: The request was malformed.
+  description: The request could not be understood.
+  headers:
+    X-Correlation-Id:
+      $ref: '../headers/common.yaml#/X-Correlation-Id'
   content:
     application/problem+json:
       schema:
-        $ref: '../../openapi.yaml#/components/schemas/Problem'
-
-Unauthorized:
-  description: Missing or invalid credentials.
-  content:
-    application/problem+json:
-      schema:
-        $ref: '../../openapi.yaml#/components/schemas/Problem'
-
-Forbidden:
-  description: Authenticated but not allowed to perform this action.
-  content:
-    application/problem+json:
-      schema:
-        $ref: '../../openapi.yaml#/components/schemas/Problem'
+        $ref: '../schemas/common.yaml#/Problem'
 
 NotFound:
-  description: The requested resource does not exist.
+  description: No resource exists at the requested identifier.
+  headers:
+    X-Correlation-Id:
+      $ref: '../headers/common.yaml#/X-Correlation-Id'
   content:
     application/problem+json:
       schema:
-        $ref: '../../openapi.yaml#/components/schemas/Problem'
+        $ref: '../schemas/common.yaml#/Problem'
 
-Conflict:
-  description: The request conflicts with the current state of the resource.
+NotAcceptable:
+  description: The requested representation cannot be produced.
+  headers:
+    X-Correlation-Id:
+      $ref: '../headers/common.yaml#/X-Correlation-Id'
   content:
     application/problem+json:
       schema:
-        $ref: '../../openapi.yaml#/components/schemas/Problem'
-
-UnprocessableEntity:
-  description: Field-level validation failed.
-  content:
-    application/problem+json:
-      schema:
-        $ref: '../../openapi.yaml#/components/schemas/Problem'
-
-TooManyRequests:
-  description: The client has sent too many requests in a given time period.
-  content:
-    application/problem+json:
-      schema:
-        $ref: '../../openapi.yaml#/components/schemas/Problem'
+        $ref: '../schemas/common.yaml#/Problem'
 
 InternalError:
-  description: An unexpected error occurred.
+  description: An unexpected internal error occurred.
+  headers:
+    X-Correlation-Id:
+      $ref: '../headers/common.yaml#/X-Correlation-Id'
   content:
     application/problem+json:
       schema:
-        $ref: '../../openapi.yaml#/components/schemas/Problem'
+        $ref: '../schemas/common.yaml#/Problem'

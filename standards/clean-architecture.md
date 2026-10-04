@@ -81,6 +81,12 @@ If you want a Spring-free application layer, wire beans in a `config` package wi
 - Schema changes ship as **Flyway** migrations (`src/main/resources/db/migration/V<n>__desc.sql`).
   Never edit an applied migration; add a new one. Integration tests run against real Postgres via
   Testcontainers.
+- **Values are always bound, never written into the query.** Anything that came from a request (and
+  any other variable value) reaches the database as a bind parameter: named/positional parameters in
+  JPQL/SQL, and `cb.parameter(...)` or `cb.value(...)` in the Criteria API. Never `cb.literal(...)`
+  for a variable value (Hibernate 6 renders an `SqmLiteral` inline into the SQL text), and never
+  string concatenation. Inlined values risk injection and give every distinct value its own query
+  plan. Prove it as `standards/testing.md` §4 describes — a quote in the value alone proves nothing.
 
 ## 6. Web rules (adapters/in/web)
 
@@ -113,8 +119,8 @@ HTTP POST /users
 - **application**: unit tests with the outbound ports mocked; assert orchestration + domain rules.
 - **adapters/in/web**: `@WebMvcTest` / MockMvc against the generated API, use-case port mocked;
   assert request validation, status codes, DTO mapping, and problem-detail responses.
-- **adapters/out/persistence**: `@DataJpaTest` or full slice with **Testcontainers** Postgres; assert
-  mapping and queries against a real database — no H2.
+- **adapters/out/persistence**: `@DataJpaTest` or full slice with **Testcontainers** Postgres (the project's
+  target database); assert mapping and queries against it.
 - **contract**: validate the OpenAPI spec in CI; optionally verify controllers against it.
 - Each requirement in a spec delta gets a test covering happy path, an edge case, and a failure path.
 
@@ -125,4 +131,5 @@ HTTP POST /users
 - Application layer importing a JPA entity or a concrete adapter class.
 - Hand-written request/response DTOs that duplicate the OpenAPI contract.
 - Editing an already-applied Flyway migration instead of adding a new one.
+- A variable value written into a query (`cb.literal(...)`, string concatenation) instead of bound (§5).
 - Business logic in a "service" that's really a transaction script bypassing the domain model.

@@ -1,15 +1,7 @@
-Envelope:
-  type: object
-  required: [data, meta]
-  properties:
-    data:
-      description: The response payload.
-    meta:
-      $ref: '#/Meta'
-
 Meta:
   type: object
   required: [timestamp, correlationId]
+  additionalProperties: false
   properties:
     timestamp:
       type: string
@@ -23,22 +15,41 @@ Meta:
 Pagination:
   type: object
   required: [page, size, totalElements, totalPages]
+  additionalProperties: false
   properties:
     page:
       type: integer
-      minimum: 0
+      format: int32
     size:
       type: integer
-      minimum: 1
+      format: int32
     totalElements:
       type: integer
       format: int64
     totalPages:
       type: integer
+      format: int32
+
+CollectionLinks:
+  type: object
+  required: [self, first, last]
+  additionalProperties: false
+  properties:
+    self:
+      $ref: '#/Link'
+    first:
+      $ref: '#/Link'
+    last:
+      $ref: '#/Link'
+    prev:
+      $ref: '#/Link'
+    next:
+      $ref: '#/Link'
 
 Link:
   type: object
   required: [href]
+  additionalProperties: false
   properties:
     href:
       type: string
@@ -48,93 +59,10 @@ Link:
     title:
       type: string
 
-PingLinks:
-  type: object
-  required: [self]
-  properties:
-    self:
-      $ref: '#/Link'
-
-SampleCollectionLinks:
-  type: object
-  required: [self]
-  properties:
-    self:
-      $ref: '#/Link'
-    first:
-      $ref: '#/Link'
-    last:
-      $ref: '#/Link'
-    prev:
-      $ref: '#/Link'
-    next:
-      $ref: '#/Link'
-
-SampleItemLinks:
-  type: object
-  required: [self]
-  properties:
-    self:
-      $ref: '#/Link'
-
-MovieLinks:
-  type: object
-  required: [self]
-  properties:
-    self:
-      $ref: '#/Link'
-    credits:
-      $ref: '#/Link'
-
-CreditsLinks:
-  type: object
-  required: [self]
-  properties:
-    self:
-      $ref: '#/Link'
-
-PersonLinks:
-  type: object
-  required: [self, credits]
-  properties:
-    self:
-      $ref: '#/Link'
-    credits:
-      $ref: '#/Link'
-
-MovieCollectionLinks:
-  type: object
-  required: [self]
-  properties:
-    self:
-      $ref: '#/Link'
-    first:
-      $ref: '#/Link'
-    last:
-      $ref: '#/Link'
-    prev:
-      $ref: '#/Link'
-    next:
-      $ref: '#/Link'
-
-PersonFilmographyLinks:
-  type: object
-  required: [self]
-  properties:
-    self:
-      $ref: '#/Link'
-    first:
-      $ref: '#/Link'
-    last:
-      $ref: '#/Link'
-    prev:
-      $ref: '#/Link'
-    next:
-      $ref: '#/Link'
-
 Problem:
   type: object
   required: [type, title, status, code, correlationId]
+  additionalProperties: false
   properties:
     type:
       type: string
@@ -153,15 +81,3 @@ Problem:
     correlationId:
       type: string
       format: uuid
-    errors:
-      type: array
-      items:
-        type: object
-        required: [field, message]
-        properties:
-          field:
-            type: string
-          message:
-            type: string
-          code:
-            type: string

@@ -1,11 +1,11 @@
 package com.acme.catalog.movies.application.port.out;
 
 import com.acme.catalog.movies.domain.model.Movie;
+import com.acme.catalog.movies.domain.model.MovieId;
 import java.util.Optional;
-import java.util.UUID;
 
-/** Outbound port: load one movie by its stable identifier. */
+/** Outbound port for loading a curated movie by id (UC-001). */
 public interface LoadMoviePort {
 
-  Optional<Movie> loadById(UUID id);
+  Optional<Movie> loadMovie(MovieId id);
 }

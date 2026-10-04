@@ -67,6 +67,9 @@ As a <persona from domain/actors-and-personas.md>, I want <capability>, so that 
 
 ## Acceptance / done criteria
 - [ ] <observable, verifiable outcome, e.g. "build green with X", "no Y in generated output">
+<When the ticket closes recorded findings (retrospectives, reviews), name each finding ID it closes,
+e.g. "S6, S7, D5 in retrospectives/<file>.md are fixed". Any finding left out of scope is listed
+here as `deferred` with the reason, so done criteria and out-of-scope never contradict.>
 
 ## Risks
 - <what could go wrong; blast radius>

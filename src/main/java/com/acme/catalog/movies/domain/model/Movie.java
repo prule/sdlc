@@ -3,59 +3,32 @@ package com.acme.catalog.movies.domain.model;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
 
 /**
- * A movie in the catalog. Constructed only via {@link #of} which enforces the aggregate's
- * invariants: identifier, title, and release year present; at least one genre; optional
- * runtime/synopsis/rating. No Spring/JPA imports — see standards/clean-architecture.md.
+ * A single film title in the catalog (UC-001). The factory (this record's canonical constructor)
+ * owns the invariants a curated movie must satisfy: a non-blank title, and genres de-duplicated and
+ * ordered alphabetically by name, ignoring letter case, with a tie broken by the exact name (BR-4,
+ * A-SORT) — so the same movie always lists its genres in the same order, whatever order they were
+ * curated in. Optional fields are held as {@link Optional}, never a sentinel value (BR-3).
  */
 public record Movie(
-    UUID id,
+    MovieId id,
     String title,
     int releaseYear,
-    Set<Genre> genres,
-    Optional<Integer> runtimeMinutes,
+    List<String> genres,
+    Optional<RuntimeMinutes> runtime,
     Optional<String> synopsis,
     Optional<Rating> rating) {
 
   public Movie {
     Objects.requireNonNull(id, "id must not be null");
-    Objects.requireNonNull(title, "title must not be null");
-    Objects.requireNonNull(genres, "genres must not be null");
-    Objects.requireNonNull(runtimeMinutes, "runtimeMinutes must not be null");
-    Objects.requireNonNull(synopsis, "synopsis must not be null");
-    Objects.requireNonNull(rating, "rating must not be null");
-    if (title.isBlank()) {
+    if (title == null || title.isBlank()) {
       throw new IllegalArgumentException("title must not be blank");
     }
-    if (genres.isEmpty()) {
-      throw new IllegalArgumentException("a movie must have at least one genre");
-    }
-    genres = Set.copyOf(genres);
-  }
-
-  /**
-   * Creates a {@link Movie}, enforcing its invariants. Prefer this factory over the canonical
-   * record constructor when any optional field may be absent, since it accepts raw nullable values
-   * instead of requiring the caller to wrap each in {@link Optional} themselves.
-   */
-  public static Movie of(
-      UUID id,
-      String title,
-      int releaseYear,
-      List<Genre> genres,
-      Integer runtimeMinutes,
-      String synopsis,
-      Rating rating) {
-    return new Movie(
-        id,
-        title,
-        releaseYear,
-        genres == null ? Set.of() : Set.copyOf(genres),
-        Optional.ofNullable(runtimeMinutes),
-        Optional.ofNullable(synopsis),
-        Optional.ofNullable(rating));
+    Objects.requireNonNull(genres, "genres must not be null");
+    Objects.requireNonNull(runtime, "runtime must not be null");
+    Objects.requireNonNull(synopsis, "synopsis must not be null");
+    Objects.requireNonNull(rating, "rating must not be null");
+    genres = GenreNames.normalize(genres);
   }
 }

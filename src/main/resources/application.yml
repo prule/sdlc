@@ -8,6 +8,10 @@ spring:
   # not affect them; only genuinely-absent optional fields are dropped.
   jackson:
     default-property-inclusion: non_null
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
   # Default (no-profile) runtime: zero-dependency in-memory database, reset on each restart.
   # Activate the `postgres` profile (see application-postgres.yml) for the tested,
   # production-capable PostgreSQL target.
@@ -17,17 +21,29 @@ spring:
     password:
   flyway:
     enabled: true
-    locations: classpath:db/migration
-
-# Custom namespace (not spring.security.oauth2.resourceserver.jwt.*) so Spring Boot's
-# resource-server auto-configuration never activates; the JwtDecoder bean in SecurityConfig
-# builds the decoder itself, composing the issuer defaults with an audience validator.
-security:
-  jwt:
-    issuer-uri: ${OAUTH2_ISSUER_URI:}
-    expected-audience: ${OAUTH2_EXPECTED_AUDIENCE:sdlc-api}
+    locations: classpath:db/migration,classpath:db/demo
 
 server:
   port: ${SERVER_PORT:8080}
   servlet:
     context-path: /api/v1
+  # Trust X-Forwarded-* from the gateway: HSTS and self-link scheme/host follow the externally
+  # visible request (see standards/security.md §2 and platform SecurityConfig).
+  forward-headers-strategy: framework
+  error:
+    # ProblemErrorController renders every failure as problem+json; the default whitelabel HTML
+    # error page is never used.
+    whitelabel:
+      enabled: false
+
+# Actuator's HTTP surface (including its discovery root) is disabled entirely: there are no
+# undocumented HTTP endpoints. The dependency stays on the classpath for future non-HTTP use.
+management:
+  server:
+    port: -1
+
+# Every log line includes the request's correlation id so a client-reported failure maps to
+# server logs (platform CorrelationIdFilter).
+logging:
+  pattern:
+    level: "%5p [%X{correlationId}]"

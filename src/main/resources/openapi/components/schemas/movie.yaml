@@ -1,81 +1,100 @@
-Genre:
-  type: string
-  enum:
-    - Action
-    - Adventure
-    - Animation
-    - Comedy
-    - Crime
-    - Documentary
-    - Drama
-    - Family
-    - Fantasy
-    - History
-    - Horror
-    - Music
-    - Mystery
-    - Romance
-    - SciFi
-    - Thriller
-    - War
-    - Western
+MovieEnvelope:
+  type: object
+  required: [data, meta]
+  additionalProperties: false
+  properties:
+    data:
+      $ref: '#/MovieDetail'
+    meta:
+      $ref: './common.yaml#/Meta'
 
 MovieDetail:
   type: object
   required: [id, title, releaseYear, genres, _links]
+  additionalProperties: false
   properties:
     id:
       type: string
       format: uuid
     title:
       type: string
+      minLength: 1
     releaseYear:
       type: integer
     genres:
       type: array
-      minItems: 1
       items:
-        $ref: '#/Genre'
+        type: string
+        minLength: 1
     runtimeMinutes:
       type: integer
       minimum: 1
     synopsis:
       type: string
+      minLength: 1
     rating:
       type: number
       minimum: 0
       maximum: 5
     _links:
-      $ref: '../../openapi.yaml#/components/schemas/MovieLinks'
+      $ref: '#/MovieLinks'
 
-MovieDetailData:
-  $ref: '#/MovieDetail'
+MovieLinks:
+  type: object
+  required: [self]
+  additionalProperties: false
+  properties:
+    self:
+      $ref: './common.yaml#/Link'
 
-MovieDetailEnvelope:
+MovieCollectionEnvelope:
   type: object
   required: [data, meta]
+  additionalProperties: false
   properties:
     data:
-      $ref: '#/MovieDetailData'
+      $ref: '#/MovieCollection'
     meta:
-      $ref: '../../openapi.yaml#/components/schemas/Meta'
+      $ref: './common.yaml#/Meta'
+
+MovieCollection:
+  type: object
+  required: [_embedded, _links]
+  additionalProperties: false
+  properties:
+    _embedded:
+      $ref: '#/MovieCollectionEmbedded'
+    _links:
+      $ref: './common.yaml#/CollectionLinks'
+
+MovieCollectionEmbedded:
+  type: object
+  required: [movies]
+  additionalProperties: false
+  properties:
+    movies:
+      type: array
+      items:
+        $ref: '#/MovieSummary'
 
 MovieSummary:
   type: object
   required: [id, title, releaseYear, genres, _links]
+  additionalProperties: false
   properties:
     id:
       type: string
       format: uuid
     title:
       type: string
+      minLength: 1
     releaseYear:
       type: integer
     genres:
       type: array
-      minItems: 1
       items:
-        $ref: '#/Genre'
+        type: string
+        minLength: 1
     runtimeMinutes:
       type: integer
       minimum: 1
@@ -84,89 +103,4 @@ MovieSummary:
       minimum: 0
       maximum: 5
     _links:
-      $ref: '../../openapi.yaml#/components/schemas/MovieLinks'
-
-MovieSummaryCollectionData:
-  type: object
-  required: [_embedded, _links]
-  properties:
-    _embedded:
-      type: object
-      required: [movies]
-      properties:
-        movies:
-          type: array
-          items:
-            $ref: '#/MovieSummary'
-    _links:
-      $ref: '../../openapi.yaml#/components/schemas/MovieCollectionLinks'
-
-MovieSummaryCollectionEnvelope:
-  type: object
-  required: [data, meta]
-  properties:
-    data:
-      $ref: '#/MovieSummaryCollectionData'
-    meta:
-      $ref: '../../openapi.yaml#/components/schemas/Meta'
-
-CreditPerson:
-  type: object
-  required: [id, name]
-  properties:
-    id:
-      type: string
-      format: uuid
-    name:
-      type: string
-
-CastCredit:
-  type: object
-  required: [person, billingOrder]
-  properties:
-    person:
-      $ref: '#/CreditPerson'
-    character:
-      type: string
-    billingOrder:
-      type: integer
-      minimum: 1
-
-CrewCredit:
-  type: object
-  required: [person, department, job]
-  properties:
-    person:
-      $ref: '#/CreditPerson'
-    department:
-      type: string
-    job:
-      type: string
-
-MovieCreditsData:
-  type: object
-  required: [_embedded, _links]
-  properties:
-    _embedded:
-      type: object
-      required: [cast, crew]
-      properties:
-        cast:
-          type: array
-          items:
-            $ref: '#/CastCredit'
-        crew:
-          type: array
-          items:
-            $ref: '#/CrewCredit'
-    _links:
-      $ref: '../../openapi.yaml#/components/schemas/CreditsLinks'
-
-MovieCreditsEnvelope:
-  type: object
-  required: [data, meta]
-  properties:
-    data:
-      $ref: '#/MovieCreditsData'
-    meta:
-      $ref: '../../openapi.yaml#/components/schemas/Meta'
+      $ref: '#/MovieLinks'

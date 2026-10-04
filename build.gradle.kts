@@ -29,7 +29,6 @@ val openApiBundledSpec = layout.buildDirectory.file("openapi/openapi.bundled.yam
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-security")
-    implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
@@ -48,6 +47,10 @@ dependencies {
     testImplementation("org.testcontainers:junit-jupiter")
     testImplementation("org.testcontainers:postgresql")
     testImplementation("org.assertj:assertj-core")
+    // Validates real HTTP response bodies against the schemas declared in the served,
+    // redocly-bundled OpenAPI 3.1 document (JSON Schema 2020-12, which OAS 3.1 uses).
+    testImplementation("com.networknt:json-schema-validator:1.5.4")
+    testImplementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

@@ -1,96 +1,75 @@
 # SDLC — Multi-Agent Software Delivery Pipeline
 
 A spec-driven development setup where specialised Claude Code agents (architect, spec-reviewer,
-junior dev, QA, senior dev) take a ticket through the **OpenSpec** workflow — plan → review →
+junior dev, QA, senior dev) take a **use case** through the **OpenSpec** workflow — plan → review →
 implement → verify → code review → archive — with human approval gates, cost controls, and full
 observability.
 
-> **New here?** Read this file top to bottom once. Day to day, you mostly run `/build-ticket`
-> and answer the two gates.
+The pipeline itself lives in the **[sdlc-pipeline](https://github.com/prule/sdlc-pipeline)** Claude Code
+plugin so it can be reused and updated across projects. This repo is the product it builds (a public,
+read-only movie catalog API) plus the project-specific inputs the pipeline reads.
+
+> **New here?** Read this file top to bottom once. Day to day, you mostly write a use case, run
+> `/sdlc-pipeline:build-use-case`, and answer the two gates.
 
 ---
 
-## TL;DR — run a ticket
+## TL;DR — build a use case
 
 ```
-/build-ticket <paste the ticket / description here>
+/sdlc-pipeline:write-use-case <rough idea>              # draft use-cases/UC-<n>-<slug>.md, review it
+/sdlc-pipeline:build-use-case use-cases/UC-<n>-<slug>.md  # run the pipeline, answer the two gates
 ```
 
-That drives the whole pipeline and pauses at two gates for your approval. Everything below explains
-what happens and how to do each piece by hand.
+`build-use-case` cuts a `feat/uc-<n>-<slug>` branch from `develop`, drives the agents, and pauses at
+**Gate 1** (approve the plan) and **Gate 2** (approve the finished change). Every run ends with a
+retrospective in [retrospectives/](retrospectives/) and a session report in `reports/sessions/` —
+commit both with the change, then open a PR into `develop`.
 
 ---
 
-## Step 0 — write the ticket first
+## Setup — the sdlc-pipeline plugin
 
-For anything non-trivial (especially features), author the ticket before running the pipeline — the
-pipeline serves the requirement, it shouldn't invent it.
-
-```
-/write-ticket <rough idea>          # interactive: asks you the gaps, saves to tickets/
-```
-
-or delegate a one-shot draft: `Use the ticket-writer agent to draft a ticket for: <idea>`.
-
-Both read the **[domain/](domain/)** knowledge base (ubiquitous language, bounded contexts, actors,
-business rules) and **[standards/](standards/)**, so tickets use the right language and NFRs. Tickets
-live in **[tickets/](tickets/)** ([template](tickets/TEMPLATE.md)); they capture **what & why**, not
-**how**. Keep `domain/` current — it's what makes the tickets (and plans) good.
-
----
-
-## The team (`.claude/agents/`)
-
-| Agent | Model | Can write? | Job | OpenSpec verb |
-|-------|-------|-----------|-----|---------------|
-| **ticket-writer** | opus | yes (tickets) | Rough idea → a well-formed ticket (from `domain/` + `standards/`) | — (pre-pipeline) |
-| **architect** | opus | yes | Ticket → plan (proposal, design, spec delta, tasks) | `opsx:propose` |
-| **spec-reviewer** | opus | no (read-only) | Plan gate: standards conformance + design/feasibility | — |
-| **junior-dev** | sonnet | yes | Implement the tasks | `opsx:apply` |
-| **qa** | sonnet | yes | Verify every requirement is tested; run the suite | `opsx:verify` |
-| **senior-dev** | opus | yes (fixes directly) | Final code review of the diff; fixes what it finds, hands back design/scope calls | — |
-
-Principle: **OpenSpec owns the workflow mechanics; agents own judgment + standards.** The
-**spec-reviewer** is read-only by design (plan gate — it reports, the architect revises). The
-**senior-dev** (the strongest model) fixes what it finds in the code review directly, and hands back
-only design/plan/scope calls. Agents never format code — the pre-commit hook does (they build with
-`-x spotlessCheck`).
-
----
-
-## The pipeline (`/build-ticket`)
+The plugin is declared in the checked-in [.claude/settings.json](.claude/settings.json)
+(`extraKnownMarketplaces` + `enabledPlugins`). The first time you open the repo in Claude Code and
+trust the folder, accept the prompt to install it — or install it yourself:
 
 ```
-architect ─▶ spec-reviewer ─▶ 🚦 GATE 1 ─▶ junior-dev ─▶ qa ─▶ senior-dev ─▶ 🚦 GATE 2 ─▶ archive
-  (plan)      (plan gate)      (you)        (implement)  (verify) (code review)  (you)
-                   ▲                              │          │         │
-                   └──── revise (max 2 rounds) ───┴──────────┴─────────┘
+/plugin marketplace add prule/sdlc-pipeline
+/plugin install sdlc-pipeline@sdlc-pipeline
 ```
 
-- **🚦 GATE 1 — proposal approval.** You review the plan + spec-reviewer verdict and say
-  proceed / revise / stop.
-- **🚦 GATE 2 — merge/archive approval.** You review QA evidence + code-review verdict + the diff
-  and approve the merge/archive.
-- Fix-loops are capped at **2 rounds**, then the pipeline stops and escalates to you.
+It provides:
 
-### Run phases by hand
+| | |
+|---|---|
+| **Skills** | `/sdlc-pipeline:write-use-case`, `/sdlc-pipeline:build-use-case`, `/sdlc-pipeline:init`, `session-report` |
+| **Agents** | `sdlc-pipeline:` `architect`, `spec-reviewer`, `junior-dev`, `qa`, `senior-dev`, `use-case-writer` |
+| **Hooks** | logs every tool call to `logs/pipeline-events.jsonl` (git-ignored) |
 
-```
-Use the architect agent to plan: <ticket>
-Use the spec-reviewer agent to review the <change-name> change
-Use the junior-dev agent to implement the <change-name> change
-Use the qa agent to verify <change-name>
-Use the senior-dev agent to review the diff for <change-name>
-```
+How the pipeline works — stages, gates, fix loops, budget caps, retrospectives, running a phase by
+hand — is documented in the plugin:
+**[docs/pipeline.md](https://github.com/prule/sdlc-pipeline/blob/main/docs/pipeline.md)**.
 
-Or drive OpenSpec directly, no agents:
+### What this repo gives the pipeline
 
-```
-/opsx:propose "<idea>"     # plan
-/opsx:apply <change>       # implement
-/opsx:verify <change>      # verify
-/opsx:archive <change>     # fold spec delta into openspec/specs, move to archive
-```
+The plugin's agents carry roles and judgment; this repo supplies everything project-specific:
+
+| Input | Holds |
+|-------|-------|
+| [.claude/sdlc-profile.md](.claude/sdlc-profile.md) | The **profile**: verify/codegen commands, implementation rules, task order, and what each review gate checks ([reference](https://github.com/prule/sdlc-pipeline/blob/main/docs/profile.md)) |
+| [openspec/config.yaml](openspec/config.yaml) | Design-time rules injected while the architect writes each artifact |
+| [standards/](standards/) | The detailed house rules the profile cites |
+| [domain/](domain/) | Ubiquitous language, business rules, bounded contexts, actors |
+| [use-cases/](use-cases/) | The pipeline's input — one business use case per feature |
+| [CLAUDE.md](CLAUDE.md) | Always-on instructions for every agent |
+| [.claude/settings.json](.claude/settings.json) | Token caps, Bash timeouts and denied commands (plugins can't set these) |
+
+To change *how work is done here*, edit `standards/` or the profile. To change *how the pipeline
+works*, change the plugin (develop it locally with `claude --plugin-dir <clone>`).
+
+The OpenSpec skills (`.claude/skills/openspec-*`, `.claude/commands/opsx/`) are installed by
+`openspec init` and stay in this repo.
 
 ---
 
@@ -117,14 +96,15 @@ openspec archive <change> --yes     # complete a change (updates openspec/specs/
 | `clean-architecture.md` | Layering (domain / application / adapters), allowed imports, request flow, per-layer tests |
 | `openapi.md` | Contract-first; split-by-domain spec; success envelope + RFC 7807; **bundle→generate** pipeline |
 | `error-handling.md` | Exception taxonomy, single `@RestControllerAdvice`, code↔status map, correlation ids |
-| `security.md` | Stateless JWT, required claims, ownership/tenant authz, secrets handling |
+| `security.md` | Public API (no auth), transport and headers, input, rate limiting, secrets |
 | `clean-code.md` | Small single-responsibility classes, naming, immutability, review smells |
-| `testing.md` | Useful tests for all new code; per-layer pyramid; **Testcontainers, no H2** |
+| `testing.md` | Useful tests for all new code; per-layer pyramid; **DB tests on the target database (Testcontainers)** |
 | `formatting.md` | google-java-format via Spotless, auto-format on commit, CI enforced |
 
 **Where rules get injected:** design-time rules live in `openspec/config.yaml` (the architect obeys
-them); build/review rules live in `CLAUDE.md` (all agents) + the per-agent files. To change how work
-is done, edit the relevant `standards/*.md` — the whole pipeline follows.
+them); build and review rules live in `CLAUDE.md` (all agents) and `.claude/sdlc-profile.md` (the
+pipeline agents' per-gate checklists). To change how work is done, edit the relevant
+`standards/*.md` and keep the profile's one-line summary in step — the whole pipeline follows.
 
 ---
 
@@ -194,17 +174,9 @@ taken, a previous instance is still on 8080 — clear it with `lsof -ti tcp:8080
 
 ## Observability — see what the pipeline did
 
-Two complementary options (run both, compare):
-
-**1. Hooks (lightweight, zero infra)** — log every event to `logs/pipeline-events.jsonl` (git-ignored):
-
-```
-python3 .claude/hooks/pipeline-report.py     # → logs/pipeline-report.html
-```
-
-Shows agents spawned (+ roles), tool-usage counts, skills invoked, files read/written, and a
-filterable event timeline. Clear the log for a fresh baseline: `: > logs/pipeline-events.jsonl`.
-Hooks load at session start, so config changes take effect next `claude` session.
+**1. Hooks (lightweight, zero infra)** — the plugin logs every event to `logs/pipeline-events.jsonl`
+(git-ignored). Render it with the plugin's `scripts/pipeline-report.py` → `logs/pipeline-report.html`.
+Clear the log for a fresh baseline: `: > logs/pipeline-events.jsonl`.
 
 **2. OpenTelemetry + Grafana (cost/tokens/trends)** — Claude Code's built-in telemetry → Collector →
 Prometheus + Loki → Grafana. Full guide: **[observability/otel/README.md](observability/otel/README.md)**.
@@ -216,69 +188,69 @@ open http://localhost:3000                                             # view (G
 docker compose -f observability/otel/docker-compose.yml down           # stop
 ```
 
-**3. Session report + evaluation (is the pipeline actually *good*?)** — the
-`session-report` skill turns a run's session log into an HTML report: agent
-timeline, per-subagent value/efficiency, which review gates caught what, errors &
-friction, files touched, and **context ingestion** (are `domain/`/`standards/`
-being read and used). Ask Claude *"analyse this session"*, or:
+**3. Session reports (is the pipeline actually *good*?)** — every run's report is in
+[reports/sessions/](reports/sessions/): agent timeline, per-subagent value, which gates caught what,
+errors, and whether `domain/` and `standards/` are read and used. Ask Claude *"analyse this session"*
+for any other session. How to use them to judge the pipeline, including A/B ablations:
+[evaluating-the-pipeline.md](https://github.com/prule/sdlc-pipeline/blob/main/docs/evaluating-the-pipeline.md).
 
-```
-python3 .claude/skills/session-report/session_report.py \
-    ~/.claude/projects/<slug>/<session-id>.jsonl --compact --open   # → reports/sessions/
-```
+**4. Run retrospectives (what should we change?)** — one record per run in
+[retrospectives/](retrospectives/): failed reviews and standards violations, each with a root cause
+and a recommended fix to the pipeline's inputs, with recurring findings flagged across runs.
 
-To judge whether a change (context, input format, an agent) makes outcomes better
-or worse, run an A/B ablation with `--compare`. **Full method:
-[docs/evaluating-the-pipeline.md](docs/evaluating-the-pipeline.md)** — a manual
-for figuring out how well the pipeline is working.
-
-Hooks answer "what did this run touch?"; OTel answers "what did it cost, how many tokens, how does it trend?";
-the session report answers "did each agent and each piece of context earn its place?".
+Hooks answer "what did this run touch?"; OTel answers "what did it cost?"; session reports answer
+"did each agent and each piece of context earn its place?"; retrospectives answer "what keeps going
+wrong, and what should we change?".
 
 ---
 
 ## Cost / runaway controls
 
-- **Model tiering** — opus only for architect + reviewers; sonnet for implement/QA.
-- **No agent can spawn agents** — only the orchestrator (you) spawns; no fan-out.
+- **One model: opus for every agent.** On UC-002 a Sonnet junior-dev made ~4× the tool calls of an
+  Opus one and doubled the run's cost (~$19 vs ~$9.50) and tripled its time, for the same
+  blind-review quality. Evidence: branches `experiment/pipeline-opus-uc-002` and
+  `experiment/baseline-uc-002`.
+- **No agent can spawn agents**; the build-use-case skill caps fix-loops at 2 rounds and pauses at
+  ~10 agent runs.
 - **`.claude/settings.json`** caps output/thinking tokens and Bash timeouts, and denies `gradle publish`.
-- **`/build-ticket`** caps fix-loops at 2 rounds and pauses at ~10 total agent runs.
-- **Account spend limit** (Anthropic Console for API keys, or your plan cap) is the only true dollar ceiling — set it.
-- Watch spend with `/cost`.
+- **Account spend limit** (Anthropic Console for API keys, or your plan cap) is the only true dollar
+  ceiling — set it. Watch spend with `/cost`.
 
 ---
 
 ## Git workflow
 
-Work on the default branch is avoided for changes:
+Each use case gets its own branch from `develop`; `build-use-case` creates it for you:
 
 ```
-git checkout -b <type>/<slug>          # feat/… fix/… chore/… docs/…
+git checkout develop && git pull
+git checkout -b feat/uc-<n>-<slug>     # or chore/… fix/… docs/… for other work
 # … agents implement …
 git commit -m "type(scope): summary"   # Conventional Commits; pre-commit runs Spotless
 git push -u origin <branch>
-gh pr create --base main --head <branch> --title "…" --body "…"
-gh pr merge <n> --squash --delete-branch
+gh pr create --base develop --head <branch> --title "…" --body "…"
 ```
 
-After a change is archived, commit the `openspec/` bookkeeping (spec promotion + archive move).
+Commit the run's retrospective and session report with the change. After a change is archived,
+commit the `openspec/` bookkeeping (spec promotion + archive move).
 
 ---
 
 ## Extending the setup
 
-- **New role** → add `.claude/agents/<name>.md` (frontmatter: `name`, `description`, `model`,
-  `tools`); wire it into `.claude/commands/build-ticket.md` if it joins the main pipeline.
-- **New standard** → add `standards/<name>.md`, link it from `CLAUDE.md`, reference it from the
-  agents that must enforce it, and add the design-time gist to `openspec/config.yaml`.
-- **New tech-stack default** → edit `CLAUDE.md` (build rules) and `openspec/config.yaml` (design rules).
+- **New standard** → add `standards/<name>.md`, link it from `CLAUDE.md`, add its review items to
+  `.claude/sdlc-profile.md`, and add the design-time gist to `openspec/config.yaml`.
+- **New tech-stack default** → edit `CLAUDE.md` (build rules), `.claude/sdlc-profile.md` (commands
+  and implementation rules) and `openspec/config.yaml` (design rules).
+- **New role or pipeline change** → change the [sdlc-pipeline](https://github.com/prule/sdlc-pipeline)
+  plugin, then update it here.
 
 ---
 
 ## Where things are
 
 The pipeline is building a **public, read-only REST API over a curated movie catalog** (see
-**[domain/](domain/)**). Everything below shipped through `/build-ticket` with both gates.
+**[domain/](domain/)**). Everything below shipped through the pipeline with both gates.
 
 **Platform foundation** ✅
 - Walking skeleton (Clean Architecture, contract-first, security/error seam, Testcontainers, CI)
@@ -300,6 +272,6 @@ The pipeline is building a **public, read-only REST API over a curated movie cat
 `platform/hypermedia-links`, `platform/runtime-datasource`, `platform/api-docs`, `catalog/movies`,
 `catalog/credits`, `catalog/people`. Archived changes: `openspec/changes/archive/`.
 
-**Candidate next tickets** (none in progress): `/genres` browse · data ingestion/curation · rate-limiting
-design · enforce the Rating 1-decimal scale. **Auth** is parked pending a human-authored ticket (write
+**Candidate next use cases** (none in progress): `/genres` browse · data ingestion/curation · rate-limiting
+design · enforce the Rating 1-decimal scale. **Auth** is parked pending a human-authored use case (write
 the requirement first, then pipeline it).

@@ -1,20 +1,25 @@
-get:
-  operationId: ping
-  tags: [health]
-  summary: Liveness ping
-  description: Public, unauthenticated liveness endpoint proving the request traverses every layer.
-  security: []
-  parameters:
-    - $ref: '../openapi.yaml#/components/parameters/CorrelationId'
-  responses:
-    '200':
-      description: Service is alive
-      headers:
-        X-Correlation-Id:
-          $ref: '../openapi.yaml#/components/headers/CorrelationId'
-      content:
-        application/json:
-          schema:
-            $ref: '../openapi.yaml#/components/schemas/PingEnvelope'
-    '500':
-      $ref: '../openapi.yaml#/components/responses/InternalError'
+ping:
+  get:
+    operationId: ping
+    summary: Check that the catalog service is available
+    description: >
+      Public liveness check. Answers UP whenever the service process is
+      running and able to handle HTTP requests, regardless of whether the
+      catalog holds any data.
+    tags:
+      - Health
+    security: []
+    responses:
+      '200':
+        description: The service is available.
+        headers:
+          X-Correlation-Id:
+            $ref: '../components/headers/common.yaml#/X-Correlation-Id'
+        content:
+          application/json:
+            schema:
+              $ref: '../components/schemas/health.yaml#/PingEnvelope'
+      '406':
+        $ref: '../components/responses/common.yaml#/NotAcceptable'
+      '500':
+        $ref: '../components/responses/common.yaml#/InternalError'

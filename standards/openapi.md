@@ -18,7 +18,7 @@ src/main/resources/openapi/
     │   ├── common.yaml          # Envelope, ErrorResponse, Problem, Page, etc.
     │   ├── user.yaml
     │   └── order.yaml
-    ├── responses/common.yaml    # reusable 400/401/403/404/409/422/500 responses
+    ├── responses/common.yaml    # reusable 400/404/409/422/500 responses
     └── parameters/common.yaml   # pagination, correlation-id, etc.
 ```
 
@@ -93,15 +93,27 @@ FooLinks:
   with its own `_links.self`); `data._links` carries `self`, `first`, `last`, and `next`/`prev`
   when applicable. Pagination **counts** (`page`, `size`, `totalElements`, `totalPages`) stay in
   `meta.pagination`; pagination **link URLs** live in `data._links` — no duplication between them.
+- **Pages are zero-based**: `page` is the zero-based index of the requested page — the first page
+  is `page=0`.
 - **Boundary rules**: `prev` is absent on the first page, `next` is absent on the last page. A
-  syntactically valid page **beyond** the last page (`page` index > `totalPages`) is a normal `200`
-  with an empty `data._embedded.<rel>` — it is **not** an error. Only **invalid** `page`/`size`
-  (outside the documented bounds — `page < 0`, `size < 1`, or `size` above the documented maximum)
-  is rejected `400` `application/problem+json`. Every collection endpoint's query parameters
-  (`page`/`size` from `components/parameters/common.yaml`) carry `@Min`/`@Max`; the implementing
-  controller **must** be class-annotated `@Validated` for those constraints to be enforced —
-  without it, invalid input silently reaches the handler and falls through to a generic `500`
-  instead of `400` (see `standards/error-handling.md`).
+  syntactically valid page **beyond** the last page (`page > lastPage`, where
+  `lastPage = totalPages − 1`, or `0` when `totalPages` is `0`) is a normal `200` with an empty
+  `data._embedded.<rel>` — it is **not** an error. Only **invalid** `page`/`size` (outside the
+  documented bounds — `page < 0`, `size < 1`, or `size` above the documented maximum) is rejected
+  `400` `application/problem+json`. Every collection endpoint's query parameters (`page`/`size`
+  from `components/parameters/common.yaml`) carry `@Min`/`@Max`; the implementing controller
+  **must** be `@Validated` for those constraints to be enforced — without it, invalid input
+  silently reaches the handler and falls through to a generic `500` instead of `400` (see
+  `standards/error-handling.md`). Either annotate the controller class itself, or rely on the
+  generated API interface carrying `@Validated` (Spring's method-validation pointcut honours an
+  inherited annotation) — but then a codegen test (`GeneratedApiCodegenTest`) MUST pin that the
+  generated interface is `@Validated`, so a generator change can't silently drop it.
+- **`page` is appended last**: a navigation link's query carries every recognised parameter present
+  on the request, unchanged, with any `page` value removed and `page=<target>` appended last.
+- **Invalid query parameters are named**: a `400` caused by an invalid query parameter (bounds,
+  type, or an operation-specific business rule) has a `detail` that names the offending parameter,
+  in the form `Query parameter '<name>' is invalid.` — never the supplied value or an internal type
+  name (see `standards/error-handling.md`).
 - **Preserving filter/sort params**: pagination navigation links (`self`, `first`, `last`,
   `prev`, `next`) MUST preserve every filter and sort query parameter that was present on the
   originating request, unchanged — each link differs from `self` only in its `page` value
@@ -116,9 +128,18 @@ FooLinks:
   `_links`/`_embedded`.
 - **Contract-first**: describe `Link` and every per-resource `_links` object as shared, `$ref`ed
   named components — never inline, never `additionalProperties`. `Link`/`_links` shapes are
-  authored in the OpenAPI spec; the web adapter builds concrete hrefs with Spring HATEOAS's
-  `WebMvcLinkBuilder` and populates the generated `_links` DTO fields (responses still serialize as
-  the generated contract DTOs, not a Spring HATEOAS `RepresentationModel`).
+  authored in the OpenAPI spec; the web adapter populates the generated `_links` DTO fields
+  (responses still serialize as the generated contract DTOs, not a Spring HATEOAS
+  `RepresentationModel`). How hrefs are built depends on the link:
+  - **Resource links** (an item's `self`, links to related resources) are built with Spring
+    HATEOAS's `WebMvcLinkBuilder` (`linkTo(methodOn(...))`), so they follow the controller mappings.
+  - **Collection navigation links** (`self`/`first`/`last`/`prev`/`next` on a paged collection) are
+    built from the **current request URI** (`ServletUriComponentsBuilder.fromCurrentRequestUri()`
+    or equivalent), copying the recognised query parameters exactly as sent and setting only
+    `page`. Do NOT use `methodOn` for these: it re-serializes every bound argument, including
+    defaulted ones, which breaks the "only parameters actually present are echoed" rule above.
+  - Both kinds honour forwarded headers (`X-Forwarded-*`), and each kind is built in one
+    web-adapter link factory, not ad hoc in controllers.
 - **Layering**: link assembly is a **web-adapter-only** concern (`adapters/in/web`). The domain and
   application layers never import Spring HATEOAS or reference `_links`/`_embedded` — they return
   domain results plus page metadata (page/size/totalElements/totalPages), nothing more.
@@ -151,7 +172,7 @@ Problem:
 ```
 
 Define reusable responses in `components/responses/common.yaml` and `$ref` them everywhere:
-`BadRequest` (400), `Unauthorized` (401), `Forbidden` (403), `NotFound` (404), `Conflict` (409),
+`BadRequest` (400), `NotFound` (404), `Conflict` (409),
 `UnprocessableEntity` (422, includes `errors[]`), `InternalError` (500). Never return a bare string
 or a stack trace. See [error-handling.md](error-handling.md) for the code↔status mapping.
 
@@ -162,7 +183,7 @@ or a stack trace. See [error-handling.md](error-handling.md) for the code↔stat
 - Every request body and every response references a named schema in `components/schemas/*` — no inline object schemas.
 - Use `format` (`uuid`, `date-time`, `email`, `int64`) and validation keywords (`minLength`, `pattern`, `enum`).
 - IDs in URLs are opaque strings (UUID); do not expose DB sequence integers.
-- Declare `security` globally (bearer JWT — see [security.md](security.md)); mark public endpoints with `security: []`.
+- The API is public ([security.md](security.md)): mark every operation `security: []`.
 - Version the API via a base path (`/api/v1`). Breaking changes → new major version, called out in the proposal.
 - Every collection endpoint supports `page` and `size` query params from `components/parameters/common.yaml`.
 

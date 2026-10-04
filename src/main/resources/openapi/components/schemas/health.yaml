@@ -1,21 +1,28 @@
-PingData:
-  type: object
-  required: [status, timestamp]
-  properties:
-    status:
-      type: string
-      enum: [ok]
-    timestamp:
-      type: string
-      format: date-time
-    _links:
-      $ref: '../../openapi.yaml#/components/schemas/PingLinks'
-
 PingEnvelope:
   type: object
   required: [data, meta]
+  additionalProperties: false
   properties:
     data:
-      $ref: '../../openapi.yaml#/components/schemas/PingData'
+      $ref: '#/PingData'
     meta:
-      $ref: '../../openapi.yaml#/components/schemas/Meta'
+      $ref: './common.yaml#/Meta'
+
+PingData:
+  type: object
+  required: [status, _links]
+  additionalProperties: false
+  properties:
+    status:
+      type: string
+      enum: [UP]
+    _links:
+      $ref: '#/PingLinks'
+
+PingLinks:
+  type: object
+  required: [self]
+  additionalProperties: false
+  properties:
+    self:
+      $ref: './common.yaml#/Link'

@@ -1,338 +1,351 @@
-# catalog/movies Specification
+# movies Specification
 
 ## Purpose
-The `catalog/movies` capability lets a public API consumer retrieve one movie's detail by its stable, opaque identifier, so consumers can present accurate movie information sourced from the curated catalog.
+
+Lets any API consumer retrieve the curated details of one movie by its stable, opaque catalog identifier, so they can present it to their own end users (UC-001).
 
 ## Requirements
 
-### Requirement: Retrieve a movie's detail by identifier
+### Requirement: Retrieve a movie's details by identifier
+The service SHALL offer `GET /api/v1/movies/{id}`. When `{id}` is a well-formed identifier of a movie in the catalog, the service SHALL respond `200` with `Content-Type: application/json`, never `application/problem+json`, even when the request's `Accept` header names only the problem media type. The body SHALL be the uniform success envelope. `data` SHALL hold the movie's details, and `meta` SHALL hold `timestamp` and `correlationId`. `data` SHALL always contain `id`, `title`, `releaseYear` and `genres`. `data.id` SHALL be the movie's identifier in canonical lowercase form. `data._links.self.href` SHALL be the absolute URI of the same movie's details. It SHALL honour forwarded scheme and host, and `data._links` SHALL carry no other relation. Acceptance check: a Testcontainers-backed test inserts a movie with a known identifier and asserts the status, the `Content-Type`, every required member, `self.href`, and that `meta.correlationId` equals the `X-Correlation-Id` header. A second request to `self.href` returns an identical `data`.
 
-The system SHALL provide a read-only operation that, given a well-formed stable movie identifier that matches a movie in the catalog, returns that movie's detail. The detail SHALL always include the movie's identifier, title, release year, and one or more genres. The response SHALL use the standard success Envelope (`data` + `meta`), with the movie detail in `data` carrying a HAL `self` link and a HAL `credits` link that resolves to that movie's credits sub-resource (`GET /movies/{id}/credits`), and SHALL NOT mutate any catalog data. The `credits` link SHALL be present on every movie detail regardless of whether that movie has any credits recorded (an existing movie with no credits still exposes a resolvable credits sub-resource that returns empty groups).
+#### Scenario: Existing movie is returned
+- **WHEN** a client sends `GET /api/v1/movies/6f1c2a3b-4d5e-4f60-8a7b-9c0d1e2f3a4b` and that movie is in the catalog with title `Arrival`, release year `2016` and genre `Drama`
+- **THEN** the response status is `200`, the `Content-Type` is `application/json`, `data.id` is `6f1c2a3b-4d5e-4f60-8a7b-9c0d1e2f3a4b`, `data.title` is `Arrival`, `data.releaseYear` is `2016`, `data.genres` is `["Drama"]`, and `data._links.self.href` ends with `/api/v1/movies/6f1c2a3b-4d5e-4f60-8a7b-9c0d1e2f3a4b`
 
-Acceptance check: issue the retrieve operation for an existing movie whose identifier is `M`; assert HTTP `200 application/json`, `data.id == M`, `data.title`, `data.releaseYear`, and `data.genres` (a non-empty array) are present, `data._links.self` resolves to the same movie, `data._links.credits` resolves to that movie's credits sub-resource, and `meta.correlationId`/`meta.timestamp` are present.
+#### Scenario: Self link honours forwarded headers
+- **WHEN** a client requests an existing movie with `X-Forwarded-Proto: https` and `X-Forwarded-Host: api.example.test`
+- **THEN** `data._links.self.href` is `https://api.example.test/api/v1/movies/<id>`
 
-#### Scenario: Existing movie is returned with all required detail
-- **WHEN** a consumer requests the detail of a movie whose identifier matches a catalog movie
-- **THEN** the system responds `200` with the standard Envelope
-- **AND** `data` contains the identifier, title, release year, and a non-empty list of genres
-- **AND** `data._links.self` points at that same movie
-- **AND** `data._links.credits` points at that movie's credits sub-resource
-- **AND** the catalog is unchanged
+#### Scenario: Upper-case identifier is the same movie
+- **WHEN** a client requests an existing movie using its identifier in upper-case hexadecimal
+- **THEN** the response status is `200` and `data.id` and `self.href` use the canonical lowercase form
 
-#### Scenario: Retrieval requires no authentication
-- **WHEN** a consumer requests a movie's detail without presenting any credential
-- **THEN** the system serves the request (it is not rejected as unauthenticated)
+#### Scenario: Success is never labelled as a problem
+- **WHEN** a client requests an existing movie with `Accept: application/problem+json`
+- **THEN** the response status is `200` and the `Content-Type` is `application/json`
 
-#### Scenario: Movie detail links onward to its credits
-- **WHEN** a consumer retrieves the detail of a movie
-- **THEN** `data._links.credits` is present and resolves to that movie's `GET /movies/{id}/credits` sub-resource
-- **AND** the link is present even when the movie has no credits recorded
+### Requirement: Movie details contain exactly the curated movie information
+The details SHALL contain only `id`, `title`, `releaseYear`, `genres`, `runtimeMinutes`, `synopsis`, `rating` and `_links`. They SHALL NOT contain keywords, cast, crew, credits, reviews, a vote count, or any link to them. `releaseYear` SHALL be an integer. `runtimeMinutes`, when present, SHALL be a positive integer. `rating`, when present, SHALL be a JSON number from `0` to `5` inclusive: the curated aggregate score. It SHALL be written in its shortest exact decimal form, with no trailing zeros and no exponent, so a rating curated as `5.0` appears as `5` and `4.5` appears as `4.5`. Acceptance check: the success body validates against the served interface description's closed (`additionalProperties: false`) schema. A test asserts the member set exactly for a fully populated movie. Rating tests assert the literal JSON text of `rating`.
 
-### Requirement: Optional detail fields are present only when recorded
+#### Scenario: Fully curated movie
+- **WHEN** a client requests a movie recorded with runtime `116`, synopsis `A linguist is recruited…` and rating `4.5`
+- **THEN** `data.runtimeMinutes` is `116`, `data.synopsis` is `A linguist is recruited…`, `data.rating` is `4.5`, and `data` has no member other than `id`, `title`, `releaseYear`, `genres`, `runtimeMinutes`, `synopsis`, `rating` and `_links`
 
-The system SHALL include a movie's runtime, synopsis, and aggregate rating in the detail only when the movie has them recorded. An absent optional field SHALL be omitted from the response entirely (not rendered as null or empty), and its absence SHALL NOT be treated as an error. The aggregate rating, when present, SHALL be a value on a 0–5 star scale.
+#### Scenario: Rating at the boundaries of the scale
+- **WHEN** a client requests one movie rated `0` and another rated `5`
+- **THEN** the raw JSON text of their `data.rating` values is `0` and `5` respectively (not `0.0` or `5.0`)
 
-Acceptance check: retrieve a movie that has all optional fields and assert `data.runtimeMinutes`, `data.synopsis`, and `data.rating` are present with `0 <= rating <= 5`; retrieve a movie that has none of them and assert the response is `200` and those keys are absent from `data`.
+### Requirement: Unrecorded optional details are absent, never invented
+When a movie has no runtime, synopsis or rating recorded, the service SHALL still respond `200` with the movie. It SHALL omit each unrecorded member from `data` entirely. It SHALL NOT present such a member as `null`, `0`, an empty string, or any other default value. Acceptance check: a test inserts a movie with none of the three recorded and asserts `200` and that `runtimeMinutes`, `synopsis` and `rating` are absent keys. A second test records only the rating and asserts that exactly the other two are absent.
 
-#### Scenario: Movie with all optional fields present
-- **WHEN** a consumer retrieves a movie that has a runtime, synopsis, and rating recorded
-- **THEN** the response `200` includes runtime, synopsis, and a rating between 0 and 5 inclusive
+#### Scenario: Movie with no optional details
+- **WHEN** a client requests a movie with no runtime, synopsis or rating recorded
+- **THEN** the response status is `200`, `data` contains `id`, `title`, `releaseYear`, `genres` and `_links`, and `data` has no `runtimeMinutes`, `synopsis` or `rating` key
 
-#### Scenario: Movie with optional fields absent is still a success
-- **WHEN** a consumer retrieves a movie that has no runtime, synopsis, or rating recorded
-- **THEN** the response is `200` with the required detail present
-- **AND** the runtime, synopsis, and rating fields are omitted from `data`
+#### Scenario: Movie with some optional details
+- **WHEN** a client requests a movie recorded with a rating of `3` and no runtime or synopsis
+- **THEN** `data.rating` is `3` and `data` has no `runtimeMinutes` or `synopsis` key
 
-### Requirement: Malformed identifier is rejected as a bad request before lookup
+### Requirement: Genres are listed by name in alphabetical order
+`data.genres` SHALL be an array of genre names taken from the curated genre vocabulary. It SHALL NOT contain duplicates. It SHALL be ordered alphabetically by name, ignoring letter case, so the same movie always lists its genres in the same order, whatever order they were curated in. A movie that belongs to no genres SHALL be presented with an empty array, and the response SHALL still be `200`. Acceptance check: a test inserts a movie whose genres were linked in the order `Thriller`, `Drama`, `Sci-Fi` and asserts `["Drama", "Sci-Fi", "Thriller"]` on two consecutive requests. A test with no genres asserts `genres` is `[]`.
 
-The system SHALL reject a request whose supplied identifier is not a well-formed movie identifier with a `400` `application/problem+json` response, WITHOUT attempting to locate any movie. This outcome SHALL be distinct from the not-found outcome and SHALL leave the catalog unchanged.
+#### Scenario: Genres presented alphabetically
+- **WHEN** a client requests a movie curated with the genres `Thriller`, `Drama` and `Sci-Fi`, in that order
+- **THEN** `data.genres` is `["Drama", "Sci-Fi", "Thriller"]`
 
-Acceptance check: issue the retrieve operation with an identifier that is not a well-formed movie identifier; assert HTTP `400 application/problem+json`, a stable machine `code`, and a `correlationId`; assert no catalog lookup occurred.
+#### Scenario: Movie with no genres
+- **WHEN** a client requests a movie that belongs to no genres
+- **THEN** the response status is `200` and `data.genres` is `[]`
 
-#### Scenario: Not a well-formed identifier
-- **WHEN** a consumer requests a movie using a value that is not a well-formed movie identifier
-- **THEN** the system responds `400` with a problem+json body
-- **AND** it does not attempt to locate any movie
-- **AND** the outcome is reported distinctly from not-found
+### Requirement: Malformed identifier is refused before any lookup
+A movie identifier SHALL be well-formed only when it is a UUID in the canonical 36-character form: 8, 4, 4, 4 and 12 hexadecimal digits separated by hyphens, in any letter case. For any other value, `GET /api/v1/movies/{id}` SHALL respond `400` `application/problem+json` with `code` `BAD_REQUEST`. It SHALL NOT look up any movie. The response SHALL be distinct from the no-such-movie outcome (a different status, `code` and `type`). The problem `detail` SHALL NOT echo the supplied value or name an internal type. Acceptance check: a web-slice test with the movie lookup mocked sends each malformed value. It asserts `400`, `BAD_REQUEST`, the problem members required by `platform/uniform-responses`, and that the lookup was never invoked.
 
-### Requirement: Well-formed identifier matching no movie is not found
+#### Scenario: Not an identifier at all
+- **WHEN** a client sends `GET /api/v1/movies/not-a-movie-id`
+- **THEN** the response status is `400`, the body is `application/problem+json` with `code` `BAD_REQUEST`, and no movie lookup is performed
 
-The system SHALL respond `404` `application/problem+json` when a well-formed identifier matches no movie in the catalog. This SHALL be reported as a distinct outcome from a malformed request and SHALL leave the catalog unchanged.
+#### Scenario: Non-canonical UUID-like value
+- **WHEN** a client sends `GET /api/v1/movies/1-1-1-1-1`, and separately `GET /api/v1/movies/6f1c2a3b4d5e4f608a7b9c0d1e2f3a4b` (no hyphens)
+- **THEN** both responses have status `400` and `code` `BAD_REQUEST`, and no movie lookup is performed
 
-Acceptance check: issue the retrieve operation with a well-formed identifier that matches no movie; assert HTTP `404 application/problem+json`, a stable machine `code`, and a `correlationId`.
+#### Scenario: Numeric sequence-style value
+- **WHEN** a client sends `GET /api/v1/movies/123`
+- **THEN** the response status is `400` with `code` `BAD_REQUEST`
+
+### Requirement: Unknown movie is reported as not found
+When `{id}` is well-formed but no movie in the catalog has that identifier, the service SHALL respond `404` `application/problem+json` with `code` `NOT_FOUND`. It SHALL NOT respond with an empty or placeholder movie. Acceptance check: a Testcontainers-backed test requests a random well-formed UUID against a catalog that does not contain it. It asserts `404`, `NOT_FOUND`, the required problem members, no `data` member, and that `type` differs from the `400` outcome's `type`.
+
+#### Scenario: No such movie
+- **WHEN** a client sends `GET /api/v1/movies/00000000-0000-4000-8000-000000000000` and no movie has that identifier
+- **THEN** the response status is `404`, the body is `application/problem+json` with `code` `NOT_FOUND`, and the body has no `data` or `_links` member
+
+### Requirement: Internal fault is reported generically
+If retrieving a movie fails because of an unexpected internal fault (for example, the catalog store is unreachable), the service SHALL respond `500` `application/problem+json` with `code` `INTERNAL_ERROR`, `detail` `An unexpected error occurred.`, and the request's `correlationId`. The body SHALL reveal no internal detail. The server log SHALL record the fault with the same correlation id. Acceptance check: a web-slice test in which the movie lookup throws an exception whose message is `secret-db-host:5432 refused`. It asserts `500`, `INTERNAL_ERROR`, the generic detail, and that `secret-db-host` does not appear in the body.
 
-#### Scenario: No movie carries the identifier
-- **WHEN** a consumer requests a movie using a well-formed identifier that matches no catalog movie
-- **THEN** the system responds `404` with a problem+json body
-- **AND** the outcome is reported distinctly from a malformed request
+#### Scenario: Lookup fails unexpectedly
+- **WHEN** a client requests a well-formed identifier and the catalog lookup throws `secret-db-host:5432 refused`
+- **THEN** the response status is `500`, `code` is `INTERNAL_ERROR`, `detail` is `An unexpected error occurred.`, and the body does not contain `secret-db-host`
 
-### Requirement: Movie identifiers are stable and opaque
+### Requirement: Movie details are public and read-only
+Retrieving a movie's details SHALL require no credentials, and no credential presented SHALL be validated. `POST`, `PUT`, `PATCH` and `DELETE` on `/api/v1/movies/{id}` SHALL respond `405` `application/problem+json` with `code` `METHOD_NOT_ALLOWED` and an `Allow` header that includes `GET`. They SHALL NOT respond `2xx`, `401`, `403` or `5xx`, and they SHALL leave the catalog unchanged. Acceptance check: a parameterised web test over the four write methods, with a JSON body, no credentials and no CSRF token, asserts `405`, the `Allow` header and `METHOD_NOT_ALLOWED`. A Testcontainers-backed test then asserts that a following `GET` of an existing movie returns the same `data`.
+
+#### Scenario: Anonymous retrieval
+- **WHEN** a client requests an existing movie with no `Authorization` header
+- **THEN** the response status is `200`
+
+#### Scenario: Attempt to change a movie is refused
+- **WHEN** a client sends `PUT /api/v1/movies/<existing id>` or `DELETE /api/v1/movies/<existing id>` with no credentials
+- **THEN** the response status is `405`, the `Allow` header includes `GET`, the `code` is `METHOD_NOT_ALLOWED`, and a following `GET` returns the movie unchanged
 
-Each movie SHALL be addressed by a stable identifier that is unique within the catalog and that does not expose internal storage details (such as database sequence numbers). The identifier presented in a movie's detail SHALL be the same value used to address it.
+### Requirement: Movie details behave identically in both runtime modes
+In standalone mode (no profile) and in persistent mode (`postgres` profile), the service SHALL apply the movie catalog schema at start-up and answer `GET /api/v1/movies/{id}` the same way for the same catalog contents: the same status, `Content-Type` and body structure for the not-found and malformed-identifier outcomes. The only difference between the modes is the sample movies described in "Standalone mode offers sample movies". Acceptance check: a shared movie runtime-mode assertion set, run by both the single H2 smoke test and the PostgreSQL integration test, asserts `404` `NOT_FOUND` for a random well-formed identifier and `400` `BAD_REQUEST` for `not-a-movie-id`.
+
+#### Scenario: Standalone start serves movie lookups
+- **WHEN** the service is started with no profile, and a client requests a random well-formed movie identifier
+- **THEN** the response status is `404` with `code` `NOT_FOUND`, not `500`
+
+#### Scenario: Persistent start serves movie lookups
+- **WHEN** the service is started with the `postgres` profile, and a client requests a random well-formed movie identifier
+- **THEN** the response status is `404` with `code` `NOT_FOUND`
+
+### Requirement: Standalone mode offers sample movies
+So that an evaluator can see successful answers without curating data, standalone mode (no profile) SHALL start with a small fixed set of sample movies. Their identifiers SHALL be fixed and published in the interface description's operation `description`. The set SHALL include at least:
+- `11111111-1111-4111-8111-111111111111`: a movie with runtime, synopsis, rating and at least two genres.
+- `22222222-2222-4222-8222-222222222222`: a movie with no runtime, synopsis or rating recorded and no genres.
+
+Persistent mode (`postgres` profile) SHALL NOT contain the sample movies. Its catalog holds only curated data. They SHALL be re-created identically at every standalone start. Acceptance check, primary: a plain unit test loads the configuration without booting the service and makes two assertions. The persistent-mode configuration's schema-migration locations are exactly the schema location, with no sample-data location. The standalone configuration's locations include the sample-data location. Tests that boot against PostgreSQL override the migration locations, so they cannot prove the persistent configuration excludes the samples. Acceptance check, standalone: the single H2 smoke test requests both sample identifiers. It asserts `200`, the presence of all optional members and a non-empty `genres` for the first. It asserts `genres` `[]` and no `runtimeMinutes`, `synopsis` or `rating` for the second. It SHALL NOT assert the order or the values of `genres`: genre ordering is verified against PostgreSQL by the requirement "Genres are listed by name in alphabetical order". Secondary check: the PostgreSQL integration test with the `postgres` profile asserts `404` `NOT_FOUND` for the first sample identifier.
+
+#### Scenario: Fully curated sample movie in standalone mode
+- **WHEN** the service is started with no profile and a client sends `GET /api/v1/movies/11111111-1111-4111-8111-111111111111`
+- **THEN** the response status is `200` and `data` contains `runtimeMinutes`, `synopsis`, `rating` and a non-empty `genres` array
+
+#### Scenario: Minimal sample movie in standalone mode
+- **WHEN** the service is started with no profile and a client sends `GET /api/v1/movies/22222222-2222-4222-8222-222222222222`
+- **THEN** the response status is `200`, `data.genres` is `[]`, and `data` has no `runtimeMinutes`, `synopsis` or `rating` key
+
+#### Scenario: No sample movies in persistent mode
+- **WHEN** the persistent-mode (`postgres` profile) configuration is loaded
+- **THEN** its schema-migration locations are exactly `classpath:db/migration` and do not include `classpath:db/demo`, so a client requesting `GET /api/v1/movies/11111111-1111-4111-8111-111111111111` against a curated database without that movie gets `404` `NOT_FOUND`
+
+### Requirement: Search and browse movies
+The service SHALL offer `GET /api/v1/movies`. Every query parameter is optional:
+- `title`: a title term;
+- `genre`: a genre name, which may be repeated;
+- `releaseYearFrom` and `releaseYearTo`: integers;
+- `minRating`: a number;
+- `sort`: an ordering;
+- `page` and `size`: see `platform/collection-paging`.
+
+A valid request SHALL be answered `200` with `Content-Type: application/json`, never `application/problem+json`, even when the request's `Accept` header names only the problem media type. The body SHALL be the uniform success envelope:
+- `data._embedded.movies` holds one movie summary for each movie on the requested page;
+- `data._links` holds the navigation links;
+- `meta` holds `timestamp`, `correlationId` and `pagination`.
+
+The paging, page metadata, links, empty-page behaviour and parameter refusals SHALL follow `platform/collection-paging`. The recognised parameters for link preservation are exactly the eight listed above. With no criteria, every movie in the catalog SHALL match (browsing). An empty value for a numeric parameter (`minRating=`, `releaseYearFrom=`, `releaseYearTo=`, `page=`, `size=`) SHALL be treated as if the parameter were absent. An empty `sort=` or `genre=` SHALL be refused, as defined below. When `title` or `sort` is given more than once, the values SHALL be joined into one value, with a comma between them. For `title`, the joined value is used as a literal term. For `sort`, the joined value is refused as an unsupported order. Acceptance check: a Testcontainers-backed test inserts three movies and sends `GET /api/v1/movies`. It asserts:
+- the status and `Content-Type`;
+- that `meta.correlationId` equals `X-Correlation-Id`;
+- that `meta.pagination.totalElements` is `3`;
+- three summaries;
+- that the body validates against the served interface description's closed schema.
+
+A web-slice test asserts that the empty numeric parameters reach the use case as absent, and that `title=a&title=b` reaches it as the term `a,b`.
+
+#### Scenario: Browse the whole catalog
+- **WHEN** a client sends `GET /api/v1/movies` with no query parameters while the catalog holds 3 movies
+- **THEN** the response status is `200`, the `Content-Type` is `application/json`, `data._embedded.movies` holds 3 summaries, and `meta.pagination.totalElements` is `3`
+
+#### Scenario: Empty numeric parameters are ignored
+- **WHEN** a client sends `GET /api/v1/movies?minRating=&releaseYearFrom=&releaseYearTo=`
+- **THEN** the response status is `200` and the result is the same as for `GET /api/v1/movies`
+
+#### Scenario: Repeated sort is refused
+- **WHEN** a client sends `GET /api/v1/movies?sort=title&sort=rating`
+- **THEN** the response status is `400`, `code` is `BAD_REQUEST`, and `detail` contains `'sort'`
+
+#### Scenario: Success is never labelled as a problem
+- **WHEN** a client sends `GET /api/v1/movies` with `Accept: application/problem+json`
+- **THEN** the response status is `200` and the `Content-Type` is `application/json`
+
+### Requirement: Movie summaries contain exactly the summary information
+Each movie summary SHALL contain only `id`, `title`, `releaseYear`, `genres`, `runtimeMinutes`, `rating` and `_links`. It SHALL NOT contain `synopsis`, keywords, cast, crew, credits, reviews or a vote count. The members SHALL follow the same rules as the movie's details:
+- `id` is the identifier in canonical lowercase form;
+- `releaseYear` is an integer;
+- `genres` is the movie's genre names, de-duplicated and in alphabetical order ignoring letter case, and is `[]` when the movie has no genres;
+- `runtimeMinutes` and `rating` are omitted when unrecorded, never `null`, `0` or another default value;
+- `rating` is written in its shortest exact decimal form.
+
+`_links` SHALL carry only `self`, whose `href` SHALL be identical to the `data._links.self.href` that `GET /api/v1/movies/{id}` returns for the same movie, under the same forwarded scheme and host. Acceptance check: a Testcontainers-backed test inserts:
+- a fully curated movie (with a synopsis);
+- a movie with nothing optional recorded and no genres;
+- a movie rated `5.0`.
+
+It asserts the exact member set of each summary and the literal JSON text of the ratings. It follows each `self.href` and asserts `200` and an equal `id`.
+
+#### Scenario: Fully curated movie summary has no synopsis
+- **WHEN** a client searches and the page contains a movie recorded with runtime `116`, synopsis `A linguist is recruited…`, rating `4.5` and genres `Sci-Fi`, `Drama`
+- **THEN** its summary has `runtimeMinutes` `116`, `rating` `4.5` and `genres` `["Drama", "Sci-Fi"]`, and has no `synopsis` member
+
+#### Scenario: Unrecorded details are absent
+- **WHEN** a client searches and the page contains a movie with no runtime or rating recorded and no genres
+- **THEN** its summary has `genres` `[]` and has no `runtimeMinutes` or `rating` key
+
+#### Scenario: Summary points to the movie's details
+- **WHEN** a client follows a summary's `_links.self.href`
+- **THEN** the response is `200` from `GET /api/v1/movies/{id}` with the same `id`
+
+### Requirement: Title term matches anywhere in the title, ignoring case
+When `title` is given and contains at least one non-whitespace character, a movie SHALL match only if the term appears as a contiguous substring anywhere in its title, compared ignoring letter case. The term SHALL be used as supplied, and is not trimmed. The characters `%`, `_` and `\` in the term SHALL be matched literally, never as wildcards. A quote character (`'`) in the term SHALL be matched literally like any other character, and SHALL NOT cause a refusal or a failure. An empty or whitespace-only `title` SHALL be treated as no title criterion, and SHALL NOT be refused. Acceptance check: a Testcontainers-backed test with the movies `The Grand Heist`, `Heist Night`, `Arrival`, `100%_Real` and `Ocean's Eleven` asserts the matches for `heist`, `HEIST`, `rand h`, `%`, `_`, `n's e` and `title=` (blank).
+
+#### Scenario: Case-insensitive substring
+- **WHEN** a client sends `GET /api/v1/movies?title=HEIST` while the catalog holds `The Grand Heist`, `Heist Night` and `Arrival`
+- **THEN** exactly `The Grand Heist` and `Heist Night` are returned and `totalElements` is `2`
+
+#### Scenario: Substring spanning a space
+- **WHEN** a client sends `GET /api/v1/movies?title=rand%20h` while the catalog holds `The Grand Heist`, `Heist Night` and `Arrival`
+- **THEN** only `The Grand Heist` is returned
+
+#### Scenario: Wildcard characters are literal
+- **WHEN** a client sends `GET /api/v1/movies?title=%25` while the catalog holds `100%_Real` and `Arrival`
+- **THEN** only `100%_Real` is returned
+
+#### Scenario: Quote in the term is matched literally
+- **WHEN** a client sends `GET /api/v1/movies?title=n's%20e` while the catalog holds `Ocean's Eleven` and `Arrival`
+- **THEN** the response status is `200` and only `Ocean's Eleven` is returned
+
+#### Scenario: Blank title term browses
+- **WHEN** a client sends `GET /api/v1/movies?title=%20%20`
+- **THEN** the response status is `200` and every movie in the catalog matches
+
+### Requirement: Genre filter requires every given genre
+Each `genre` value SHALL be recognised against the curated genre vocabulary, ignoring letter case. When one or more genres are given, a movie SHALL match only if it carries every one of them. Repeating the same genre, in any letter case, SHALL have the same effect as giving it once. A `genre` value that is not in the vocabulary, including an empty value, SHALL be refused with `400` `BAD_REQUEST`, and the `detail` SHALL name `'genre'`. The refusal SHALL NOT perform the search. Acceptance check: a Testcontainers-backed test with movies tagged `{Drama}`, `{Drama, Sci-Fi}` and `{Sci-Fi}` asserts the matches for `genre=drama`, for `genre=Drama&genre=SCI-FI`, and for `genre=Drama&genre=drama`. A web-slice test, with the mocked use case throwing the unknown-genre failure, asserts that `genre=Western` and `genre=` are refused with `detail` naming `'genre'`. An application-service unit test asserts that the search itself is never invoked for an unknown genre.
+
+#### Scenario: All given genres must be carried
+- **WHEN** a client sends `GET /api/v1/movies?genre=Drama&genre=sci-fi`
+- **THEN** only movies carrying both Drama and Sci-Fi are returned
+
+#### Scenario: Genre recognised ignoring case
+- **WHEN** a client sends `GET /api/v1/movies?genre=drama`
+- **THEN** the response status is `200` and every returned movie's `genres` contains `Drama`
+
+#### Scenario: Unknown genre is refused
+- **WHEN** a client sends `GET /api/v1/movies?genre=Western` and `Western` is not in the curated vocabulary
+- **THEN** the response status is `400`, `code` is `BAD_REQUEST`, `detail` contains `'genre'` and not `Western`, and no search is performed
+
+### Requirement: Release-year range is inclusive
+`releaseYearFrom` and `releaseYearTo` SHALL each be optional integer bounds, and both are inclusive. A movie SHALL match only if its release year is at or after `releaseYearFrom` when that is given, and at or before `releaseYearTo` when that is given. Equal bounds select only that year. When both are given and `releaseYearFrom` is greater than `releaseYearTo`, the request SHALL be refused with `400` `BAD_REQUEST`, and the `detail` SHALL name `'releaseYearFrom'`. A non-integer value SHALL be refused with `400`, and the `detail` SHALL name that parameter. Acceptance check: a Testcontainers-backed test with movies from 1998, 2005 and 2016 asserts the matches for `from=2005`, `to=2005`, `from=2005&to=2005` and `from=1999&to=2016`. A web-slice test asserts the refusal of `releaseYearFrom=2010&releaseYearTo=2000` and `releaseYearTo=abc`.
+
+#### Scenario: Both bounds count
+- **WHEN** a client sends `GET /api/v1/movies?releaseYearFrom=1998&releaseYearTo=2005` while movies from 1998, 2005 and 2016 are in the catalog
+- **THEN** exactly the 1998 and 2005 movies are returned
 
-Acceptance check: retrieve a movie and assert `data.id` is an opaque identifier (not an incrementing integer sequence) and that requesting the movie again by that same `data.id` returns the same movie.
+#### Scenario: A single year
+- **WHEN** a client sends `GET /api/v1/movies?releaseYearFrom=2005&releaseYearTo=2005`
+- **THEN** only movies released in 2005 are returned
 
-#### Scenario: Identifier round-trips and hides internal storage
-- **WHEN** a consumer retrieves a movie and reuses the `data.id` from the response to request it again
-- **THEN** the same movie is returned
-- **AND** the identifier does not reveal an internal storage sequence
+#### Scenario: Reversed range is refused
+- **WHEN** a client sends `GET /api/v1/movies?releaseYearFrom=2010&releaseYearTo=2000`
+- **THEN** the response status is `400`, `code` is `BAD_REQUEST`, `detail` contains `'releaseYearFrom'`, and no search is performed
 
-### Requirement: Search and browse the catalog as an ordered page of movie summaries
-
-The system SHALL provide a public, read-only collection operation that returns the movies matching the supplied criteria as an ordered **page of movie summaries**, together with paging metadata. The response SHALL use the standard success Envelope: `data` is a HAL collection resource carrying the summaries under `data._embedded.movies` and navigation links under `data._links`; `meta.pagination` SHALL report `page`, `size`, `totalElements`, and `totalPages`. The operation SHALL require no authentication and SHALL NOT mutate any catalog data. Success responses SHALL use `application/json`.
-
-A **movie summary** SHALL always include the movie's identifier, title, release year, and one or more genres, and SHALL include runtime and aggregate rating only when the movie has them recorded (an absent optional detail is omitted, not rendered null/empty). A summary SHALL NOT include the synopsis. Each summary SHALL carry a HAL `self` link that resolves to that movie's full detail (the retrieve-by-identifier operation).
-
-Acceptance check: issue the search operation with no criteria; assert HTTP `200 application/json`, `data._embedded.movies` is an array whose items each carry `id`, `title`, `releaseYear`, a non-empty `genres` array, `_links.self` resolving to that movie's detail, and no `synopsis` key; assert `meta.pagination` has `page`, `size`, `totalElements`, `totalPages`, and `meta.correlationId`/`meta.timestamp` are present; assert the catalog is unchanged.
-
-#### Scenario: Browse with no criteria returns a page of summaries
-- **WHEN** a consumer requests movies supplying no criteria
-- **THEN** the system responds `200` with the standard Envelope
-- **AND** `data._embedded.movies` is an array of movie summaries, each with id, title, release year, a non-empty genres list, and a `_links.self` to that movie's detail
-- **AND** no summary contains a synopsis
-- **AND** `meta.pagination` reports page, size, totalElements, and totalPages
-- **AND** the catalog is unchanged
-
-#### Scenario: Summary omits optional details that are not recorded
-- **WHEN** the result includes a movie that has no recorded runtime or rating
-- **THEN** that summary presents its required details and its recorded optional details only
-- **AND** the runtime and rating keys are omitted from that summary rather than shown as null
-
-#### Scenario: Search requires no authentication
-- **WHEN** a consumer requests movies without presenting any credential
-- **THEN** the system serves the request (it is not rejected as unauthenticated)
-
-### Requirement: Optional criteria combine conjunctively to narrow the result
-
-The system SHALL accept any combination of these optional criteria and SHALL include a movie only if it satisfies **every** supplied criterion (conjunctive; supplying more criteria can only narrow the result):
-- **Title term:** a **case-insensitive substring** match — a movie matches if its title contains the term anywhere. Any LIKE wildcard characters in the term (e.g. `%`, `_`) SHALL be treated as **literal** characters, not wildcards.
-- **Genre(s):** one or more genres; a movie matches only if it carries **all** supplied genres. A movie that carries the supplied genres **and additional genres beyond them** (a superset) SHALL still match — the criterion requires the supplied genres to be present, not that they be the movie's only genres.
-- **Release year:** an inclusive range with an optional lower bound and/or upper bound (either may be supplied alone); a movie matches if its release year falls within the supplied bound(s).
-- **Minimum rating:** an inclusive `>=` threshold on the 0–5 scale; a movie with **no** recorded rating SHALL be **excluded** when a minimum rating is supplied.
-
-When no criteria are supplied, every movie in the catalog SHALL match.
-
-Acceptance check: seed movies covering each dimension; assert a `title` term returns only movies whose title contains it case-insensitively; assert two genres return only movies carrying both; assert a movie carrying a superset of genres (e.g. {Drama, Crime, Action}) is still returned by a filter of {Drama, Crime}; assert a year range returns only movies within it (and each bound works alone); assert `minRating=4` returns only movies rated `>= 4` and excludes unrated movies; assert combining criteria returns only movies satisfying all of them; assert a `title` term containing `%` matches only titles containing that literal character.
-
-#### Scenario: Title term is a case-insensitive substring
-- **WHEN** a consumer searches with a title term
-- **THEN** the result contains exactly the movies whose title contains that term ignoring case, anywhere in the title
-
-#### Scenario: Title wildcard characters match literally
-- **WHEN** a consumer searches with a title term that contains a `%` or `_` character
-- **THEN** those characters are matched literally
-- **AND** the result does not treat them as wildcards matching arbitrary text
-
-#### Scenario: Multiple genres require all to be present
-- **WHEN** a consumer supplies more than one genre
-- **THEN** the result contains only movies that carry every supplied genre
-
-#### Scenario: A movie with extra genres still matches (superset)
-- **WHEN** a consumer supplies a set of genres and a movie carries all of those genres plus additional ones (e.g. the movie is {Drama, Crime, Action} and the filter is {Drama, Crime})
-- **THEN** that movie is included in the result
-- **AND** having genres beyond the supplied set does not exclude it
-
-#### Scenario: Release-year range with either or both bounds
-- **WHEN** a consumer supplies a release-year lower bound, upper bound, or both
-- **THEN** the result contains only movies whose release year falls within the supplied bound(s), inclusive
-
-#### Scenario: Minimum rating is inclusive and excludes unrated movies
-- **WHEN** a consumer supplies a minimum rating
-- **THEN** the result contains only movies whose recorded rating is greater than or equal to that minimum
-- **AND** movies with no recorded rating are excluded
-
-#### Scenario: Criteria combine to narrow the result
-- **WHEN** a consumer supplies several criteria together
-- **THEN** the result contains only movies that satisfy all of the supplied criteria
-
-### Requirement: Results are sorted by a supported field with a deterministic order
-
-The system SHALL order results by exactly one consumer-chosen field — `title`, `releaseYear`, or `rating` — in ascending or descending order. When the consumer requests no ordering, the default SHALL be `releaseYear` descending with `title` ascending as a tiebreak. The system SHALL always apply a **terminal unique tiebreak on the movie identifier** after the requested/default ordering, so that the total order is deterministic and paging across the full result set never skips or duplicates a movie.
-
-Acceptance check: request a sort by each supported field in each direction and assert the returned order matches; request the default and assert `releaseYear` desc then `title` asc; construct movies that tie on the sort field(s), page through the whole result at a small page size, and assert the concatenation of pages contains every movie exactly once with no gaps or repeats.
-
-#### Scenario: Sort by a supported field and direction
-- **WHEN** a consumer requests ordering by a supported field in a given direction
-- **THEN** the results are ordered by that field in that direction
-
-#### Scenario: Default ordering when none is requested
-- **WHEN** a consumer requests no ordering
-- **THEN** the results are ordered by release year descending, with title ascending as a tiebreak
-
-#### Scenario: Paging is stable across the full ordered result
-- **WHEN** a consumer pages through the entire result set at a small page size, including movies that tie on the sort field
-- **THEN** every matching movie appears exactly once across the pages, with none skipped or duplicated
-
-### Requirement: Results are paged with metadata and HAL navigation links
-
-The system SHALL return results one page at a time. The page size SHALL default to `20` and be capped at `100`; the page index SHALL be zero-based and default to `0`. Alongside each page the system SHALL report, in `meta.pagination`, which page it is, its size, the total number of matching movies, and the total number of pages. The reported `totalElements` SHALL equal the actual number of **distinct movies** matching the request under the identical criteria used to select the page rows — including the genre "all-of" filter and any literal-treated title wildcards — so that `totalElements`, `totalPages`, and the `next` link never disagree with the rows actually returned. The collection's `data._links` SHALL carry a `self` link plus page-navigation links (`first`, `last`, `prev`, `next`) using page/size semantics, subject to boundary rules: `prev` SHALL be absent on the first page and `next` SHALL be absent on the last page. Pagination counts live in `meta.pagination`; pagination link URLs live in `data._links` (no duplication).
-
-Acceptance check: with more matches than one page, request a middle page and assert `meta.pagination` reports the correct page/size/totalElements/totalPages and `data._links` contains `self`, `first`, `last`, `prev`, `next` with correct `page` query params; request the first page and assert no `prev`; request the last page and assert no `next`; request without `size` and assert size `20`.
-
-#### Scenario: Middle page reports metadata and all navigation links
-- **WHEN** a consumer requests a page that is neither first nor last
-- **THEN** `meta.pagination` reports the current page, size, total matching count, and total pages
-- **AND** `data._links` contains `self`, `first`, `last`, `prev`, and `next` with correct page query parameters
-
-#### Scenario: First page omits prev, last page omits next
-- **WHEN** a consumer requests the first page of a multi-page result
-- **THEN** `data._links` contains `next` but not `prev`
-- **AND** requesting the last page yields `prev` but not `next`
-
-#### Scenario: Default page size is applied
-- **WHEN** a consumer does not specify a page size
-- **THEN** the first page is returned at the default size of 20
-
-### Requirement: A valid request that matches nothing is an empty success
-
-The system SHALL treat a valid request that matches no movies as a normal `200` success presenting an empty page, NOT an error. This includes both a request whose criteria exclude every movie (total zero) and a valid request for a page beyond the last page of a non-empty result (total greater than zero). The reported total number of matching movies SHALL distinguish these two cases, and `data._links` on such a page SHALL still carry `self` and SHALL NOT carry a `next`.
-
-Acceptance check: issue criteria matching nothing and assert `200`, empty `data._embedded.movies`, `meta.pagination.totalElements == 0`, no `next` link; issue a valid `page` index beyond the last page of a non-empty result and assert `200`, empty `data._embedded.movies`, `meta.pagination.totalElements > 0`, and `data._links.self` present with no `next`.
-
-#### Scenario: Criteria match no movies
-- **WHEN** a consumer supplies valid criteria that match no movies
-- **THEN** the system responds `200` with an empty movie list
-- **AND** `meta.pagination.totalElements` is zero
-- **AND** `data._links` has no `next`
-
-#### Scenario: Page beyond the last page of a non-empty result
-- **WHEN** a consumer requests a valid page index beyond the last page of a result that does contain movies
-- **THEN** the system responds `200` with an empty movie list
-- **AND** `meta.pagination.totalElements` reports the true (non-zero) total
-- **AND** `data._links.self` is present and there is no `next`
-
-### Requirement: Invalid search criteria are rejected as a bad request
-
-The system SHALL reject a request whose criteria are invalid with a `400 application/problem+json` response conforming to the shared `Problem` schema and carrying the `correlationId`, WITHOUT attempting any matching. Invalid criteria include: an unsupported sort field, a negative page index, a page size below `1` or above `100`, a minimum rating outside `0–5`, and an unrecognized genre value. This outcome SHALL be distinct from a valid request that matches nothing, and SHALL NOT return `500`.
-
-Acceptance check: issue `sort` by an unsupported field, `page=-1`, `size=0`, `size=101`, `minRating=6`, and an unknown genre; for each assert HTTP `400 application/problem+json`, a stable machine `code`, a `correlationId`, no `_links`/`_embedded`, and that the response is not `500`.
-
-#### Scenario: Unsupported sort field is a bad request
-- **WHEN** a consumer requests ordering by a field the system does not support
-- **THEN** the system responds `400` with a problem+json body and does not attempt matching
-- **AND** the outcome is reported distinctly from a valid request that matches nothing
-
-#### Scenario: Out-of-bounds paging is a bad request
-- **WHEN** a consumer requests a negative page index, a page size below one, or a page size above the maximum
-- **THEN** the system responds `400` with a problem+json body carrying the correlationId
-- **AND** the response is not `500`
-
-#### Scenario: Out-of-range or unrecognized filter values are a bad request
-- **WHEN** a consumer supplies a minimum rating outside 0–5 or an unrecognized genre value
-- **THEN** the system responds `400` with a problem+json body
-- **AND** no matching is attempted
-
-### Requirement: A page of summaries is served with a bounded, page-size-independent query count
-
-The system SHALL fetch a page of movie summaries — including each movie's genres — using a number of database statements that does not grow with the page size (no per-row genre query / no N+1). The statement count SHALL remain constant whether a page contains one movie or the maximum of one hundred.
-
-Acceptance check: with the maximum page size and a full page of multi-genre movies, count the SQL statements issued for one search request (e.g. via Hibernate statistics) and assert the count is a small constant that is identical to the count observed for a single-movie page.
-
-#### Scenario: Query count does not scale with page size
-- **WHEN** the system serves a full page of movies that each carry multiple genres
-- **THEN** the number of database statements issued is a small constant
-- **AND** that count is the same as for a page containing a single movie
-
-### Requirement: Retrieve a movie's credits as separated cast and crew
-
-The system SHALL provide a public, read-only sub-resource operation that, given a well-formed movie identifier matching a movie in the catalog, returns that movie's credits separated into two groups: its **cast** (acting credits) and its **crew** (non-acting credits). The response SHALL use the standard success Envelope (`data` + `meta`) with `data` a HAL resource carrying the two groups as **two separate embedded relations** — `data._embedded.cast` and `data._embedded.crew` — never a single list distinguished by a type field. `data._links` SHALL carry a `self` link resolving to this credits sub-resource. The operation SHALL require no authentication, SHALL respond `application/json`, and SHALL NOT mutate any catalog data.
-
-Acceptance check: request the credits of an existing movie whose identifier is `M`; assert HTTP `200 application/json`, `data._embedded.cast` and `data._embedded.crew` are both present as arrays, `data._links.self` resolves to `M`'s credits, `meta.correlationId`/`meta.timestamp` are present, and the catalog is unchanged.
-
-#### Scenario: Existing movie returns cast and crew as two separate groups
-- **WHEN** a consumer requests the credits of a movie whose identifier matches a catalog movie
-- **THEN** the system responds `200` with the standard Envelope
-- **AND** `data._embedded.cast` and `data._embedded.crew` are both present as arrays
-- **AND** `data._links.self` points at that same movie's credits
-- **AND** the catalog is unchanged
-
-#### Scenario: Credits retrieval requires no authentication
-- **WHEN** a consumer requests a movie's credits without presenting any credential
-- **THEN** the system serves the request (it is not rejected as unauthenticated)
-
-### Requirement: Cast entries carry the performer, optional character, and billing, ordered by billing
-
-Each entry in `data._embedded.cast` SHALL name the performer (inline, `id` + `name`) and SHALL carry a `billingOrder` — a positive integer where `1` is top billing and a lower number is more prominent. Each cast entry SHALL carry the `character` the performer portrayed only when it is recorded; an unrecorded character SHALL be omitted from that entry entirely (not rendered as null or empty), and its absence SHALL NOT be treated as an error. The cast SHALL be ordered by `billingOrder` ascending (most prominent first).
-
-Acceptance check: seed a movie with several cast credits including one with no recorded character; assert every cast entry carries `person.id`, `person.name`, and a positive-integer `billingOrder`; assert the entry with no character omits the `character` key (not null); assert the entries appear ordered by `billingOrder` ascending.
-
-#### Scenario: Cast is ordered by billing position ascending
-- **WHEN** a consumer retrieves a movie whose cast has several performers at different billing positions
-- **THEN** the cast entries are ordered by `billingOrder` ascending, top billing (`1`) first
-
-#### Scenario: A cast entry with no recorded character omits it
-- **WHEN** a cast entry has no recorded character
-- **THEN** that entry presents its performer and billing position
-- **AND** the `character` key is omitted from that entry rather than shown as null or empty
-
-### Requirement: Crew entries carry the contributor, department, and job, ordered by department then job
-
-Each entry in `data._embedded.crew` SHALL name the contributor (inline, `id` + `name`) and SHALL carry a `department` (the area of work, e.g. directing, writing, music) and a `job` (the specific role, e.g. director, screenplay, composer), both free text with no controlled vocabulary. The crew SHALL be ordered by `department` ascending, then by `job` ascending, both compared case-insensitively, so contributors in the same area appear together.
-
-Acceptance check: seed a movie with crew credits across departments and jobs differing only in case; assert every crew entry carries `person.id`, `person.name`, a `department`, and a `job`; assert the entries appear ordered by `department` then `job` ascending, case-insensitively.
-
-#### Scenario: Crew is ordered by department then job, case-insensitively
-- **WHEN** a consumer retrieves a movie whose crew spans several departments and jobs
-- **THEN** the crew entries are ordered by `department` ascending, then `job` ascending
-- **AND** the ordering compares department and job case-insensitively so same-area contributors are grouped together
-
-### Requirement: Credited people are named inline only, with no onward person link
-
-Wherever a person appears in a movie's credits (in a cast or crew entry), the system SHALL expose that person inline as their `id` and `name` only. In this capability the inline person SHALL NOT carry any onward link to a standalone person resource, because no such resource exists yet. The inline person representation is shared by cast and crew entries.
-
-Acceptance check: retrieve a movie's credits and assert each cast and crew entry's inline person carries exactly `id` and `name`, and that no person object carries a `_links` (or any onward navigation target).
-
-#### Scenario: Inline person carries id and name only, no onward link
-- **WHEN** a consumer retrieves a movie's credits
-- **THEN** each cast and crew entry names its person by `id` and `name`
-- **AND** no person object carries an onward link to a person resource
-
-### Requirement: An existing movie with no credits is an empty success, not a not-found
-
-The system SHALL treat an existing movie that has no cast and/or no crew recorded as a normal `200` success presenting the corresponding group(s) as an empty array — NOT a `404` and NOT an error. A movie with cast but no crew (or crew but no cast) SHALL present whichever group has entries and present the other group as empty.
-
-Acceptance check: retrieve the credits of an existing movie with no cast or crew and assert `200`, `data._embedded.cast == []`, `data._embedded.crew == []`, and `data._links.self` present; retrieve one with cast but no crew and assert its crew array is empty while its cast is populated.
-
-#### Scenario: Movie with no cast or crew is a 200 with empty groups
-- **WHEN** a consumer retrieves the credits of an existing movie that has no credits recorded
-- **THEN** the system responds `200` with `data._embedded.cast` and `data._embedded.crew` both empty
-- **AND** the response is not a not-found
-
-#### Scenario: Movie with one group empty presents the other populated
-- **WHEN** a consumer retrieves the credits of a movie that has cast but no crew (or crew but no cast)
-- **THEN** the populated group is returned with its entries
-- **AND** the other group is returned as an empty array
-
-### Requirement: Credits are returned whole, not paginated
-
-The system SHALL return a movie's full set of cast and crew in a single response, not one page at a time. The credits operation SHALL NOT accept or require paging parameters, and `meta` SHALL NOT carry pagination for this operation.
-
-Acceptance check: retrieve the credits of a movie with many cast and crew and assert the full set is returned in one response with no pagination metadata and no page/size parameters honored.
-
-#### Scenario: Full cast and crew returned in one response
-- **WHEN** a consumer retrieves the credits of a movie with many cast and crew members
-- **THEN** the entire cast and crew are returned in a single response
-- **AND** the response carries no pagination metadata
-
-### Requirement: Credits for a malformed identifier are rejected as a bad request before lookup
-
-The system SHALL reject a credits request whose supplied movie identifier is not a well-formed identifier with a `400 application/problem+json` response, WITHOUT attempting to locate any movie or its credits. This outcome SHALL be distinct from the not-found outcome and SHALL leave the catalog unchanged.
-
-Acceptance check: request credits with an identifier that is not a well-formed movie identifier; assert HTTP `400 application/problem+json`, a stable machine `code`, and a `correlationId`; assert no catalog lookup occurred.
-
-#### Scenario: Malformed movie identifier on the credits sub-resource
-- **WHEN** a consumer requests credits using a value that is not a well-formed movie identifier
-- **THEN** the system responds `400` with a problem+json body
-- **AND** it does not attempt to locate any movie or credits
-- **AND** the outcome is reported distinctly from not-found
-
-### Requirement: Credits for a well-formed unknown movie identifier are not found
-
-The system SHALL respond `404 application/problem+json` when a credits request supplies a well-formed identifier that matches no movie in the catalog. This SHALL be reported as a distinct outcome from a malformed request and from an existing movie with no credits recorded, and SHALL leave the catalog unchanged.
-
-Acceptance check: request credits with a well-formed identifier matching no movie; assert HTTP `404 application/problem+json`, a stable machine `code`, and a `correlationId`; assert the outcome is distinct from an existing movie with empty credits (which is `200`).
-
-#### Scenario: No movie carries the identifier
-- **WHEN** a consumer requests credits using a well-formed identifier that matches no catalog movie
-- **THEN** the system responds `404` with a problem+json body
-- **AND** the outcome is reported distinctly from a malformed request and from an existing movie with empty credits
+### Requirement: Minimum rating is inclusive and excludes unrated movies
+`minRating` SHALL be a number from `0` to `5` inclusive. When it is given, a movie SHALL match only if it has a recorded rating greater than or equal to `minRating`. Movies with no recorded rating SHALL NOT match, even when `minRating` is `0`. A value below `0`, above `5`, or not a number SHALL be refused with `400` `BAD_REQUEST`, and the `detail` SHALL name `'minRating'`. Acceptance check: a Testcontainers-backed test with movies rated `3.0` and `4.5` and one unrated movie asserts the matches for `minRating=4.5`, `minRating=3` and `minRating=0`. A web-slice test asserts the refusal of `-0.1`, `5.1` and `abc`.
+
+#### Scenario: Inclusive minimum
+- **WHEN** a client sends `GET /api/v1/movies?minRating=4.5` while movies rated `3.0` and `4.5` are in the catalog
+- **THEN** only the movie rated `4.5` is returned
+
+#### Scenario: Unrated movies are left out
+- **WHEN** a client sends `GET /api/v1/movies?minRating=0` while the catalog holds one rated and one unrated movie
+- **THEN** only the rated movie is returned
+
+#### Scenario: Rating outside the scale is refused
+- **WHEN** a client sends `GET /api/v1/movies?minRating=5.1`
+- **THEN** the response status is `400`, `code` is `BAD_REQUEST`, and `detail` contains `'minRating'`
+
+### Requirement: All criteria combine
+When several criteria are given (title, genres, release-year range, minimum rating), a movie SHALL match only if it meets every one of them. Acceptance check: a Testcontainers-backed test in which each of four movies fails exactly one criterion of a combined search, and a fifth meets them all, asserts that only the fifth is returned.
+
+#### Scenario: Every criterion must hold
+- **WHEN** a client sends `GET /api/v1/movies?title=night&genre=Thriller&releaseYearFrom=2000&minRating=3` and only one movie meets all four criteria
+- **THEN** exactly that movie is returned and `totalElements` is `1`
+
+### Requirement: Results are in a chosen, complete and stable order
+`sort` SHALL accept exactly one of these values, which are case-sensitive: `title`, `-title`, `releaseYear`, `-releaseYear`, `rating` or `-rating`. A leading `-` means descending, and no prefix means ascending. Titles SHALL be compared ignoring letter case. When `sort` is absent, the order SHALL be release year descending, then title ascending ignoring case. When ordering by `rating`, movies with no recorded rating SHALL come after every rated movie, in both directions. After the chosen order, the service SHALL always apply a final, fixed tiebreak, so that:
+- the same request against the same catalog always returns the same movies in the same order;
+- walking every page returns each matching movie exactly once.
+
+The tiebreak is not a consumer-selectable or documented ordering. Any other `sort` value, including an empty one, SHALL be refused with `400` `BAD_REQUEST`, and the `detail` SHALL name `'sort'`. Acceptance check: Testcontainers-backed tests assert:
+- the exact order for each of the six values and for the default;
+- unrated movies last for `rating` and for `-rating`;
+- that ten movies sharing one title and year, walked with `size=3` over four pages, return all ten exactly once and in the same order on a repeat walk.
+
+A web-slice test asserts the refusal of `sort=Title`, `sort=synopsis` and `sort=`.
+
+#### Scenario: Default order
+- **WHEN** a client sends `GET /api/v1/movies` while the catalog holds `Arrival` (2016), `Laugh Track` (1998), `Zebra` (2016) and `alpha` (2016)
+- **THEN** the order is `alpha`, `Arrival`, `Zebra`, `Laugh Track`
+
+#### Scenario: Rating descending with unrated last
+- **WHEN** a client sends `GET /api/v1/movies?sort=-rating` while movies rated `3.0`, `4.5` and one unrated movie are in the catalog
+- **THEN** the order is the `4.5` movie, the `3.0` movie, then the unrated movie
+
+#### Scenario: Rating ascending with unrated last
+- **WHEN** a client sends `GET /api/v1/movies?sort=rating` with the same catalog
+- **THEN** the order is the `3.0` movie, the `4.5` movie, then the unrated movie
+
+#### Scenario: Ties never duplicate or skip across pages
+- **WHEN** a client walks `GET /api/v1/movies?sort=title&size=3` over every page while ten movies share the same title
+- **THEN** each of the ten movies appears exactly once across the pages, and a second walk returns the same sequence
+
+#### Scenario: Unsupported order is refused
+- **WHEN** a client sends `GET /api/v1/movies?sort=synopsis`
+- **THEN** the response status is `400`, `code` is `BAD_REQUEST`, `detail` contains `'sort'`, and no search is performed
+
+### Requirement: A search that matches nothing is a success
+A valid search that matches no movie, including any search against an empty catalog, SHALL be answered `200` with an empty `data._embedded.movies`, `totalElements` `0`, and the links defined by `platform/collection-paging`. It SHALL NOT be answered `404`. It SHALL be distinguishable from a refused search by status, `Content-Type` and body shape. Acceptance check: a Testcontainers-backed test against an empty catalog, and a no-match `title` search against a non-empty catalog.
+
+#### Scenario: Empty catalog
+- **WHEN** a client sends `GET /api/v1/movies` while the catalog holds no movies
+- **THEN** the response status is `200`, `data._embedded.movies` is `[]`, `meta.pagination.totalElements` is `0`, and `data._links.self` is present
+
+### Requirement: Search internal fault is reported generically
+If a search fails because of an unexpected internal fault (for example, the catalog store is unreachable), the service SHALL respond `500` `application/problem+json` with `code` `INTERNAL_ERROR`, `detail` `An unexpected error occurred.`, and the request's `correlationId`. The body SHALL reveal no internal detail. Acceptance check: a web-slice test in which the search throws an exception whose message is `secret-db-host:5432 refused`. It asserts `500`, `INTERNAL_ERROR`, the generic detail, and that `secret-db-host` does not appear in the body.
+
+#### Scenario: Search fails unexpectedly
+- **WHEN** a client sends `GET /api/v1/movies` and the search throws `secret-db-host:5432 refused`
+- **THEN** the response status is `500`, `code` is `INTERNAL_ERROR`, `detail` is `An unexpected error occurred.`, and the body does not contain `secret-db-host`
+
+### Requirement: Movie search is public and read-only
+Searching SHALL require no credentials, and no credential presented SHALL be validated. Searching SHALL NOT change catalog data. `POST`, `PUT`, `PATCH` and `DELETE` on `/api/v1/movies` SHALL respond `405` `application/problem+json` with `code` `METHOD_NOT_ALLOWED` and an `Allow` header that includes `GET`. They SHALL NOT respond `2xx`, `401`, `403` or `5xx`. Acceptance check: a web-slice test sends `GET /api/v1/movies` with `Authorization: Bearer garbage` and asserts `200`. A parameterised web test covers the four write methods, with a JSON body, no credentials and no CSRF token. A Testcontainers-backed test then asserts that `totalElements` is unchanged on a following `GET`.
+
+#### Scenario: Anonymous search
+- **WHEN** a client sends `GET /api/v1/movies` with no `Authorization` header
+- **THEN** the response status is `200`
+
+#### Scenario: A presented credential is ignored
+- **WHEN** a client sends `GET /api/v1/movies` with `Authorization: Bearer garbage`
+- **THEN** the response status is `200`, not `401`
+
+#### Scenario: Attempt to add a movie is refused
+- **WHEN** a client sends `POST /api/v1/movies` with a JSON body and no credentials
+- **THEN** the response status is `405`, the `Allow` header includes `GET`, `code` is `METHOD_NOT_ALLOWED`, and a following `GET /api/v1/movies` reports the same `totalElements`
+
+### Requirement: Movie search responds in both runtime modes
+In standalone mode (no profile) and in persistent mode (`postgres` profile), the service SHALL answer `GET /api/v1/movies`. It SHALL refuse invalid parameters in both modes with the same status, `code` and parameter-naming `detail`. In standalone mode, browsing SHALL return the seeded sample movies. Correctness of matching and ordering is specified by the requirements above, and is verified against PostgreSQL only. Acceptance check: a shared movie-search runtime-mode assertion set, run by both the H2 smoke test and the PostgreSQL integration test, asserts:
+- `200` for `GET /api/v1/movies`;
+- `400` `BAD_REQUEST` naming `'size'` for `size=0`;
+- `400` naming `'genre'` for `genre=Western`.
+
+The H2 smoke test also asserts that browsing returns `200` and that the returned ids include the sample identifiers `11111111-1111-4111-8111-111111111111` and `22222222-2222-4222-8222-222222222222`. It asserts no order and no filter result.
+
+#### Scenario: Standalone browse returns the sample movies
+- **WHEN** the service is started with no profile and a client sends `GET /api/v1/movies`
+- **THEN** the response status is `200`, and `data._embedded.movies` includes the sample movies `11111111-1111-4111-8111-111111111111` and `22222222-2222-4222-8222-222222222222`
+
+#### Scenario: Persistent mode refuses invalid paging the same way
+- **WHEN** the service is started with the `postgres` profile and a client sends `GET /api/v1/movies?size=0`
+- **THEN** the response status is `400`, `code` is `BAD_REQUEST`, and `detail` contains `'size'`
+
+#### Scenario: Standalone mode refuses invalid paging the same way
+- **WHEN** the service is started with no profile and a client sends `GET /api/v1/movies?size=0`
+- **THEN** the response status is `400`, `code` is `BAD_REQUEST`, and `detail` contains `'size'`

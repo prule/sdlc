@@ -1,18 +1,19 @@
 package com.acme.catalog.movies.application.port.in;
 
-import com.acme.catalog.movies.domain.model.MoviePage;
-import com.acme.catalog.movies.domain.model.MoviePageRequest;
+import com.acme.catalog.movies.domain.model.InvalidSearchCriterionException;
 import com.acme.catalog.movies.domain.model.MovieSearchCriteria;
-import com.acme.catalog.movies.domain.model.MovieSort;
+import com.acme.catalog.movies.domain.model.MovieSortOrder;
+import com.acme.catalog.movies.domain.model.MovieSummary;
+import com.acme.shared.domain.paging.Page;
+import com.acme.shared.domain.paging.PageRequest;
 
-/** Inbound port: search/browse the movie catalog as an ordered, paged result. */
+/** Inbound port for searching and browsing movies (UC-002). */
 public interface SearchMoviesUseCase {
 
   /**
-   * @param criteria optional, conjunctive search criteria
-   * @param pageRequest the requested page (index + size)
-   * @param sort the requested (or default) ordering
-   * @return the requested page of matching movies plus page metadata
+   * @throws InvalidSearchCriterionException if a genre in {@code criteria} is not in the curated
+   *     vocabulary
    */
-  MoviePage search(MovieSearchCriteria criteria, MoviePageRequest pageRequest, MovieSort sort);
+  Page<MovieSummary> search(
+      MovieSearchCriteria criteria, MovieSortOrder order, PageRequest pageRequest);
 }
