@@ -23,14 +23,6 @@ spring:
     enabled: true
     locations: classpath:db/migration,classpath:db/demo
 
-# Custom namespace (not spring.security.oauth2.resourceserver.jwt.*) so Spring Boot's
-# resource-server auto-configuration never activates; the JwtDecoder bean in SecurityConfig
-# builds the decoder itself, composing the issuer defaults with an audience validator.
-security:
-  jwt:
-    issuer-uri: ${OAUTH2_ISSUER_URI:}
-    expected-audience: ${OAUTH2_EXPECTED_AUDIENCE:sdlc-api}
-
 server:
   port: ${SERVER_PORT:8080}
   servlet:
