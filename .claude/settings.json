@@ -7,21 +7,22 @@
     "BASH_MAX_TIMEOUT_MS": "600000"
   },
   "permissions": {
-    "defaultMode": "acceptEdits",
     "deny": [
       "Bash(gradle publish:*)",
       "Bash(./gradlew publish:*)"
-    ]
+    ],
+    "defaultMode": "acceptEdits"
+  },
+  "enabledPlugins": {
+    "sdlc-pipeline@sdlc-pipeline": true
   },
   "extraKnownMarketplaces": {
     "sdlc-pipeline": {
       "source": {
         "source": "github",
         "repo": "prule/sdlc-pipeline"
-      }
+      },
+      "autoUpdate": true
     }
-  },
-  "enabledPlugins": {
-    "sdlc-pipeline@sdlc-pipeline": true
   }
 }
