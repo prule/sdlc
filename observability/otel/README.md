@@ -8,7 +8,7 @@ Claude Code ──OTLP──▶ OpenTelemetry Collector ──▶ Prometheus (me
 ```
 
 This is the metrics-, cost-, and trend-oriented alternative to the lightweight hooks logger
-(`.claude/hooks/`). Run both and compare — hooks answer *"what did this run touch?"*, OTel answers
+(the sdlc-pipeline plugin's hooks, which write `logs/pipeline-events.jsonl`). Run both and compare — hooks answer *"what did this run touch?"*, OTel answers
 *"what did it cost, how many tokens, and how does it trend across runs?"*
 
 Everything here is **local-only and unauthenticated** — don't expose the ports beyond localhost.
@@ -57,7 +57,7 @@ claude
 as normal — e.g.:
 
 ```
-/build-ticket <your ticket>
+/sdlc-pipeline:build-use-case use-cases/UC-<n>-<slug>.md
 ```
 
 Every agent spawn, tool call, API request, and token/cost is exported while it runs. Metrics flush

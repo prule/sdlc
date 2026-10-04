@@ -47,5 +47,8 @@ When a change introduces a new term or a durable rule, record it in `domain/` as
 - Commit every `reports/sessions/` report and `retrospectives/` record with the change.
 
 ## Delivery pipeline
-`/build-ticket` runs the agents in `.claude/agents/` through OpenSpec (`openspec/config.yaml` holds the
-design-time rules). Every run writes a record in `retrospectives/`. See `README.md`.
+The [sdlc-pipeline](https://github.com/prule/sdlc-pipeline) plugin (enabled in `.claude/settings.json`)
+provides the agents and `/sdlc-pipeline:build-use-case`, which takes a use case from `use-cases/` through
+OpenSpec. **[.claude/sdlc-profile.md](.claude/sdlc-profile.md)** gives the agents this project's commands,
+implementation rules and review checklists; `openspec/config.yaml` holds the design-time rules. Every run
+writes a record in `retrospectives/`. See `README.md`.

@@ -116,4 +116,4 @@ public abstract class PostgresIntegrationTest {
 - Every new/changed requirement has happy-path + edge + failure tests.
 - Every DB-touching path has an integration test on the project's target database (Testcontainers).
 - `./gradlew build` (tests + lint) is green locally and in CI before review.
-- QA treats a missing test for a requirement as a defect (see [../.claude/agents/qa.md](../.claude/agents/qa.md)).
+- QA treats a missing test for a requirement as a defect (the sdlc-pipeline `qa` agent; this project's checklist is in [../.claude/sdlc-profile.md](../.claude/sdlc-profile.md)).

@@ -1,12 +1,14 @@
 # retrospectives
 
-One record per `/build-ticket` run, written by the orchestrator at the end of the run — including
+One record per `/sdlc-pipeline:build-use-case` run (`/build-ticket` before the pipeline moved into the
+[sdlc-pipeline](https://github.com/prule/sdlc-pipeline) plugin), written by the orchestrator at the end of the run — including
 runs that stop at a gate, escalate, or abort. They are the pipeline's memory: what the review gates
 caught, why it happened, and what to change so it doesn't happen again.
 
 - **File name:** `<YYYY-MM-DD>-<change-name>.md`, e.g. `2026-10-03-add-movie-search.md`. A second
   run of the same change on the same day gets `-2`, `-3`, …
-- **Format:** [TEMPLATE.md](TEMPLATE.md). Front matter for the run's facts, then the gate log, failed
+- **Format:** the plugin's
+  [retrospective template](https://github.com/prule/sdlc-pipeline/blob/main/templates/retrospective.md). Front matter for the run's facts, then the gate log, failed
   reviews, standards violations, other defects, and deduplicated recommendations.
 - **Source:** each gate agent (`spec-reviewer`, `qa`, `senior-dev`) ends its report with a
   *Run-log findings* block (root cause and recommendation per finding); the orchestrator adds the
