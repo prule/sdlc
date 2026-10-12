@@ -1,12 +1,13 @@
 {
-  "name": "sdlc-openapi-tooling",
-  "version": "0.0.1",
-  "private": true,
-  "description": "Pinned CLI tooling for the OpenAPI contract-first pipeline (bundling + spec lint).",
-  "devDependencies": {
-    "@redocly/cli": "2.50.0"
-  },
-  "scripts": {
-    "preinstall": "npx only-allow pnpm"
-  }
+    "name": "sdlc-openapi-tooling",
+    "version": "0.0.1",
+    "private": true,
+    "packageManager": "pnpm@11.18.0",
+    "description": "Pinned CLI tooling for the OpenAPI contract-first pipeline (bundling + spec lint).",
+    "devDependencies": {
+        "@redocly/cli": "2.50.0"
+    },
+    "scripts": {
+        "preinstall": "npx only-allow pnpm"
+    }
 }
