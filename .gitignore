@@ -13,3 +13,8 @@ logs/
 # python
 __pycache__/
 *.pyc
+
+# Enforce pnpm: these must never be committed.
+package-lock.json
+yarn.lock
+npm-shrinkwrap.json

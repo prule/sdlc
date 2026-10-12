@@ -5,5 +5,8 @@
   "description": "Pinned CLI tooling for the OpenAPI contract-first pipeline (bundling + spec lint).",
   "devDependencies": {
     "@redocly/cli": "2.50.0"
+  },
+  "scripts": {
+    "preinstall": "npx only-allow pnpm"
   }
 }

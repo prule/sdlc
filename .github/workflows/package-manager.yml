@@ -1,0 +1,26 @@
+name: package-manager
+
+# Layer 3 of the pnpm guard. The preinstall `only-allow` hook is bypassed by
+# `npm install --ignore-scripts`, and .gitignore stops a stray lockfile being
+# committed but says nothing if one is force-added. This catches both.
+on: [push, pull_request]
+
+jobs:
+  lockfile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reject non-pnpm lockfiles
+        run: |
+          fail=0
+          for f in package-lock.json yarn.lock npm-shrinkwrap.json; do
+            if [ -f "$f" ]; then
+              echo "::error file=$f::This project uses pnpm. Remove $f and run 'pnpm install'."
+              fail=1
+            fi
+          done
+          if [ ! -f pnpm-lock.yaml ]; then
+            echo "::error::pnpm-lock.yaml is missing — it must be committed."
+            fail=1
+          fi
+          exit $fail

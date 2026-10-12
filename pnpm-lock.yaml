@@ -1,0 +1,24 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .:
+    devDependencies:
+      '@redocly/cli':
+        specifier: 2.50.0
+        version: 2.50.0
+
+packages:
+
+  '@redocly/cli@2.50.0':
+    resolution: {integrity: sha512-PGTCMh1vhf87xMbN8b2ORXnW1HINYC9t9pqpSLJu3cMk1cL1a/UNl+yORlU7ozC14HisZDfmEwHl/ttjcG4KjQ==}
+    engines: {node: '>=22.12.0 || >=20.19.0 <21.0.0', npm: '>=10'}
+    hasBin: true
+
+snapshots:
+
+  '@redocly/cli@2.50.0': {}
