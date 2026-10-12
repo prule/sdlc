@@ -74,12 +74,14 @@ val bundleOpenApiSpec =
         group = "openapi tools"
         inputs.dir(openApiSourceDir)
         // Track the pinned bundler version so a redocly bump re-bundles instead of serving a stale artifact.
-        inputs.file(file("$rootDir/package-lock.json"))
+        inputs.file(file("$rootDir/pnpm-lock.yaml"))
         outputs.file(openApiBundledSpec)
         doFirst { openApiBundledSpec.parentFile.mkdirs() }
+        // `pnpm exec` is the equivalent of `npx --no-install`: it resolves the
+        // binary from the local node_modules and never fetches.
         commandLine(
-            "npx",
-            "--no-install",
+            "pnpm",
+            "exec",
             "redocly",
             "bundle",
             openApiSourceSpec.path,
